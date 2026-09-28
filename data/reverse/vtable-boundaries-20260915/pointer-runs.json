@@ -1,0 +1,7322 @@
+[
+  {
+    "anchor": "0x14035d380",
+    "class_name": ".?AVFullMotionVideo@DMC3@@",
+    "count": 20,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x14035d420",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14035d428",
+    "class_name": ".?AVFullMotionVideoManager@DMC3@@",
+    "count": 18,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14035d4b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14036e948",
+    "class_name": ".?AVReadRequest@AsyncIOThread@?A0xdf511c96@@",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14036e950",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14036f508",
+    "class_name": "gfxClut",
+    "count": 4,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14036f528",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1403712a8",
+    "class_name": ".?AVPCFullMotionVideoManager@DMC3@@",
+    "count": 18,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140371338",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140371370",
+    "class_name": ".?AUPlaySoundStreamVoiceContext@DMC3@@",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1403713b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1403713b8",
+    "class_name": ".?AVPCFullMotionVideo@DMC3@@",
+    "count": 20,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140371458",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140371460",
+    "class_name": ".?AVPCFullMotionVideo@DMC3@@",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1403714a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140371b10",
+    "class_name": "PCRenderTarget",
+    "count": 5,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140371b38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5388",
+    "class_name": "gfxTexture",
+    "count": 4,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c53a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c55b8",
+    "class_name": "PCCriticalSection",
+    "count": 4,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c55d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5c20",
+    "class_name": "IActor",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5d10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5d18",
+    "class_name": "CWork",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5d50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5d58",
+    "class_name": "CActor",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5d98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5da0",
+    "class_name": "CActor",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5e90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5e98",
+    "class_name": "CActor",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c5eb0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5f08",
+    "class_name": "CAfterImage",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c5f40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5f78",
+    "class_name": "CSystemData",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5f80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5f88",
+    "class_name": "CSceneMgr",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5f98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5fa0",
+    "class_name": "CSceneFactoryApp",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c5fa8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c5fb0",
+    "class_name": "CSceneMgrRoot",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c5fc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6288",
+    "class_name": "CSpline",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c6290",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6298",
+    "class_name": "CCameraRailBase",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c62e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c62e8",
+    "class_name": "CCameraPan",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c6330",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6338",
+    "class_name": "CCameraRail",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c6380",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6388",
+    "class_name": "CCameraRailW",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c63d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c63d8",
+    "class_name": "CCameraRel",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c6420",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c65a0",
+    "class_name": "ICollisionHandle",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c65b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c65f0",
+    "class_name": "ICom",
+    "count": 24,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c66b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c66b8",
+    "class_name": "CCom",
+    "count": 44,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c6818",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6830",
+    "class_name": "IComActionState",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c6868",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6870",
+    "class_name": "IComAction",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c68b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c68c0",
+    "class_name": "CComAction",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c69d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c6a18",
+    "class_name": "CComEm000",
+    "count": 256,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c7218",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c7220",
+    "class_name": "CComEm000",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c7268",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c7310",
+    "class_name": "CComEm005",
+    "count": 73,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c7558",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c7560",
+    "class_name": "CComEm005",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c75a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c75e0",
+    "class_name": "CComEm006",
+    "count": 262,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c7e10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c7e18",
+    "class_name": "CComEm006",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c7e60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c7ea0",
+    "class_name": "CComEm008",
+    "count": 262,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c86d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c86d8",
+    "class_name": "CComEm008",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c8720",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8780",
+    "class_name": "CCustomize",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8788",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8790",
+    "class_name": "CCustomizeData",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c8798",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8848",
+    "class_name": "IDamage",
+    "count": 4,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8868",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8870",
+    "class_name": "CDamage",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8898",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c88a0",
+    "class_name": "CDamage",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c88b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c88c0",
+    "class_name": "CDamageDeath",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c88e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c88f0",
+    "class_name": "CDamageDeath",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8908",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8910",
+    "class_name": "CDamageMulti",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8938",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8940",
+    "class_name": "CDamageMulti",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8958",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8960",
+    "class_name": "CDamageIndex",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8988",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8990",
+    "class_name": "CDamageIndex",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c89a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c89b0",
+    "class_name": "IDamageCalc",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c89d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c89e0",
+    "class_name": "CDamageCalc",
+    "count": 5,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c8a08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8a40",
+    "class_name": "CDemoProg",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8a78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8a80",
+    "class_name": "IDifficult",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8ab8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8ac0",
+    "class_name": "CDifficult",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c8af8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8b58",
+    "class_name": "IDrawOperate",
+    "count": 45,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8cc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8cc8",
+    "class_name": "CDrawOperate",
+    "count": 45,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c8e30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c8e38",
+    "class_name": "IDraw",
+    "count": 58,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9008",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9010",
+    "class_name": "CDraw",
+    "count": 59,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c91e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c91f0",
+    "class_name": "CDraw",
+    "count": 45,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9358",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9360",
+    "class_name": "CDrawSCM",
+    "count": 58,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9530",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9538",
+    "class_name": "CDrawSCM",
+    "count": 45,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c96a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c96e0",
+    "class_name": "IDrawCrush",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9720",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9728",
+    "class_name": "CDrawCrush",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9768",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9798",
+    "class_name": "IDrawShadow",
+    "count": 4,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c97b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c97c0",
+    "class_name": "CDrawShadow",
+    "count": 4,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c97e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9810",
+    "class_name": "IDrawUV",
+    "count": 4,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9830",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9838",
+    "class_name": "CDrawUV",
+    "count": 4,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9858",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9900",
+    "class_name": "CEfc",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9938",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9940",
+    "class_name": "CEfcCartridge",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9978",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c99b0",
+    "class_name": "CEfcPub",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c99e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9a68",
+    "class_name": "CEfcShadow",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9aa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9af8",
+    "class_name": "CEm000",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9bb0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9bb8",
+    "class_name": "CEm000",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9ca8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9cb0",
+    "class_name": "CEm000",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9cc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9cd0",
+    "class_name": "CEm000",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9d80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9d88",
+    "class_name": "CEm000",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9d90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9e48",
+    "class_name": "CEm000Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9e88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9e90",
+    "class_name": "CEm000Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404c9f80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9f88",
+    "class_name": "CEm000Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404c9fa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404c9ff8",
+    "class_name": "CEm000Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca038",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca040",
+    "class_name": "CEm000Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca138",
+    "class_name": "CEm000Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ca150",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca1a8",
+    "class_name": "CEm001",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca260",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca268",
+    "class_name": "CEm001",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca358",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca360",
+    "class_name": "CEm001",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca378",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca380",
+    "class_name": "CEm001",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca430",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca438",
+    "class_name": "CEm001",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ca440",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca4a0",
+    "class_name": "CEm002",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca558",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca560",
+    "class_name": "CEm002",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca650",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca658",
+    "class_name": "CEm002",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca670",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca678",
+    "class_name": "CEm002",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca728",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca730",
+    "class_name": "CEm002",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ca738",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca790",
+    "class_name": "CEm003",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca848",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca850",
+    "class_name": "CEm003",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca940",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca948",
+    "class_name": "CEm003",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ca960",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ca968",
+    "class_name": "CEm003",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404caa18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404caa20",
+    "class_name": "CEm003",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404caa28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404caa90",
+    "class_name": "CEm004",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cab48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cab50",
+    "class_name": "CEm004",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cac40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cac48",
+    "class_name": "CEm004",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cac60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cac68",
+    "class_name": "CEm004",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cad18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cad20",
+    "class_name": "CEm004",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cad28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cada8",
+    "class_name": "CEm005",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cae60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cae68",
+    "class_name": "CEm005",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404caf58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404caf60",
+    "class_name": "CEm005",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404caf78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404caf80",
+    "class_name": "CEm005",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb030",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb038",
+    "class_name": "CEm005",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cb040",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb0f0",
+    "class_name": "CEm005Shl00",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb168",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb170",
+    "class_name": "CEm005Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb260",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb268",
+    "class_name": "CEm005Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cb280",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb338",
+    "class_name": "CConstraint",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb340",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb348",
+    "class_name": "CCnsChain",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb350",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb358",
+    "class_name": "CEm005Shl01",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb3d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb3d8",
+    "class_name": "CEm005Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb4c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb4d0",
+    "class_name": "CEm005Shl01",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb4e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb4f0",
+    "class_name": "CEm005Shl01",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cb5a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb610",
+    "class_name": "CEm006",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb6c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb6d0",
+    "class_name": "CEm006",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb7c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb7c8",
+    "class_name": "CEm006",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb7e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb7e8",
+    "class_name": "CEm006",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb898",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb8a0",
+    "class_name": "CEm006",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cb8a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb900",
+    "class_name": "CEm006Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cb940",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cb948",
+    "class_name": "CEm006Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cba38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cba40",
+    "class_name": "CEm006Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cba58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbac8",
+    "class_name": "CEm007",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbb80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbb88",
+    "class_name": "CEm007",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbc78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbc80",
+    "class_name": "CEm007",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbc98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbca0",
+    "class_name": "CEm007",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbd50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbd58",
+    "class_name": "CEm007",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cbd60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbde0",
+    "class_name": "CCnsDirPos",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbde8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbdf0",
+    "class_name": "CEm008",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbea8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbeb0",
+    "class_name": "CEm008",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbfa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbfa8",
+    "class_name": "CEm008",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cbfc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cbfc8",
+    "class_name": "CEm008",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc078",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc080",
+    "class_name": "CEm008",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cc088",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc1d8",
+    "class_name": "CCnsRandom",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc1e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc1e8",
+    "class_name": "CCnsIK",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc1f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc1f8",
+    "class_name": "CCnsMatrix",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc200",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc208",
+    "class_name": "CEm010",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc280",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc288",
+    "class_name": "CEm010",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc378",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc380",
+    "class_name": "CEm010",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc398",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc3a0",
+    "class_name": "CEm010",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc450",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc458",
+    "class_name": "CEm010",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc5b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc5c0",
+    "class_name": "CEm010",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cc608",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc700",
+    "class_name": "CEm010Baby",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc778",
+    "class_name": "CEm010Baby",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc868",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc870",
+    "class_name": "CEm010Baby",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc888",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc890",
+    "class_name": "CEm010Baby",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cc940",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cc9a8",
+    "class_name": "CEm010Shl00",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cc9f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cca00",
+    "class_name": "CEm010Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccaf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccaf8",
+    "class_name": "CEm010Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ccb10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccb70",
+    "class_name": "CEm010Shl01",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccbc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccbc8",
+    "class_name": "CEm010Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cccb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cccc0",
+    "class_name": "CEm010Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cccd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccd80",
+    "class_name": "CEm011",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccdf8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cce00",
+    "class_name": "CEm011",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccef0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccef8",
+    "class_name": "CEm011",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccf10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccf18",
+    "class_name": "CEm011",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ccfc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ccfd0",
+    "class_name": "CEm011",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd138",
+    "class_name": "CEm011",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cd180",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd278",
+    "class_name": "CEm011Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd2b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd2c0",
+    "class_name": "CEm011Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd3b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd3b8",
+    "class_name": "CEm011Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cd3d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd458",
+    "class_name": "CSpreadBone",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd460",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd468",
+    "class_name": "CEm012",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd4e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd4e8",
+    "class_name": "CEm012",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd5d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd5e0",
+    "class_name": "CEm012",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd5f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd600",
+    "class_name": "CEm012",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd6b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd6b8",
+    "class_name": "CEm012",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd818",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd820",
+    "class_name": "CEm012",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cd868",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd920",
+    "class_name": "CEm013",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cd990",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cd998",
+    "class_name": "CEm013",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cda88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cda90",
+    "class_name": "CEm013",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cdaa8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cdab0",
+    "class_name": "CEm013",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cdb60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cdb68",
+    "class_name": "CEm013",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cdcc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cdcd0",
+    "class_name": "CEm013",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cdde8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cdef0",
+    "class_name": "CEm014",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cdf60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cdf68",
+    "class_name": "CEm014",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce058",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce060",
+    "class_name": "CEm014",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce078",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce080",
+    "class_name": "CEm014",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce138",
+    "class_name": "CEm014",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce298",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce2a0",
+    "class_name": "CEm014",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ce3b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce420",
+    "class_name": "CEm014Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce460",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce468",
+    "class_name": "CEm014Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce558",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce560",
+    "class_name": "CEm014Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ce578",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce5d8",
+    "class_name": "CEm014Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce618",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce620",
+    "class_name": "CEm014Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce710",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce718",
+    "class_name": "CEm014Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ce730",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce820",
+    "class_name": "CEm016",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce890",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce898",
+    "class_name": "CEm016",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce988",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce990",
+    "class_name": "CEm016",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ce9a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ce9b0",
+    "class_name": "CEm016",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cea60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cea68",
+    "class_name": "CEm016",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cebc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cebd0",
+    "class_name": "CEm016",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cece8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cedd0",
+    "class_name": "CEm017",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cee40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cee48",
+    "class_name": "CEm017",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cef38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cef40",
+    "class_name": "CEm017",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cef58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cef60",
+    "class_name": "CEm017",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf010",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf018",
+    "class_name": "CEm017",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf178",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf180",
+    "class_name": "CEm017",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cf298",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf2e0",
+    "class_name": "CEm017Master",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf350",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf358",
+    "class_name": "CEm017Master",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf448",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf450",
+    "class_name": "CEm017Master",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf468",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf470",
+    "class_name": "CEm017Master",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cf520",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf580",
+    "class_name": "CEm017Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf5c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf5c8",
+    "class_name": "CEm017Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf6b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf6c0",
+    "class_name": "CEm017Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cf6d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf738",
+    "class_name": "CEm019Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf778",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf780",
+    "class_name": "CEm019Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf870",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf878",
+    "class_name": "CEm019Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cf890",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf920",
+    "class_name": "CEm020Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cf960",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cf968",
+    "class_name": "CEm020Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfa58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfa60",
+    "class_name": "CEm020Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cfa78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfaa8",
+    "class_name": "CEm021",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfb18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfb20",
+    "class_name": "CEm021",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfc10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfc18",
+    "class_name": "CEm021",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfc30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfc38",
+    "class_name": "CEm021",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfce8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfcf0",
+    "class_name": "CEm021",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404cfe50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cfe58",
+    "class_name": "CEm021",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404cff70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404cffd8",
+    "class_name": "CEm022Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0018",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0020",
+    "class_name": "CEm022Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0110",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0118",
+    "class_name": "CEm022Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d0130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d02a8",
+    "class_name": "CChainNode",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d02b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d02b8",
+    "class_name": "CLight",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d02c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d02c8",
+    "class_name": "CDamageEm023",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d02f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d02f8",
+    "class_name": "CDamageEm023",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0310",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0318",
+    "class_name": "CEm023",
+    "count": 16,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0398",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d03a0",
+    "class_name": "CEm023",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0490",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0498",
+    "class_name": "CEm023",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d04b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d04b8",
+    "class_name": "CEm023",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0568",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0570",
+    "class_name": "CEm023",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d06d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d06d8",
+    "class_name": "CEm023",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0720",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0728",
+    "class_name": "CEm023Body",
+    "count": 16,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d07a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d07b0",
+    "class_name": "CEm023Body",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d08a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d08a8",
+    "class_name": "CEm023Body",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d08c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d08c8",
+    "class_name": "CEm023Body",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0978",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0980",
+    "class_name": "CEm023Body",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0ae0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0ae8",
+    "class_name": "CEm023Body",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d0b30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0c08",
+    "class_name": "CEm023Shl00",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0c58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0c60",
+    "class_name": "CEm023Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0d50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0d58",
+    "class_name": "CEm023Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d0d70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0dc8",
+    "class_name": "CEm023Shl01",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0e18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0e20",
+    "class_name": "CEm023Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0f10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0f18",
+    "class_name": "CEm023Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d0f30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0f88",
+    "class_name": "CEm023Shl02",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d0fd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d0fe0",
+    "class_name": "CEm023Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d10d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d10d8",
+    "class_name": "CEm023Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d10f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1150",
+    "class_name": "CEm023Shl03",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d11a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d11a8",
+    "class_name": "CEm023Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1298",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d12a0",
+    "class_name": "CEm023Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d12b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1310",
+    "class_name": "CEm023Shl04",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1360",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1368",
+    "class_name": "CEm023Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1458",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1460",
+    "class_name": "CEm023Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d1478",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d14d0",
+    "class_name": "CEm023Shl05",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1520",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1528",
+    "class_name": "CEm023Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1618",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1620",
+    "class_name": "CEm023Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d1638",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d16e0",
+    "class_name": "CEm025",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1758",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1760",
+    "class_name": "CEm025",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1850",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1858",
+    "class_name": "CEm025",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1870",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1878",
+    "class_name": "CEm025",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1928",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1930",
+    "class_name": "CEm025",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1a90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1a98",
+    "class_name": "CEm025",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d1ae0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1e48",
+    "class_name": "CEm025Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1e88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1e90",
+    "class_name": "CEm025Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d1f80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d1f88",
+    "class_name": "CEm025Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d1fa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2000",
+    "class_name": "CEm025Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2040",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2048",
+    "class_name": "CEm025Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2138",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2140",
+    "class_name": "CEm025Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d2158",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d21b0",
+    "class_name": "CEm025Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d21f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d21f8",
+    "class_name": "CEm025Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d22e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d22f0",
+    "class_name": "CEm025Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d2308",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d23b0",
+    "class_name": "CEm026",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2420",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2428",
+    "class_name": "CEm026",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2518",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2520",
+    "class_name": "CEm026",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2538",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2540",
+    "class_name": "CEm026",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d25f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d25f8",
+    "class_name": "CEm026",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2758",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2760",
+    "class_name": "CEm026",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d2878",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2b08",
+    "class_name": "CEm026Shl00",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2b78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2b80",
+    "class_name": "CEm026Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2c70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2c78",
+    "class_name": "CEm026Shl00",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2c90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2c98",
+    "class_name": "CEm026Shl00",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d2d48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2da0",
+    "class_name": "CEm026Shl01",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2e10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2e18",
+    "class_name": "CEm026Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2f08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2f10",
+    "class_name": "CEm026Shl01",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d2f28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d2f30",
+    "class_name": "CEm026Shl01",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d2fe0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3068",
+    "class_name": "CEm027",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d30d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d30e0",
+    "class_name": "CEm027",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d31d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d31d8",
+    "class_name": "CEm027",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d31f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d31f8",
+    "class_name": "CEm027",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d32a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d32b0",
+    "class_name": "CEm027",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3410",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3418",
+    "class_name": "CEm027",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d3530",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d35e0",
+    "class_name": "CEm028",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3650",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3658",
+    "class_name": "CEm028",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3748",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3750",
+    "class_name": "CEm028",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3768",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3770",
+    "class_name": "CEm028",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3820",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3828",
+    "class_name": "CEm028",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3988",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3990",
+    "class_name": "CEm028",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d3aa8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3b38",
+    "class_name": "CEm028Shl00",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3ba8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3bb0",
+    "class_name": "CEm028Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3ca0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3ca8",
+    "class_name": "CEm028Shl00",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3cc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3cc8",
+    "class_name": "CEm028Shl00",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d3d78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3dd0",
+    "class_name": "CEm028Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3e10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3e18",
+    "class_name": "CEm028Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3f08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3f10",
+    "class_name": "CEm028Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d3f28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3f80",
+    "class_name": "CEm028Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d3fc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d3fc8",
+    "class_name": "CEm028Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d40b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d40c0",
+    "class_name": "CEm028Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d40d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4130",
+    "class_name": "CEm028Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4170",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4178",
+    "class_name": "CEm028Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4268",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4270",
+    "class_name": "CEm028Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d4288",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d42e0",
+    "class_name": "CEm028Shl04",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4320",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4328",
+    "class_name": "CEm028Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4418",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4420",
+    "class_name": "CEm028Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d4438",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4490",
+    "class_name": "CEm028Shl05",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d44d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d44d8",
+    "class_name": "CEm028Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d45c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d45d0",
+    "class_name": "CEm028Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d45e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4640",
+    "class_name": "CEm028Shl06",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4680",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4688",
+    "class_name": "CEm028Shl06",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4778",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4780",
+    "class_name": "CEm028Shl06",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d4798",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d47f0",
+    "class_name": "CEm028Shl07",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4830",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4838",
+    "class_name": "CEm028Shl07",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4928",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4930",
+    "class_name": "CEm028Shl07",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d4948",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d49d0",
+    "class_name": "CEm029",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4a40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4a48",
+    "class_name": "CEm029",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4b38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4b40",
+    "class_name": "CEm029",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4b58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4b60",
+    "class_name": "CEm029",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4c10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4c18",
+    "class_name": "CEm029",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4d78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4d80",
+    "class_name": "CEm029",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d4e98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4ed0",
+    "class_name": "CEm029Cart",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d4f40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d4f48",
+    "class_name": "CEm029Cart",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5038",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5040",
+    "class_name": "CEm029Cart",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5058",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5060",
+    "class_name": "CEm029Cart",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5110",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5118",
+    "class_name": "CEm029Cart",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5278",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5280",
+    "class_name": "CEm029Cart",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5398",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5438",
+    "class_name": "CEm029Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5478",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5480",
+    "class_name": "CEm029Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5570",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5578",
+    "class_name": "CEm029Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5590",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5608",
+    "class_name": "CEm029Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5648",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5650",
+    "class_name": "CEm029Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5740",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5748",
+    "class_name": "CEm029Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5760",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d57c8",
+    "class_name": "CEm029Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5808",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5810",
+    "class_name": "CEm029Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5900",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5908",
+    "class_name": "CEm029Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5920",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5988",
+    "class_name": "CEm029Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d59c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d59d0",
+    "class_name": "CEm029Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5ac0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5ac8",
+    "class_name": "CEm029Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5ae0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5b88",
+    "class_name": "CEm029Shl04",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5bc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5bd0",
+    "class_name": "CEm029Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5cc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5cc8",
+    "class_name": "CEm029Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5ce0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5dc8",
+    "class_name": "CEm029Shl05",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5e08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5e10",
+    "class_name": "CEm029Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d5f00",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5f08",
+    "class_name": "CEm029Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d5f20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d5fa0",
+    "class_name": "CEm030",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6010",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6018",
+    "class_name": "CEm030",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6108",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6110",
+    "class_name": "CEm030",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6128",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6130",
+    "class_name": "CEm030",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d61e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d61e8",
+    "class_name": "CEm030",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6348",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6350",
+    "class_name": "CEm030",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d6468",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d64d0",
+    "class_name": "CEm030Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6518",
+    "class_name": "CEm030Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6608",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6610",
+    "class_name": "CEm030Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d6628",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d66b0",
+    "class_name": "CEm030Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d66f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d66f8",
+    "class_name": "CEm030Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d67e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d67f0",
+    "class_name": "CEm030Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d6808",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d68b8",
+    "class_name": "CEm031",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6928",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6930",
+    "class_name": "CEm031",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6a20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6a28",
+    "class_name": "CEm031",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6a40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6a48",
+    "class_name": "CEm031",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6af8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6b00",
+    "class_name": "CEm031",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6c60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6c68",
+    "class_name": "CEm031",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d6d80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6e80",
+    "class_name": "CEm031Shl00",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6ef0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6ef8",
+    "class_name": "CEm031Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d6fe8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d6ff0",
+    "class_name": "CEm031Shl00",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7008",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7010",
+    "class_name": "CEm031Shl00",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d70c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7168",
+    "class_name": "CDamageHaine2",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7190",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7198",
+    "class_name": "CDamageHaine2",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d71b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d71b8",
+    "class_name": "CEm032",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7228",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7230",
+    "class_name": "CEm032",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7320",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7328",
+    "class_name": "CEm032",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7340",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7348",
+    "class_name": "CEm032",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d73f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7400",
+    "class_name": "CEm032",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7560",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7568",
+    "class_name": "CEm032",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d7680",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d76f0",
+    "class_name": "CEm032Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7730",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7738",
+    "class_name": "CEm032Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7828",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7830",
+    "class_name": "CEm032Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d7848",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d78f0",
+    "class_name": "CEm032Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7930",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7938",
+    "class_name": "CEm032Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7a28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7a30",
+    "class_name": "CEm032Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d7a48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7b08",
+    "class_name": "CEm033",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7b78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7b80",
+    "class_name": "CEm033",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7c70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7c78",
+    "class_name": "CEm033",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7c90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7c98",
+    "class_name": "CEm033",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7d48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7d50",
+    "class_name": "CEm033",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d7eb0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d7eb8",
+    "class_name": "CEm033",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d7fd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d80e8",
+    "class_name": "CEm034",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8160",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8168",
+    "class_name": "CEm034",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8258",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8260",
+    "class_name": "CEm034",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8278",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8280",
+    "class_name": "CEm034",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8330",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8338",
+    "class_name": "CEm034",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8498",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d84a0",
+    "class_name": "CEm034",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d84e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8588",
+    "class_name": "CEm034Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d85c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d85d0",
+    "class_name": "CEm034Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d86c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d86c8",
+    "class_name": "CEm034Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d86e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8738",
+    "class_name": "CEm034Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8778",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8780",
+    "class_name": "CEm034Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8870",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8878",
+    "class_name": "CEm034Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d8890",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d88e8",
+    "class_name": "CEm034Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8928",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8930",
+    "class_name": "CEm034Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8a20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8a28",
+    "class_name": "CEm034Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d8a40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8a98",
+    "class_name": "CEm034Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8ad8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8ae0",
+    "class_name": "CEm034Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8bd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8bd8",
+    "class_name": "CEm034Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d8bf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8c48",
+    "class_name": "CEm034Shl04",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8c88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8c90",
+    "class_name": "CEm034Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8d80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8d88",
+    "class_name": "CEm034Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d8da0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8df8",
+    "class_name": "CEm034Shl05",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8e38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8e40",
+    "class_name": "CEm034Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d8f30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8f38",
+    "class_name": "CEm034Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d8f50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d8ff8",
+    "class_name": "CEm035",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9070",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9078",
+    "class_name": "CEm035",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9168",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9170",
+    "class_name": "CEm035",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9188",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9190",
+    "class_name": "CEm035",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9240",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9248",
+    "class_name": "CEm035",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d93a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d93b0",
+    "class_name": "CEm035",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d93f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9468",
+    "class_name": "CEm035Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d94a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d94b0",
+    "class_name": "CEm035Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d95a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d95a8",
+    "class_name": "CEm035Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d95c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9618",
+    "class_name": "CEm035Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9658",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9660",
+    "class_name": "CEm035Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9750",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9758",
+    "class_name": "CEm035Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d9770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9818",
+    "class_name": "CEm035Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9858",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9860",
+    "class_name": "CEm035Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9950",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9958",
+    "class_name": "CEm035Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d9970",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9a20",
+    "class_name": "CEm037",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9a90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9a98",
+    "class_name": "CEm037",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9b88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9b90",
+    "class_name": "CEm037",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9ba8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9bb0",
+    "class_name": "CEm037",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9c60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9c68",
+    "class_name": "CEm037",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404d9dc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9dd0",
+    "class_name": "CEm037",
+    "count": 35,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404d9ee8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404d9fc8",
+    "class_name": "CEm037Ball",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da038",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da040",
+    "class_name": "CEm037Ball",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da138",
+    "class_name": "CEm037Ball",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da150",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da158",
+    "class_name": "CEm037Ball",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da208",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da210",
+    "class_name": "CEm037Ball",
+    "count": 44,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da370",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da378",
+    "class_name": "CEm037Ball",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404da3c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da420",
+    "class_name": "CEm037Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da460",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da468",
+    "class_name": "CEm037Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da558",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da560",
+    "class_name": "CEm037Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404da578",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da5b0",
+    "class_name": "CEm037Shl00Ctrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da5f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da5f8",
+    "class_name": "CEm037Shl00Ctrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da6e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da6f0",
+    "class_name": "CEm037Shl00Ctrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404da708",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da760",
+    "class_name": "CEm037Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da7a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da7a8",
+    "class_name": "CEm037Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da898",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da8a0",
+    "class_name": "CEm037Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404da8b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da8e8",
+    "class_name": "CEm037Shl01Ctrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404da928",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404da930",
+    "class_name": "CEm037Shl01Ctrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404daa20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404daa28",
+    "class_name": "CEm037Shl01Ctrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404daa40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404daa98",
+    "class_name": "CEm037Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404daad8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404daae0",
+    "class_name": "CEm037Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dabd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dabd8",
+    "class_name": "CEm037Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dabf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dac20",
+    "class_name": "CEm037Shl02Ctrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dac60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dac68",
+    "class_name": "CEm037Shl02Ctrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dad58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dad60",
+    "class_name": "CEm037Shl02Ctrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dad78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dadd0",
+    "class_name": "CEm037Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dae10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dae18",
+    "class_name": "CEm037Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404daf08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404daf10",
+    "class_name": "CEm037Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404daf28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dafd0",
+    "class_name": "CEm037Shl04",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db010",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db018",
+    "class_name": "CEm037Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db108",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db110",
+    "class_name": "CEm037Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db128",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db158",
+    "class_name": "CEm037Shl04Ctrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db198",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db1a0",
+    "class_name": "CEm037Shl04Ctrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db290",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db298",
+    "class_name": "CEm037Shl04Ctrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db2b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db360",
+    "class_name": "CEm037Shl05",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db3a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db3a8",
+    "class_name": "CEm037Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db498",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db4a0",
+    "class_name": "CEm037Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db4b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db4e8",
+    "class_name": "CEm037Shl05Ctrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db528",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db530",
+    "class_name": "CEm037Shl05Ctrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db620",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db628",
+    "class_name": "CEm037Shl05Ctrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db640",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db698",
+    "class_name": "CEm037Shl07",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db6d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db6e0",
+    "class_name": "CEm037Shl07",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db7d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db7d8",
+    "class_name": "CEm037Shl07",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db7f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db840",
+    "class_name": "CEm037ShlEffCtrl",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db880",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db888",
+    "class_name": "CEm037ShlEffCtrl",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404db978",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404db980",
+    "class_name": "CEm037ShlEffCtrl",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404db998",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dba18",
+    "class_name": "CEmShl000",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dba58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dba60",
+    "class_name": "CEmShl000",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dbb50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbb58",
+    "class_name": "CEmShl000",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dbb70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbbf8",
+    "class_name": "CEmShl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dbc38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbc40",
+    "class_name": "CEmShl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dbd30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbd38",
+    "class_name": "CEmShl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dbd50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbdd0",
+    "class_name": ".?AV?$CList@VCNonPlayer@@@@",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dbdd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbea8",
+    "class_name": "IFactoryEnemy",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dbeb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbec0",
+    "class_name": "CFactoryEnemy",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dbed0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbf58",
+    "class_name": "CHeartShl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dbf98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dbfa0",
+    "class_name": "CHeartShl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc090",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc098",
+    "class_name": "CHeartShl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc0b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc150",
+    "class_name": "CHeartShl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc190",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc198",
+    "class_name": "CHeartShl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc288",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc290",
+    "class_name": "CHeartShl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc2a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc2f0",
+    "class_name": "CHeartShl02",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc328",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc330",
+    "class_name": "IHitMark",
+    "count": 4,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc350",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc358",
+    "class_name": "CHitMark",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc380",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc388",
+    "class_name": "CItemGet",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc390",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc3c0",
+    "class_name": "CItemKey",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc3f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc428",
+    "class_name": "CItemOrb",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc460",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc508",
+    "class_name": "CMisSelect",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc530",
+    "class_name": "INonPlayer",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc5e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc5e8",
+    "class_name": "CNonPlayer",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc658",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc660",
+    "class_name": "CNonPlayer",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc750",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc758",
+    "class_name": "CNonPlayer",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dc770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dc778",
+    "class_name": "CNonPlayer",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dc828",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dca28",
+    "class_name": "INonPlayerDeath",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dca30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dca38",
+    "class_name": "CNonPlayerDeath",
+    "count": 23,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcaf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcaf8",
+    "class_name": "CNonPlayerDeath",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcbe8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcbf0",
+    "class_name": "CNonPlayerDeath",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcc08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcc10",
+    "class_name": "CNonPlayerDeath",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dccc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dccc8",
+    "class_name": "CNonPlayerDeath",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dccd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dccd8",
+    "class_name": "CNonPlayerDeathEffect",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcd18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcd20",
+    "class_name": "CNonPlayerDeathEffect2",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dcd60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcda0",
+    "class_name": "IPermitAttack",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcdc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcdd0",
+    "class_name": "CPermitAttack",
+    "count": 5,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dcdf8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dce50",
+    "class_name": "CPl000Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dce90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dce98",
+    "class_name": "CPl000Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dcf88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dcf90",
+    "class_name": "CPl000Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dcfa8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd000",
+    "class_name": "CPl000Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd040",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd048",
+    "class_name": "CPl000Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd138",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd140",
+    "class_name": "CPl000Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dd158",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd258",
+    "class_name": "CPl000Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd298",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd2a0",
+    "class_name": "CPl000Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd390",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd398",
+    "class_name": "CPl000Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dd3b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd438",
+    "class_name": "CPl000Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd478",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd480",
+    "class_name": "CPl000Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd570",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd578",
+    "class_name": "CPl000Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dd590",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd5f8",
+    "class_name": "CPl000Shl04",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd638",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd640",
+    "class_name": "CPl000Shl04",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd730",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd738",
+    "class_name": "CPl000Shl04",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dd750",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd7b0",
+    "class_name": "CPl000Shl05",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd7f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd7f8",
+    "class_name": "CPl000Shl05",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd8e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd8f0",
+    "class_name": "CPl000Shl05",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dd908",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd960",
+    "class_name": "CPl000Shl06",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dd9a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dd9a8",
+    "class_name": "CPl000Shl06",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dda98",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddaa0",
+    "class_name": "CPl000Shl06",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ddab8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddb10",
+    "class_name": "CPl000Shl07",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ddb50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddb58",
+    "class_name": "CPl000Shl07",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ddc48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddc50",
+    "class_name": "CPl000Shl07",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ddc68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddcc8",
+    "class_name": "CPl000Shl08",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ddd08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddd10",
+    "class_name": "CPl000Shl08",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dde00",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dde08",
+    "class_name": "CPl000Shl08",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dde20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dde78",
+    "class_name": "CPl000Shl09",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ddeb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddec0",
+    "class_name": "CPl000Shl09",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ddfb0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ddfb8",
+    "class_name": "CPl000Shl09",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ddfd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de028",
+    "class_name": "CPl000Shl0a",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de068",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de070",
+    "class_name": "CPl000Shl0a",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de160",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de168",
+    "class_name": "CPl000Shl0a",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404de180",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de1f8",
+    "class_name": "CPl000Shl0b",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de238",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de240",
+    "class_name": "CPl000Shl0b",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de330",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de338",
+    "class_name": "CPl000Shl0b",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404de350",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de3f8",
+    "class_name": "CPl000Shl0c",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de438",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de440",
+    "class_name": "CPl000Shl0c",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de530",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de538",
+    "class_name": "CPl000Shl0c",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de550",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de558",
+    "class_name": "CPl000Shl0cICE",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de598",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de5a0",
+    "class_name": "CPl000Shl0cICE",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de690",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de698",
+    "class_name": "CPl000Shl0cICE",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404de6b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de708",
+    "class_name": "CPl000Shl0d",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de748",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de750",
+    "class_name": "CPl000Shl0d",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de840",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de848",
+    "class_name": "CPl000Shl0d",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404de860",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de8c8",
+    "class_name": "CPl000Shl0e",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404de908",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404de910",
+    "class_name": "CPl000Shl0e",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dea00",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dea08",
+    "class_name": "CPl000Shl0e",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404dea20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dea80",
+    "class_name": "CPl000Shl0f",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404deac0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404deac8",
+    "class_name": "CPl000Shl0f",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404debb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404debc0",
+    "class_name": "CPl000Shl0f",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404debd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dec30",
+    "class_name": "CPl000Shl10",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dec70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dec78",
+    "class_name": "CPl000Shl10",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404ded68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ded70",
+    "class_name": "CPl000Shl10",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ded88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dede0",
+    "class_name": "CPl021Shl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dee20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dee28",
+    "class_name": "CPl021Shl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404def18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404def20",
+    "class_name": "CPl021Shl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404def38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404defe0",
+    "class_name": "CPl021Shl01",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df020",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df028",
+    "class_name": "CPl021Shl01",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df118",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df120",
+    "class_name": "CPl021Shl01",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404df138",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df190",
+    "class_name": "CPl021Shl02",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df1d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df1d8",
+    "class_name": "CPl021Shl02",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df2c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df2d0",
+    "class_name": "CPl021Shl02",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404df2e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df340",
+    "class_name": "CPl021Shl03",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df380",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df388",
+    "class_name": "CPl021Shl03",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df478",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df480",
+    "class_name": "CPl021Shl03",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404df498",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df748",
+    "class_name": ".?AV?$CList@VCLockOnTarget@@@@",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df750",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df758",
+    "class_name": "CKeyBuffer",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df760",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df768",
+    "class_name": "IPlayer",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df778",
+    "class_name": "CPlayer",
+    "count": 29,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df860",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df868",
+    "class_name": "CPlayer",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df958",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df960",
+    "class_name": "CPlayer",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df978",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df980",
+    "class_name": "CPlayer",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404df988",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404df990",
+    "class_name": "CPlDante",
+    "count": 29,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfa78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfa80",
+    "class_name": "CPlDante",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfb70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfb78",
+    "class_name": "CPlDante",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfb90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfb98",
+    "class_name": "CPlDante",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfba0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfba8",
+    "class_name": "CPlVergil",
+    "count": 29,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfc90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfc98",
+    "class_name": "CPlVergil",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfd88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfd90",
+    "class_name": "CPlVergil",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfda8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfdb0",
+    "class_name": "CPlVergil",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfdb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfdc0",
+    "class_name": "CPlLady",
+    "count": 29,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dfea8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dfeb0",
+    "class_name": "CPlLady",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dffa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dffa8",
+    "class_name": "CPlLady",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dffc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dffc8",
+    "class_name": "CPlLady",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404dffd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404dffd8",
+    "class_name": "CPlNewVergil",
+    "count": 29,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e00c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e00c8",
+    "class_name": "CPlNewVergil",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e01b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e01c0",
+    "class_name": "CPlNewVergil",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e01d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e01e0",
+    "class_name": "CPlNewVergil",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e01e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0698",
+    "class_name": "CPlayerWeapon",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0710",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0718",
+    "class_name": "CPlayerWeapon",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0808",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0810",
+    "class_name": "CPlayerWeapon",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0828",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0830",
+    "class_name": "CPlWp2Sword",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e08a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e08b0",
+    "class_name": "CPlWp2Sword",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e09a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e09a8",
+    "class_name": "CPlWp2Sword",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e09c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0a40",
+    "class_name": "CPlWpFight",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0ab8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0ac0",
+    "class_name": "CPlWpFight",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0bb0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0bb8",
+    "class_name": "CPlWpFight",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e0bd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0ca0",
+    "class_name": "CPlWpFoeceEdge",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0d18",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0d20",
+    "class_name": "CPlWpFoeceEdge",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0e10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0e18",
+    "class_name": "CPlWpFoeceEdge",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e0e30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0ed8",
+    "class_name": "CString",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0f10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0f18",
+    "class_name": "CPlWpGuitar",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e0f90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e0f98",
+    "class_name": "CPlWpGuitar",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1088",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1090",
+    "class_name": "CPlWpGuitar",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e10a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1128",
+    "class_name": "CPlWpGun",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e11a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e11a8",
+    "class_name": "CPlWpGun",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1298",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e12a0",
+    "class_name": "CPlWpGun",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e12b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1338",
+    "class_name": "CPlWpLadyGun",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e13b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e13b8",
+    "class_name": "CPlWpLadyGun",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e14a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e14b0",
+    "class_name": "CPlWpLadyGun",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e14c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1548",
+    "class_name": "CPlWpLaser",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e15c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e15c8",
+    "class_name": "CPlWpLaser",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e16b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e16c0",
+    "class_name": "CPlWpLaser",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e16d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1760",
+    "class_name": "CPlWpNeroSword",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e17d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e17e0",
+    "class_name": "CPlWpNeroSword",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e18d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e18d8",
+    "class_name": "CPlWpNeroSword",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e18f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1970",
+    "class_name": "CPlWpNewVergilSword",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e19e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e19f0",
+    "class_name": "CPlWpNewVergilSword",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1ae0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1ae8",
+    "class_name": "CPlWpNewVergilSword",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e1b00",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1b80",
+    "class_name": "CPlWpNunchaku",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1bf8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1c00",
+    "class_name": "CPlWpNunchaku",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1cf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1cf8",
+    "class_name": "CPlWpNunchaku",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e1d10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1d68",
+    "class_name": "CPlWpRifle",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1de0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1de8",
+    "class_name": "CPlWpRifle",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1ed8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1ee0",
+    "class_name": "CPlWpRifle",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e1ef8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1f78",
+    "class_name": "CPlWpShotGun",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e1ff0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e1ff8",
+    "class_name": "CPlWpShotGun",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e20e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e20f0",
+    "class_name": "CPlWpShotGun",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2108",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2190",
+    "class_name": "CPlWpSword",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2208",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2210",
+    "class_name": "CPlWpSword",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2300",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2308",
+    "class_name": "CPlWpSword",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2320",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e23a0",
+    "class_name": "CPlWpVergilSword",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2418",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2420",
+    "class_name": "CPlWpVergilSword",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2518",
+    "class_name": "CPlWpVergilSword",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2530",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2588",
+    "class_name": "CEffectBase",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e25c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e25d0",
+    "class_name": "CPtclLine00",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2648",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2650",
+    "class_name": "CFPtclLine00",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e26c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2728",
+    "class_name": "CPtclLine01",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e27a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e27a8",
+    "class_name": "CFPtclLine01",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2820",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2878",
+    "class_name": "CPtclLine02",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e28f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e28f8",
+    "class_name": "CFPtclLine02",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2970",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e29c8",
+    "class_name": "CPtclPoly00",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2a40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2a48",
+    "class_name": "CFPtclPoly00",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2ac0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2b18",
+    "class_name": "CPtclPoly01",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2b90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2b98",
+    "class_name": "CFPtclPoly01",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2c10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2c68",
+    "class_name": "CPtclSprt00",
+    "count": 15,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e2ce0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e2ce8",
+    "class_name": "CFPtclSprt00",
+    "count": 15,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e2d60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e30c0",
+    "class_name": "CSceneMgrGame",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e30d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e30d8",
+    "class_name": "CScene",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3100",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3108",
+    "class_name": "CChain",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3110",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3118",
+    "class_name": "CLightMgr",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3120",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3128",
+    "class_name": "CLightStatic",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3138",
+    "class_name": "CSceneBoot",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3160",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3168",
+    "class_name": "CSceneOpening",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3190",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3198",
+    "class_name": "CSceneStartMenu",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e31c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e31c8",
+    "class_name": "CGameW",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e31d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e31d8",
+    "class_name": "CSceneMisSelect",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3200",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3208",
+    "class_name": "CEventMission",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3210",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3218",
+    "class_name": "SLoadOneGame",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3220",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3228",
+    "class_name": "CGameLoader",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3230",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3238",
+    "class_name": "CSceneGame",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3260",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3268",
+    "class_name": "CCameraCtrl",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3278",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3280",
+    "class_name": "CCameraPlayer",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3290",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3298",
+    "class_name": "CCameraBoss",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e32a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e32b0",
+    "class_name": "CCameraMiniDemo",
+    "count": 2,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e32c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e32c8",
+    "class_name": "CSceneGameMain",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e32f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e32f8",
+    "class_name": "CSceneDemo",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3320",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3328",
+    "class_name": "CSceneMisStart",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3350",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3358",
+    "class_name": "CExtraInfo",
+    "count": 1,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3360",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3368",
+    "class_name": "CSceneResult",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3390",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3398",
+    "class_name": "CSceneEnding",
+    "count": 5,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e33c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e34a0",
+    "class_name": "CDrawBreak",
+    "count": 59,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3678",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3680",
+    "class_name": "CDrawBreak",
+    "count": 45,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e37e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e37f0",
+    "class_name": "CScrnBreak",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e3828",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3868",
+    "class_name": "CShell",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e38a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e38b0",
+    "class_name": "CShell",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e39a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e39a8",
+    "class_name": "CShell",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e39c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e39c8",
+    "class_name": "CShell2",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3a38",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3a40",
+    "class_name": "CShell2",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3b30",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3b38",
+    "class_name": "CShell2",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e3b50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3b58",
+    "class_name": "CShell2",
+    "count": 22,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e3c08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3c38",
+    "class_name": "CStaffRoll",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e3c70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e3d18",
+    "class_name": "CStage",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e3d50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4158",
+    "class_name": "CStageSet",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e41a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e41b0",
+    "class_name": "CStageSetBingo",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e41f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e41f8",
+    "class_name": "CStageSetBingo",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e42e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e42f0",
+    "class_name": "CStageSetBingo",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4308",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4310",
+    "class_name": "CStageSetBingo",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4360",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4458",
+    "class_name": "CStageSetBreak",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4498",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e44a0",
+    "class_name": "CStageSetBreak",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4590",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4598",
+    "class_name": "CStageSetBreak",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e45b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e45b8",
+    "class_name": "CStageSetBreak",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4608",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4610",
+    "class_name": "CStageSetShl00",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4650",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4658",
+    "class_name": "CStageSetShl00",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4748",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4750",
+    "class_name": "CStageSetShl00",
+    "count": 3,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4768",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4898",
+    "class_name": "CStageSetBrocken",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e48d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e48e0",
+    "class_name": "CStageSetBrocken",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e49d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e49d8",
+    "class_name": "CStageSetBrocken",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e49f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e49f8",
+    "class_name": "CStageSetBrocken",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4a48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4ab8",
+    "class_name": "CStageSetCatapult",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4af8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4b00",
+    "class_name": "CStageSetCatapult",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4bf0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4bf8",
+    "class_name": "CStageSetCatapult",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4c10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4c18",
+    "class_name": "CStageSetCatapult",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4c68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4cd0",
+    "class_name": "CStageSetCollision",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4d10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4d18",
+    "class_name": "CStageSetCollision",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4e08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4e10",
+    "class_name": "CStageSetCollision",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4e28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4e30",
+    "class_name": "CStageSetCollision",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4e80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4ef0",
+    "class_name": "CStageSetColor",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e4f28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e4f30",
+    "class_name": "CStageSetColor",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e4f80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5088",
+    "class_name": "CStageSetCombo",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e50c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e50d0",
+    "class_name": "CStageSetCombo",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e51c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e51c8",
+    "class_name": "CStageSetCombo",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e51e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e51e8",
+    "class_name": "CStageSetCombo",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e5238",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5360",
+    "class_name": "CStageSetCrystal",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e53a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e53a8",
+    "class_name": "CStageSetCrystal",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5498",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e54a0",
+    "class_name": "CStageSetCrystal",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e54b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e54c0",
+    "class_name": "CStageSetCrystal",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e5510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e55f8",
+    "class_name": "CStageSetEye",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5638",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5640",
+    "class_name": "CStageSetEye",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5730",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5738",
+    "class_name": "CStageSetEye",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5750",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5758",
+    "class_name": "CStageSetEye",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e57a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5858",
+    "class_name": "CStageSetFence",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5898",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e58a0",
+    "class_name": "CStageSetFence",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5990",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5998",
+    "class_name": "CStageSetFence",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e59b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e59b8",
+    "class_name": "CStageSetFence",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e5a08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5aa0",
+    "class_name": "CStageSetGate",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5ae0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5ae8",
+    "class_name": "CStageSetGate",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5bd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5be0",
+    "class_name": "CStageSetGate",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5bf8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5c00",
+    "class_name": "CStageSetGate",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e5c50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5cc8",
+    "class_name": "CStageSetGearArch",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5d08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5d10",
+    "class_name": "CStageSetGearArch",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5e00",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5e08",
+    "class_name": "CStageSetGearArch",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5e20",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5e28",
+    "class_name": "CStageSetGearArch",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e5e78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5f28",
+    "class_name": "CStageSetHang",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e5f68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e5f70",
+    "class_name": "CStageSetHang",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6060",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6068",
+    "class_name": "CStageSetHang",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6080",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6088",
+    "class_name": "CStageSetHang",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e60d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e61b0",
+    "class_name": "CStageSetHang2",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e61f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e61f8",
+    "class_name": "CStageSetHang2",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e62e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e62f0",
+    "class_name": "CStageSetHang2",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6308",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6310",
+    "class_name": "CStageSetHang2",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e6360",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6410",
+    "class_name": "CStageSetHeart",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6480",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6488",
+    "class_name": "CStageSetHeart",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6578",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6580",
+    "class_name": "CStageSetHeart",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6598",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e65a0",
+    "class_name": "CStageSetHeart",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6650",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6658",
+    "class_name": "CStageSetHeart",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e66a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6758",
+    "class_name": "CStageSetLift",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6798",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e67a0",
+    "class_name": "CStageSetLift",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6890",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6898",
+    "class_name": "CStageSetLift",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e68b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e68b8",
+    "class_name": "CStageSetLift",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e6908",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6978",
+    "class_name": "CStageSetLight",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e69b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e69b8",
+    "class_name": "CStageSetLight",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e6a08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6b08",
+    "class_name": "CStageSetLungs",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6b78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6b80",
+    "class_name": "CStageSetLungs",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6c70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6c78",
+    "class_name": "CStageSetLungs",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6c90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6c98",
+    "class_name": "CStageSetLungs",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6d48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6d50",
+    "class_name": "CStageSetLungs",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e6da0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6e08",
+    "class_name": "CStageSetMirror",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6e48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6e50",
+    "class_name": "CStageSetMirror",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6f40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6f48",
+    "class_name": "CStageSetMirror",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e6f60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e6f68",
+    "class_name": "CStageSetMirror",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e6fb8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7060",
+    "class_name": "CStageSetNausika",
+    "count": 14,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e70d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e70d8",
+    "class_name": "CStageSetNausika",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e71c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e71d0",
+    "class_name": "CStageSetNausika",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e71e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e71f0",
+    "class_name": "CStageSetNausika",
+    "count": 22,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e72a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e72a8",
+    "class_name": "CStageSetNausika",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e72f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e73b8",
+    "class_name": "CStageSetNeedle",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e73f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7400",
+    "class_name": "CStageSetNeedle",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e74f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e74f8",
+    "class_name": "CStageSetNeedle",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7518",
+    "class_name": "CStageSetNeedle",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7568",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e75c0",
+    "class_name": "CStageSetORBreak",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7600",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7608",
+    "class_name": "CStageSetORBreak",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e76f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7700",
+    "class_name": "CStageSetORBreak",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7718",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7720",
+    "class_name": "CStageSetORBreak",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e77d8",
+    "class_name": "CStageSetRoad",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7818",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7820",
+    "class_name": "CStageSetRoad",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7910",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7918",
+    "class_name": "CStageSetRoad",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7930",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7938",
+    "class_name": "CStageSetRoad",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7988",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e79b8",
+    "class_name": "CStageSetSe",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e79f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e79f8",
+    "class_name": "CStageSetSe",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7a48",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7b28",
+    "class_name": "CStageSetSeal",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7b68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7b70",
+    "class_name": "CStageSetSeal",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7c60",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7c68",
+    "class_name": "CStageSetSeal",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7c80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7c88",
+    "class_name": "CStageSetSeal",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7cd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7d30",
+    "class_name": "CStageSetSlide",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7d70",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7d78",
+    "class_name": "CStageSetSlide",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7e68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7e70",
+    "class_name": "CStageSetSlide",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e7e88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e7e90",
+    "class_name": "CStageSetSlide",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e7ee0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8038",
+    "class_name": "CStageSetStayDemo",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8078",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8080",
+    "class_name": "CStageSetStayDemo",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8170",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8178",
+    "class_name": "CStageSetStayDemo",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8190",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8198",
+    "class_name": "CStageSetStayDemo",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e81e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e81f0",
+    "class_name": "CStageSetStay",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8230",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8238",
+    "class_name": "CStageSetStay",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8328",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8330",
+    "class_name": "CStageSetStay",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8348",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8350",
+    "class_name": "CStageSetStay",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e83a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8400",
+    "class_name": "CStageSetStomach",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8440",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8448",
+    "class_name": "CStageSetStomach",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8538",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8540",
+    "class_name": "CStageSetStomach",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8558",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8560",
+    "class_name": "CStageSetStomach",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e85b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8608",
+    "class_name": "CStageSetSwitch",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8648",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8650",
+    "class_name": "CStageSetSwitch",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8740",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8748",
+    "class_name": "CStageSetSwitch",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8760",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8768",
+    "class_name": "CStageSetSwitch",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e87b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8930",
+    "class_name": "CStageSetTruckEnemy",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8970",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8978",
+    "class_name": "CStageSetTruckEnemy",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8a68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8a70",
+    "class_name": "CStageSetTruckEnemy",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8a88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8a90",
+    "class_name": "CStageSetTruck",
+    "count": 8,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8ad0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8ad8",
+    "class_name": "CStageSetTruck",
+    "count": 30,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8bc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8bd0",
+    "class_name": "CStageSetTruck",
+    "count": 3,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8be8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8bf0",
+    "class_name": "CStageSetTruck",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e8c40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8d30",
+    "class_name": "CStageSetYure",
+    "count": 7,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1404e8d68",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8d70",
+    "class_name": "CStageSetYure",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e8dc0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8e00",
+    "class_name": "CStatus",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e8e08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8e98",
+    "class_name": "CUIDBright",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e8ed0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e8fa0",
+    "class_name": "CUIDCockpit00",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e8fd8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e90b8",
+    "class_name": "CUIDCockpit01",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e90f0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9178",
+    "class_name": "CUIDCockpit02",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e91b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9230",
+    "class_name": "CUIDComnBg",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9268",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e92e8",
+    "class_name": "CUIDControl",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9320",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e93a0",
+    "class_name": "CUIDCustomGun",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e93d8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9458",
+    "class_name": "CUIDCustomGunV",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9490",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9510",
+    "class_name": "CUIDCustomIndex",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9548",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e95c8",
+    "class_name": "CUIDCustomItem",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9600",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9680",
+    "class_name": "CUIDCustomSkill",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e96b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9738",
+    "class_name": "CUIDCustomWeapon",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9770",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e97f0",
+    "class_name": "CUIDDemoDigest",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9828",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e98a8",
+    "class_name": "CUIDExtraInfo",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e98e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9960",
+    "class_name": "CUIDGallery",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9998",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9a18",
+    "class_name": "CUIDGameOptions",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9a50",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9ad0",
+    "class_name": "CUIDGoldOrb",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9b08",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9b90",
+    "class_name": "CUIDItemGet",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9bc8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9c48",
+    "class_name": "CUIDLanguage",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9c80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9cd8",
+    "class_name": "CUIDLockOnCursor",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9d10",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9d98",
+    "class_name": "CUIDMemoryCard",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9dd0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9e50",
+    "class_name": "CUIDMisSelect",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9e88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9f08",
+    "class_name": "CUIDMissionStart",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9f40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404e9fc0",
+    "class_name": "CUIDOption",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404e9ff8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea080",
+    "class_name": "CUIDPause",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea0b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea138",
+    "class_name": "CUIDResult",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea170",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea280",
+    "class_name": "CUIDResultBP",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea2b8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea370",
+    "class_name": "CUIDSaveBg",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea3a8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea428",
+    "class_name": "CUIDScreen",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea460",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea490",
+    "class_name": "CUIDSmorkBg",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea4c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea4f8",
+    "class_name": "CUIDStaffRoll",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea530",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea5b0",
+    "class_name": "CUIDStatusFile",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea5e8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea690",
+    "class_name": "CUIDStatusFileIpu",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea6c8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea748",
+    "class_name": "CUIDStatusFileSec",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea780",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea808",
+    "class_name": "CUIDStatusIndex",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea840",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea8c0",
+    "class_name": "CUIDStatusItem",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea8f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404ea978",
+    "class_name": "CUIDStatusMap",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404ea9b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eaaa0",
+    "class_name": "CUIDStatusWeapon",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eaad8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eab58",
+    "class_name": "CUIDStyleLvup",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eab90",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eac40",
+    "class_name": "CUIDStyleSelect",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eac78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eae40",
+    "class_name": "CUIDStyleSelectV",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eae78",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eaf08",
+    "class_name": "CUIDStylishCombo",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eaf40",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eafc8",
+    "class_name": "CUIDTitle",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eb000",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eb0f8",
+    "class_name": "CUIDTotalRanking",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eb130",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eb188",
+    "class_name": "CUIDTutorial",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eb1c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1404eb240",
+    "class_name": "CUIDVergilWeapon",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1404eb278",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405066e8",
+    "class_name": "CCamera",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1405066f8",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140506750",
+    "class_name": "CCameraMotion",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140506760",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507168",
+    "class_name": "CDemoModelWork",
+    "count": 7,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1405071a0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507280",
+    "class_name": "CEffect",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1405072c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405072f0",
+    "class_name": "IFadeControl",
+    "count": 10,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140507340",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507348",
+    "class_name": "CFadeControl",
+    "count": 10,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140507398",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405073f8",
+    "class_name": "CGenerator",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140507438",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507938",
+    "class_name": "CMotion",
+    "count": 45,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140507aa0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507b30",
+    "class_name": "IPtxManager",
+    "count": 5,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140507b58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140507b60",
+    "class_name": "CPtxManager",
+    "count": 5,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140507b88",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405081e0",
+    "class_name": "CClip",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140508228",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508248",
+    "class_name": "CSoundClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508290",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508298",
+    "class_name": "CWorkRateClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1405082e0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405082e8",
+    "class_name": "CModelClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508330",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508338",
+    "class_name": "CMotionClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508380",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508388",
+    "class_name": "CHideClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1405083d0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405083d8",
+    "class_name": "CProgramClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508420",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508428",
+    "class_name": "CMessageClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508470",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508478",
+    "class_name": "CPadVibeClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1405084c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405084c8",
+    "class_name": "CEffectClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508510",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508518",
+    "class_name": "CCameraClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508560",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508568",
+    "class_name": "CLightClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x1405085b0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x1405085b8",
+    "class_name": "CScrEfcClip",
+    "count": 9,
+    "stop": "next_validated_locator_slot",
+    "end_exclusive": "0x140508600",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508608",
+    "class_name": "CFadeClip",
+    "count": 9,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140508650",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508680",
+    "class_name": "CValue",
+    "count": 8,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x1405086c0",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x140508728",
+    "class_name": "CMcAppli",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x140508730",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14050cc78",
+    "class_name": "type_info",
+    "count": 1,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14050cc80",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14050cd18",
+    "class_name": ".?AVexception@std@@",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14050cd28",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14050cd48",
+    "class_name": ".?AVbad_alloc@std@@",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14050cd58",
+    "semantic_extent_confirmed": false
+  },
+  {
+    "anchor": "0x14050cd70",
+    "class_name": ".?AVbad_array_new_length@std@@",
+    "count": 2,
+    "stop": "noncode_pointer",
+    "end_exclusive": "0x14050cd80",
+    "semantic_extent_confirmed": false
+  }
+]

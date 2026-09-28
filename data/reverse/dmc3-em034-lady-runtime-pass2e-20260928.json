@@ -1,0 +1,464 @@
+{
+  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v6",
+  "date": "2026-09-28",
+  "branch": "reverse/em034-lady-runtime-20260927",
+  "canonical_artifacts": {
+    "dmc3.exe": {
+      "size": 6356432,
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    },
+    "em034.pac": {
+      "size": 2690416,
+      "sha256": "1a5a245c8348dee3fa37ef1a83da39f15f5c1576e252daf5adc897e349f56dff"
+    },
+    "em034-extract-original.zip": {
+      "size": 2413153,
+      "sha256": "26f96362317a4cfa122237a3362f4430cbb383d5e5c57202e1a9b0ad50a43e65"
+    },
+    "em034-extract-formats-corrected.zip": {
+      "size": 2401140,
+      "sha256": "e2d7f05f1df3cca83c73e0cc3f8cf67e8d8d5ac64d1ac4adfd6c0e8dec6ff875"
+    }
+  },
+  "placement": {
+    "helper": "0x1401713F0",
+    "reset_helper": "0x140168B00",
+    "preset0": "BodyStowed",
+    "preset1": "ActiveDeployed",
+    "preset0_table": "0x14057AFC0",
+    "preset1_table": "0x14057B0B0",
+    "components": [
+      {
+        "component": 0,
+        "slot": 20,
+        "preset0_node": 3,
+        "preset1_node": 9,
+        "manager": "+0x8E8",
+        "runtime_block": "+0x4000",
+        "control_gate": "+0x4020"
+      },
+      {
+        "component": 1,
+        "slot": 21,
+        "preset0_node": 14,
+        "preset1_node": 9,
+        "manager": "+0x900",
+        "runtime_block": "+0x40C0"
+      },
+      {
+        "component": 2,
+        "slot": 22,
+        "preset0_node": 16,
+        "preset1_node": 13,
+        "manager": "+0x908",
+        "runtime_block": "+0x4180"
+      },
+      {
+        "component": 3,
+        "slot": 23,
+        "preset0_node": 19,
+        "preset1_node": 13,
+        "manager": "+0x910",
+        "runtime_block": "+0x4240",
+        "preset1_special_parent": {
+          "effective_runtime_parent": "CEm034+0x43C0",
+          "source_matrix": "[CEm034+0x850]+0x110",
+          "source_copy_site": "0x140171240..0x140171255",
+          "uniform_scale_source": "CEm034+0x4400 (secondary-this +0x41B0)",
+          "scale_apply": "0x1403304F0 at 0x1401712E1; scales matrix rows 0/1/2 and preserves translation row",
+          "raw_serialized_node": 13,
+          "raw_node_is_effective_parent": false,
+          "status": "EXE_AND_CORPUS_CONFIRMED",
+          "baseline_write": "0x140169EC2 = 1.0f each state0x81 update",
+          "channel1_promote": "0x140169EE0 = 1.5f when lane1/channel1 == 1",
+          "body_root_equivalence": "em034 slot1 and slot32 both have 23 nodes and node0 local transform all-zero/identity; Reader can materialize as (localOffset * uniformScale) * bodyRootWorld"
+        }
+      },
+      {
+        "component": 4,
+        "slot": 24,
+        "preset0_node": 14,
+        "preset1_node": 13,
+        "manager": "+0x930",
+        "runtime_block": "+0x4300"
+      }
+    ],
+    "body_skeleton": {
+      "mod_slot": 1,
+      "node_count": 23,
+      "hand_terminal_nodes": [
+        9,
+        13
+      ],
+      "stowed_body_nodes": [
+        3,
+        14,
+        16,
+        19
+      ],
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "state_entry_groups": [
+      {
+        "states": [
+          "0x2E",
+          "0x30..0x52"
+        ],
+        "result": "component1 HandHeld via direct materialization of preset1 record"
+      },
+      {
+        "states": [
+          "0x53..0x59",
+          "0x5E",
+          "0x61"
+        ],
+        "result": "component0 HandHeld attached"
+      },
+      {
+        "states": [
+          "0x5A..0x5D",
+          "0x64..0x73"
+        ],
+        "result": "component0 BodyStowed + independent em034_013; +0x4020=0"
+      },
+      {
+        "states": [
+          "0x5F",
+          "0x62"
+        ],
+        "result": "component0 HandHeld attached"
+      },
+      {
+        "states": [
+          "0x60",
+          "0x63"
+        ],
+        "result": "component0 HandHeld attached + component4 HandHeld"
+      },
+      {
+        "states": [
+          "0x7B"
+        ],
+        "result": "component0 BodyStowed + independent em034_013"
+      },
+      {
+        "states": [
+          "0x7C",
+          "0x7D"
+        ],
+        "result": "component0 initialized at HandHeld transform + independent em034_013"
+      },
+      {
+        "states": [
+          "0x7F"
+        ],
+        "result": "component1 HandHeld + component2 HandHeld"
+      },
+      {
+        "states": [
+          "0x81"
+        ],
+        "result": "component3 HandHeld"
+      },
+      {
+        "states": [
+          "0x85",
+          "0x8F"
+        ],
+        "result": "baseline core placement at entry"
+      }
+    ],
+    "script_transitions": [
+      {
+        "state": "0x5C",
+        "action": 9,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 HandHeld attached; +0x4020=1"
+      },
+      {
+        "state": "0x5D",
+        "action": 10,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 HandHeld attached; +0x4020=1"
+      },
+      {
+        "state": "0x59",
+        "action": 6,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 BodyStowed; start em034_013 action6; +0x4020=0"
+      },
+      {
+        "state": "0x61",
+        "action": 14,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 BodyStowed; start em034_013 action14; +0x4020=0"
+      },
+      {
+        "state": "0x81",
+        "action": 46,
+        "lane": 1,
+        "channel": 2,
+        "value": 1,
+        "result": "component3 BodyStowed"
+      },
+      {
+        "state": "0x85",
+        "action": 50,
+        "lane": 1,
+        "channel": 1,
+        "value": 1,
+        "result": "component4 HandHeld"
+      },
+      {
+        "state": "0x85",
+        "action": 50,
+        "lane": 1,
+        "channel": 1,
+        "value": 2,
+        "result": "component4 BodyStowed; corrected authority: channel1 value2 (frame64), not channel0 value2"
+      }
+    ],
+    "lane_correction": "states0x59/0x61 delayed slot20 transition consumes lane0 +0x5070 channel0, not lane1",
+    "status": "EXE_CONFIRMED",
+    "action50_correction": {
+      "frame10": "lane1 channel1=1 -> component4 ActiveDeployed",
+      "frame25": "lane1 channel0=1 -> runtime flag/timer on",
+      "frame39": "lane1 channel0=2 -> runtime flag/timer off; NO placement change",
+      "frame64": "lane1 channel1=2 -> component4 BodyStowed",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "action46_scale": {
+      "state": "0x81",
+      "action": 46,
+      "before_first_channel1_signal": 1,
+      "channel1_value_1": 1.5,
+      "channel1_other_values": 1,
+      "interpretation": "runtime uniform scale of component3 ActiveDeployed parent, not visibility",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    }
+  },
+  "visibility": {
+    "mode0_mode1_are_visibility": false,
+    "bounded_cem034_code_range": "0x140168600..0x1401721D0",
+    "core_manager_direct_reference_count": 33,
+    "reference_counts": {
+      "+0x8E8": 8,
+      "+0x900": 8,
+      "+0x908": 5,
+      "+0x910": 4,
+      "+0x930": 8
+    },
+    "state_dependent_manager_pointer_write_or_null_count": 0,
+    "separate_cem034_per_slot_visibility_toggle_found": false,
+    "conclusion": "slots20..24 are persistent resident component domains; CEm034 state/script paths transition placement/control rather than explicit per-slot visibility",
+    "scope_limit": "generic renderer culling outside CEm034 owner logic remains outside this claim",
+    "status": "EXE_CONFIRMED"
+  },
+  "common_actor_retire": {
+    "retire_request": "0x1403261E0",
+    "actor_manager_tick": "0x1403265A0",
+    "countdown_to_lifecycle4": "0x140326644",
+    "remove_and_destruct": "0x140326240",
+    "actor_manager_remove": "0x140326800",
+    "global_actor_manager": "0x140CF2520",
+    "class_phase_field": "+0x08",
+    "actor_lifecycle_field": "+0x1C",
+    "retire_countdown_field": "+0x20",
+    "retire_countdown_ticks": 3,
+    "chain": [
+      "class condition writes phase +0x08 = 3",
+      "class dispatcher calls 0x1403261E0",
+      "lifecycle1/2 -> lifecycle3 + countdown3",
+      "0x1403265A0 decrements countdown each manager traversal",
+      "countdown0 -> lifecycle4",
+      "0x140326240 invokes virtual +0x10, removes actor, writes lifecycle0, invokes primary vtable slot0"
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "shl_retire": {
+    "direct_phase3_write_count": 7,
+    "direct_phase3_write_sites": [
+      "0x1401725F0",
+      "0x140172BCD",
+      "0x1401738D4",
+      "0x14017459C",
+      "0x1401753DB",
+      "0x140175C8B",
+      "0x140175F30"
+    ],
+    "CEm034Shl00": {
+      "hard_timeout_seconds": 120,
+      "phase1_exit": "hard timeout OR collision/hit",
+      "phase2_linger_seconds": 1,
+      "phase3_write_sites": [
+        "0x1401725F0",
+        "0x140175C8B"
+      ]
+    },
+    "CEm034Shl01": {
+      "phase1_exit": "collision/query",
+      "phase2_linger_seconds": 1,
+      "phase3_write_site": "0x140172BCD"
+    },
+    "CEm034Shl02": {
+      "phase1_exit": "collision +0x278 OR world/query 0x140244810",
+      "phase2_linger_seconds": 3,
+      "phase3_write_site": "0x1401738D4"
+    },
+    "CEm034Shl03": {
+      "owner_pointer": "+0x1510",
+      "owner_state_guard": "0x140174550",
+      "allowed_owner_states": [
+        "0x5E",
+        "0x5F",
+        "0x60",
+        "0x62",
+        "0x63",
+        "0x90"
+      ],
+      "retire_owner_states": "0x61, 0x64..0x8F, and states outside 0x5E..0x90",
+      "phase3_write_site": "0x14017459C"
+    },
+    "CEm034Shl04": {
+      "factory_lifetime_argument": "XMM2 -> +0x530",
+      "action60_phase1_lifetime_seconds": "120 + 30*i",
+      "shl03_phase3_lifetime_seconds": "90 + 30*derived_index",
+      "phase2_linger_seconds": 3,
+      "phase3_write_site": "0x1401753DB"
+    },
+    "CEm034Shl05": {
+      "hard_timeout_seconds": 120,
+      "phase1_exit": "hard timeout OR collision/hit",
+      "phase2_linger_seconds": 1,
+      "phase3_write_sites": [
+        "0x140175F30",
+        "0x140175C8B"
+      ]
+    },
+    "status": "EXE_CONFIRMED"
+  },
+  "slot_identity": {
+    "20": {
+      "structural": "large primary launcher body; host for independent em034_013, Shl02 rocket domain and Shl03 grapple domain",
+      "human_candidate": "Kalina Ann",
+      "status": "SEMANTIC_CANDIDATE"
+    },
+    "21": {
+      "structural": "handgun A",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "22": {
+      "structural": "handgun B",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "23": {
+      "structural": "compact crossbow/dagger-launcher form; source domain for Shl05 projectile actor",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "24": {
+      "structural": "compact submachine-gun form with front blade; source domain for repeated Shl00 projectile creation",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "25": {
+      "structural": "rocket/missile projectile owned by Shl02 and sourced from slot20 domain",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "26": {
+      "structural": "grappling blade/hook head owned by Shl03",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "30": {
+      "structural": "articulated grappling chain/cable owned by Shl03",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    }
+  },
+  "reader_gate": {
+    "canonical_equipment_binding_reverse_ready": true,
+    "reader_implementation_started": true,
+    "reader_branch": "fix/em034-lady-assembly-info-export",
+    "implementation_commits": [
+      "354c96888fbfbbdbd385033f57e3b47dbe483744",
+      "47f5b04e7dacf376afc143b493232a03c5f1fd25",
+      "63191e2b6ac57c4ea3e839d0f6117770d361a9f5",
+      "708bc1974a2a000906e577459cadeca4f5bba776",
+      "1239c0628d356e3d018e35dce2f5575ba8edbfe9",
+      "30dfe87daa9085dacba293795272790d58f42db2",
+      "e239993982cd88f5f3cabccaae700997e9f627e4",
+      "cf368af9ceaa089366ae876ba9ba2b85db77a0eb",
+      "8ed5598b9a34dbc76f97e127c7a3e1fca01393ec",
+      "4a0021a875fdfb681897a60f117b9d7c6ef909f1",
+      "4666ed0c640971ce2daf31ff6eea060bb3ea3df9",
+      "e8e1239a6e71cf4f6590d76b5a8576ae4c035854",
+      "069c1ffd9fbdace6f0427215dbe5600aebc37d3a",
+      "fd4c1433091fc28e80f1980643e53148222a8477"
+    ],
+    "implemented": [
+      "five persistent CEm034 LadyComponentContract records with two presets",
+      "separate placement preset and slot20 control-domain state",
+      "dynamic slots25/26/30 excluded from persistent base composite",
+      "generic five-channel MotionScript opcode3 timeline",
+      "CEm034 state-entry bridge",
+      "CEm034 direct signal-consumer bridge",
+      "action50 corrected channel regression",
+      "RuntimeBodyRootScaled represented without joint13 fallback",
+      "component3 RuntimeBodyRootScaled exact materialization using body root node0 and +0x4400 scale",
+      "action46 component3 uniform scale 1.0/1.5 bridge",
+      "dynamic Shl02/03 latent presentation resources",
+      "exact Shl03 slot30 five-node tether skinning via canonical MOD skin palette",
+      "evidence-safe Shl02 standalone trajectory boundary",
+      "separate raw MOT and MotionScript Play UI paths",
+      "multi-script em034_012/em034_013 retention and routing",
+      "lane-exact CEm034 Script Play"
+    ],
+    "build_verification": "GREEN: exact-head CI run #884 on v72 head 23d81babb0a34140d519de257bd6c12c09a1b265",
+    "apk_build_started": true,
+    "rejected": [
+      "all Lady equipment on joint9",
+      "mode0/mode1 as hidden/visible",
+      "dynamic Shl actors as persistent attachments",
+      "single scalar Lady weapon state",
+      "component3 ActiveDeployed approximated as body joint13"
+    ],
+    "apk_debug_built": true,
+    "apk_physical_acceptance": false
+  },
+  "final_reader_validation": {
+    "reader_branch": "fix/em034-lady-assembly-info-export",
+    "reader_head": "23d81babb0a34140d519de257bd6c12c09a1b265",
+    "pr104_state": "DRAFT",
+    "merged": false,
+    "android_identity": {
+      "versionCode": 72,
+      "versionName": "1.0.45"
+    },
+    "signing": {
+      "policy": "stable-debug",
+      "signer_sha256": "f483539463f89dd957a8f7c68a3bb75da17450163f2e8767b4c47d5f1899adac",
+      "upgrade_compatible_with_prior_test_release_builds": true
+    },
+    "ci": {
+      "workflow": "DMC Native Reader core architecture",
+      "run_number": 884,
+      "run_id": 36387330381,
+      "conclusion": "success",
+      "exact_head": true
+    },
+    "debug_apk": {
+      "workflow_artifact_id": 10955380530,
+      "workflow_artifact_name": "dmc-native-reader-v72-lady-debug",
+      "artifact_zip_sha256": "61f69714fb11b9f9be9d2187894264da82b7ce7342932be9d4491550449a4965",
+      "extracted_apk_name": "DMC-Native-Reader-v72-Lady-debug.apk",
+      "extracted_apk_sha256": "15e48ec096b8536480a070e79cb5a0f67abcfd9b1a90fc3d5ac68142f03498a1"
+    },
+    "physical_android_acceptance": "PENDING",
+    "merge_gate": "Do not merge PR #104 until physical Android Lady acceptance passes"
+  }
+}

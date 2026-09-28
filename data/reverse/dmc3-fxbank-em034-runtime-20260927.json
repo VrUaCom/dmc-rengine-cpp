@@ -1,0 +1,123 @@
+{
+  "schema": "dmc3-fxbank-runtime-evidence/v1",
+  "date": "2026-09-27",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "corpus": {
+    "bank": "em034_028.pnst",
+    "manifest_identity": "(kind,u16 id)",
+    "loader_va": "0x1402C04C0"
+  },
+  "runtime_records": {
+    "V": {
+      "consumer_va": "0x140324680",
+      "entry_stride": "0x2c",
+      "dispatch": {
+        "0": {"kind": "P", "creator_va": "0x1403127B0"},
+        "1": {"kind": "E", "creator_va": "0x1402E3B90"},
+        "2": {"kind": "G", "creator_va": "0x1402EBA90"},
+        "3": {"kind": "V", "creator_va": "0x140324570"}
+      },
+      "fields": {
+        "kind": "u8@entry+0x04",
+        "id": "u16le@entry+0x06",
+        "translation": "f32le[3]@entry+0x0c",
+        "rotation_degrees": "f32le[3]@entry+0x18",
+        "scale": "f32le[3]@entry+0x24"
+      },
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "E": {
+      "creator_va": "0x1402E3C20",
+      "fields": {
+        "mode": "u8@0x01",
+        "texture_id": "u16le@0x04",
+        "animation_gate": "u8@0x06",
+        "animation_id": "u16le@0x08",
+        "rectangle": "u16le[4]@0x0c"
+      },
+      "texture_lookup_va": "0x1402E3AA0",
+      "texture_manager": "0x140CF0AA0",
+      "animation_state_va": "0x140322960",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "G": {
+      "creator_va": "0x1402EBA90",
+      "init_va": "0x1402EBC10",
+      "confirmed_fields": [
+        "u8@0x01 mode",
+        "u16le@0x02 C-id when mode==1",
+        "i32@0x18 converted-to-float scalar",
+        "i32@0x20 converted-to-float scalar",
+        "u8@0x30 special-case selector",
+        "f32le@0x38",
+        "f32le@0x3c",
+        "u16le@0x40 interpolation step/count",
+        "f32le@0x50",
+        "f32le@0x54",
+        "u8@0x59"
+      ],
+      "c_lookup_va": "0x1402D3B70",
+      "status": "STRUCTURAL_CONFIRMED",
+      "open_semantics": true
+    },
+    "P": {
+      "registrar_va": "0x140314B80",
+      "parser_va": "0x140312DC0",
+      "creator_va": "0x140312840",
+      "version": 2,
+      "relative_base_offset": "0x10",
+      "root_rel_offset": "0x10",
+      "list_rel_offset": "0x14",
+      "targets_rel_offset": "0x18",
+      "target_count": "u16le@root+0xc0",
+      "subtype": "u8@root+0x01",
+      "subtype_range": [0,1,2,3,4,5],
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "subtype_semantics": "PRESERVED_UNDECODED"
+    }
+  },
+  "android_physical_test": {
+    "reader_branch": "feature/pnst-gallery-visual-previews",
+    "reader_commit": "7acd8d49c9476f617a1dae7bd13bb2e058fc9151",
+    "status": "PARTIAL_PASS",
+    "observed": [
+      "FXBANK #28 opens and scrolls on Android",
+      "T displays decoded DDS imagery",
+      "A displays atlas/frame imagery",
+      "E displays texture-backed imagery",
+      "M displays native MOD/EFM 3D thumbnails",
+      "V/G/P open and display EXE-backed diagnostic views"
+    ],
+    "not_yet_claimed": [
+      "frame-accurate live effect playback",
+      "semantic names for G scalar/range fields",
+      "semantic names and exact behavior for P subtypes 0..5",
+      "C record structure"
+    ]
+  },
+  "reader_next_iteration": {
+    "branch": "feature/fxbank-dual-visual-info",
+    "pr": 108,
+    "head": "9f58602750af2014902052656e9739f6c7823625",
+    "ci_run": 36339602597,
+    "ci_result": "success",
+    "pr_state": "draft",
+    "contract": [
+      "Visual and Info are separate native session surfaces",
+      "Info preserves the EXE-backed diagnostic view",
+      "Visual resolves confirmed bank-local T/A/E/P/G/V dependencies where available",
+      "No unconfirmed particle/gameplay semantics are invented"
+    ]
+  },
+  "open_reverse_gates": [
+    "G gameplay semantics beyond confirmed accesses",
+    "P subtype 0..5 constructor/render semantics",
+    "C record binary layout and consumers",
+    "time/lifetime/update path for full live effect playback",
+    "cross-record simulation parity with dmc3.exe"
+  ]
+}

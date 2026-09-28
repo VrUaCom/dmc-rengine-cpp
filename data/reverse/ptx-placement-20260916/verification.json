@@ -1,0 +1,4204 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "cases": 134,
+  "case_results": [
+    {
+      "name": "mode-0-gate-None-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-None-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-28-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-28-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-68-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          10310133399315070992
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-68-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          10310133399315070992
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-24-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9144667642450272940
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-0-gate-24-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          9144667642450272940
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-None-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 3,
+        "0x1e": 4192,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-None-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-28-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 3,
+        "0x1e": 4192,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-28-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-68-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 3,
+        "0x1e": 4192,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          10310133399315070992
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-68-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          10310133399315070992
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-24-index-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          9144667642450272940
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "mode-1-gate-24-index-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          9144667642450272940
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "automatic-map-0101000000000001",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4160,
+        "0xe": 3,
+        "0x1e": 4256,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "automatic-map-0001000100000000",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4224,
+        "0xe": 3,
+        "0x1e": 4320,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "automatic-map-01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "automatic-free-run-extends-past-limit",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 8,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          15248121517991997780
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "explicit-does-not-check-palette-cells",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "explicit-overwrites-external-palette-base",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          9144667642450272940
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "explicit-index-above-limit-is-accepted",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 10496,
+        "0xe": 1,
+        "0x1e": 10528,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          200,
+          1,
+          13092607798972203897
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "explicit-negative-index-before-map",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4064,
+        "0xe": 1,
+        "0x1e": 4096,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          4294967295,
+          1,
+          13092607798972203897
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "explicit-between-inverted-bounds-is-rejected",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          7,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "failed-search-keeps-default-length-writes-0",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "failed-search-keeps-default-length-writes-5",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "signed-start-and-profile-4097-4096",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 2,
+        "0x1e": 4160,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          17561628174797232062
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "signed-start-and-profile-4095-4096",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4064,
+        "0xe": 2,
+        "0x1e": 4128,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          17561628174797232062
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "signed-start-and-profile--31-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 2,
+        "0x1e": 64,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          17561628174797232062
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "signed-start-and-profile--33-0",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 65504,
+        "0xe": 2,
+        "0x1e": 32,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          17561628174797232062
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "signed-start-and-profile-65504-65504",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 65504,
+        "0xe": 2,
+        "0x1e": 32,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          17561628174797232062
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-0",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          2874744693562880956
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-1",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          11493701540191080319
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-2",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          15090499336736493835
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-3",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 5,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          1271383734454159542
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-4",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 3,
+        "0x1e": 4736,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          1,
+          16615472931287553105
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-5",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4960,
+        "0xe": 6,
+        "0x1e": 5152,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          4260189863416336248
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-6",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 4,
+        "0x1e": 4384,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          1364178924733713552
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-7",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          5861173851933981229
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-8",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          1,
+          8391046663314922266
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-9",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 5,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          13656347814665127283
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-10",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4416,
+        "0xe": 4,
+        "0x1e": 4544,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          11586496730470634329
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-11",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4192,
+        "0xe": 1,
+        "0x1e": 4224,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          3434030008928206506
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-12",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4160,
+        "0xe": 1,
+        "0x1e": 4192,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-13",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          1312077145106317194
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-14",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 5,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          1271383734454159542
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-15",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          15090499336736493835
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-16",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          15094954037064091671
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-17",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 5824,
+        "0xe": 3,
+        "0x1e": 5920,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-18",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          1,
+          2870289993235283120
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-19",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4512,
+        "0xe": 5,
+        "0x1e": 4672,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          11493701540191080319
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-20",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          4294967295,
+          16615472931287553105
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-21",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          1,
+          11586496730470634329
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-22",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 2,
+        "0x1e": 4320,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          15563736637032942124
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-23",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4128,
+        "0xe": 1,
+        "0x1e": 4160,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          13264994026769423933
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-24",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 5,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          1436138471163916568
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-25",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 1,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          0,
+          3042676221032503156
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-26",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 6,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          4294967295,
+          17407269145622539241
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-27",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 6,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          4260189863416336248
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-28",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4160,
+        "0xe": 1,
+        "0x1e": 4192,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          17407269145622539241
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-29",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          4294967295,
+          166620395342291427
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-30",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 5184,
+        "0xe": 5,
+        "0x1e": 5344,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          11658456276900837345
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-31",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          3362070462498003490
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-32",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 6112,
+        "0xe": 1,
+        "0x1e": 6144,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          0,
+          7339310369060311285
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-33",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 6,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          4294967295,
+          17407269145622539241
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-34",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          11658456276900837345
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-35",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          14085600119906612068
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-36",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          13264994026769423933
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-37",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          11493701540191080319
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-38",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          1,
+          2874744693562880956
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-39",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          8391046663314922266
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-40",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 5,
+        "0x1e": 4256,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          11658456276900837345
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-41",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          1312077145106317194
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-42",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          13092607798972203897
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-43",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          6393155125550632328
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-44",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4160,
+        "0xe": 5,
+        "0x1e": 4320,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          11658456276900837345
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-45",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          1,
+          15094954037064091671
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-46",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          3362070462498003490
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-47",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4448,
+        "0xe": 1,
+        "0x1e": 4480,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          1,
+          5040567758796793094
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-48",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 2,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          1,
+          14085600119906612068
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-49",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          4294967295,
+          8391046663314922266
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-50",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 3,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          9536503413078948033
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-51",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 5,
+        "0x1e": 21845,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          1271383734454159542
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-52",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4544,
+        "0xe": 1,
+        "0x1e": 4576,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          5040567758796793094
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-53",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4192,
+        "0xe": 4,
+        "0x1e": 4320,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          11586496730470634329
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-54",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          1,
+          1364178924733713552
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-55",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          7339310369060311285
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-56",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4640,
+        "0xe": 1,
+        "0x1e": 4672,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          17,
+          0,
+          1364178924733713552
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-57",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 5280,
+        "0xe": 3,
+        "0x1e": 5376,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          4294967295,
+          16615472931287553105
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-58",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          0,
+          7339310369060311285
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-59",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4128,
+        "0xe": 1,
+        "0x1e": 4160,
+        "0x26": 3,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          4294967295,
+          2870289993235283120
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-60",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 3,
+        "0x1e": 4352,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          1312077145106317194
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-61",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4128,
+        "0xe": 2,
+        "0x1e": 4192,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          1,
+          1,
+          7859065389698271167
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-62",
+      "entry": "0x140331520",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4256,
+        "0xe": 1,
+        "0x1e": 4288,
+        "0x26": 1,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          5,
+          4294967295,
+          4868181530999573058
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "deterministic-map-63",
+      "entry": "0x140331520",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 30583,
+        "0xe": 4,
+        "0x1e": 21845,
+        "0x26": 2,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          63,
+          1,
+          4872636231327170894
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-1-palette-False",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-1-palette-True",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-1-palette-helper",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 12288,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          2,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9505301516770677965
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          17242737222250898214
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-1-real-map-exhaustion",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ]
+      ],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "integration-2-palette-False",
+      "entry": "0x140336bb0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          932503645300597330
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8190298376849437277
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          17439268816611091972
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          405632440735575303
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-2-palette-True",
+      "entry": "0x140336bb0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          2240885094780723069
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          11151905840046163634
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-2-palette-helper",
+      "entry": "0x140336bb0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-2-real-map-exhaustion",
+      "entry": "0x140336bb0",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ]
+      ],
+      "memsets": [
+        [
+          "0x140d5fc10",
+          80
+        ],
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "integration-3-palette-False",
+      "entry": "0x140336a70",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          932503645300597330
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8190298376849437277
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          17439268816611091972
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          405632440735575303
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-3-palette-True",
+      "entry": "0x140336a70",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          2240885094780723069
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          11151905840046163634
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-3-palette-helper",
+      "entry": "0x140336a70",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 12288,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9505301516770677965
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          17242737222250898214
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          4261405155878358067
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8043699992978202404
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-3-real-map-exhaustion",
+      "entry": "0x140336a70",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ]
+      ],
+      "memsets": [
+        [
+          "0x140d5fc10",
+          80
+        ],
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "integration-4-palette-False",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          932503645300597330
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8190298376849437277
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          17439268816611091972
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          405632440735575303
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-4-palette-True",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          2240885094780723069
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          11151905840046163634
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-4-palette-helper",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-4-real-map-exhaustion",
+      "entry": "0x140314e00",
+      "result": -1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ]
+      ],
+      "memsets": [
+        [
+          "0x140d5fc10",
+          80
+        ],
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "integration-5-palette-False",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          932503645300597330
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8190298376849437277
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          17439268816611091972
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          405632440735575303
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-5-palette-True",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          0,
+          0,
+          2240885094780723069
+        ],
+        [
+          1,
+          5382733056,
+          0,
+          0,
+          11151905840046163634
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-5-palette-helper",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 12288,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9505301516770677965
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          17242737222250898214
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          4261405155878358067
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8043699992978202404
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "integration-5-real-map-exhaustion",
+      "entry": "0x140314fa0",
+      "result": -1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ]
+      ],
+      "memsets": [
+        [
+          "0x140d5fc10",
+          80
+        ],
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "cache-full-placement-lifecycle-0",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          5817611685992035833
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          7012942392628141734
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          11147948791343183299
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8721059396606503172
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "cache-full-placement-lifecycle-1",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "cache-full-placement-lifecycle-2",
+      "entry": "0x140315180",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 1,
+        "0x46": 1
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "cache-full-placement-lifecycle-3",
+      "entry": "0x140315180",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          80
+        ],
+        [
+          "0x140d5fbc0",
+          80
+        ],
+        [
+          "0x140d5fc10",
+          80
+        ],
+        [
+          "0x140d5fc60",
+          80
+        ]
+      ]
+    },
+    {
+      "name": "cache-full-placement-lifecycle-4",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 12288,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          9505301516770677965
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          17242737222250898214
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          0,
+          0,
+          4261405155878358067
+        ],
+        [
+          1,
+          5382732896,
+          0,
+          0,
+          8043699992978202404
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "memsets": []
+    },
+    {
+      "name": "initialize-0-0",
+      "entry": "0x140331910",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          52048
+        ]
+      ]
+    },
+    {
+      "name": "initialize-1000-1800",
+      "entry": "0x140331910",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          52048
+        ]
+      ]
+    },
+    {
+      "name": "initialize-ffff-0",
+      "entry": "0x140331910",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          52048
+        ]
+      ]
+    },
+    {
+      "name": "initialize-1880-4000",
+      "entry": "0x140331910",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          52048
+        ]
+      ]
+    },
+    {
+      "name": "configure-reservation-0",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "configure-reservation-1",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "configure-reservation-40",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "configure-reservation-10000",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "configure-reservation-8000000",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "configure-reservation-ffffffff",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "initialize-before-configure",
+      "entry": "0x140331910",
+      "result": 0,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": [
+        [
+          "0x140d5fb70",
+          52048
+        ]
+      ]
+    },
+    {
+      "name": "configure-after-initialize",
+      "entry": "0x140331d90",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 0,
+        "0xe": 0,
+        "0x1e": 0,
+        "0x26": 0,
+        "0x46": 0
+      },
+      "events": [],
+      "memsets": []
+    },
+    {
+      "name": "materialize-after-initialize-and-configure",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "record0_fields": {
+        "0x6": 4096,
+        "0xe": 1,
+        "0x1e": 4128,
+        "0x26": 0,
+        "0x46": 1
+      },
+      "events": [
+        [
+          1,
+          5382732656,
+          0,
+          0,
+          2851959965825863648
+        ],
+        [
+          1,
+          5382732736,
+          0,
+          0,
+          13634293992792204667
+        ]
+      ],
+      "memsets": []
+    }
+  ],
+  "host_guards": [
+    {
+      "image_length": 0,
+      "status": "HOST_GUARD_ONLY"
+    },
+    {
+      "image_length": -1,
+      "status": "HOST_GUARD_ONLY"
+    },
+    {
+      "index": 2147483647,
+      "status": "HOST_GUARD_ONLY"
+    }
+  ],
+  "placement_conditional_edges": [
+    {
+      "site": "0x14033153a",
+      "fallthrough": "0x14033153c",
+      "target": "0x140331563",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x14033154b",
+      "fallthrough": "0x14033154d",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331551",
+      "fallthrough": "0x140331553",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331557",
+      "fallthrough": "0x140331559",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x14033156c",
+      "fallthrough": "0x14033156e",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331572",
+      "fallthrough": "0x140331574",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331578",
+      "fallthrough": "0x14033157a",
+      "target": "0x14033157e",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331581",
+      "fallthrough": "0x140331587",
+      "target": "0x14033163f",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x1403315ca",
+      "fallthrough": "0x1403315cc",
+      "target": "0x1403315fd",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x1403315ea",
+      "fallthrough": "0x1403315f0",
+      "target": "0x1403316b5",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x1403315f3",
+      "fallthrough": "0x1403315f5",
+      "target": "0x1403315e0",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x14033160a",
+      "fallthrough": "0x14033160c",
+      "target": "0x1403315c7",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x14033161d",
+      "fallthrough": "0x14033161f",
+      "target": "0x14033162d",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331654",
+      "fallthrough": "0x140331656",
+      "target": "0x14033166a",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331668",
+      "fallthrough": "0x14033166a",
+      "target": "0x1403316b5",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x14033167a",
+      "fallthrough": "0x14033167c",
+      "target": "0x1403316b5",
+      "fallthrough_observed": true,
+      "target_observed": true
+    },
+    {
+      "site": "0x140331683",
+      "fallthrough": "0x140331685",
+      "target": "0x140331677",
+      "fallthrough_observed": true,
+      "target_observed": true
+    }
+  ],
+  "conditional_sites": 17,
+  "sites_with_both_outcomes": 17,
+  "unicorn_version": "2.1.4",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "source_sha256": {
+    "src/reverse/ptx_record_placement.cpp": "b3b08f33101b50215d706b84a4b5e537ee6805d22faf86e30cdc28ea54d8aa4d",
+    "src/reverse/ptx_record_materializer.cpp": "cf9180b58fdf2350ace81b691a42fb08df1cc3a4234f901efd0fc8ea22b1b313",
+    "src/reverse/ptx_payload_state.cpp": "6e2c82b98e33b454838a4db6d0561fad0590d8550cbfd49a09f46529e0196441",
+    "src/reverse/ptx_manager_state.cpp": "05a95d7c35bd2a9302388573dce36233af284d69afb9de892be2adc8b4ca563a",
+    "tests/reverse/ptx_placement_bridge.cpp": "cf17315e0243bd6d46d1c8e18b75c63890a80a4620a51df5cd112b55e42e43a9",
+    "include/dmc_rengine/reverse/ptx_record_placement.hpp": "9f0b3f06893701ef6a89b79146cd9a5ce0972a4bbfed5a5cadb27cadc27b1506",
+    "include/dmc_rengine/reverse/ptx_record_materializer.hpp": "5e7e2459fb86715e0e7ecad46eee02e7c925c887d6d91266704822e8771a45f8",
+    "include/dmc_rengine/reverse/ptx_payload_state.hpp": "b5d0dc1d9078edfe37b9241fd7129df518cf557ae52320816993d4606edfdd7b",
+    "include/dmc_rengine/reverse/ptx_manager_state.hpp": "27e43e38c4cc14e0819bf0ebc71c74201e6c078cb6f62dd0631effc36af3b798",
+    "scripts/reverse/verify_ptx_placement.py": "041974f5329a738f4fc84e901c62a130356d6233780c9867f4b479a6100b7ed4",
+    "scripts/reverse/verify_ptx_materializer.py": "1f29ded930f0a095754f92b2fd876396a202ac0b2a4dd12e14ea2064a975b1ee",
+    "scripts/reverse/verify_ptx_payload.py": "597619c9cc0692913e2858c31fbce038e44fe319d52dcc569e4dfddda7222b87",
+    "scripts/reverse/canonical_image.py": "e409af8ba41756c6f36dca1096cc5c0f1da11cb189f4b7858003e904cdfa22ba",
+    "scripts/reverse/verify_crt_lifecycle.py": "a08a960fcc170c30d7cb313bd6ad2f0f0c512145cfa5716c5b15880d12b8a037"
+  },
+  "real_internal_entries": [
+    "0x140314e00",
+    "0x140314fa0",
+    "0x140315150",
+    "0x140315180",
+    "0x140330f60",
+    "0x1403310f0",
+    "0x1403313f0",
+    "0x140331420",
+    "0x140331520",
+    "0x1403317d0",
+    "0x140331910",
+    "0x140331d90",
+    "0x1403366e0",
+    "0x140336a70",
+    "0x140336bb0"
+  ],
+  "limitations": [
+    "Direct placement executes original instructions without intercepted callees.",
+    "Integration boundaries: palette helper 0x140331bd0, parser 0x1403365b0, render finalizer 0x140331a80 and checked CRT memset.",
+    "Initializer memset contract is 0xcb50 zero bytes; record clear contract is 0x50.",
+    "Configuration object fields are synthetic explicit inputs; live game profile values and caller ordering remain open.",
+    "Host guards reject unrepresented accesses/lengths; they are not original EXE validation.",
+    "No GPU acceptance, Windows SEH, aliasing, concurrency or reentrant parity."
+  ]
+}

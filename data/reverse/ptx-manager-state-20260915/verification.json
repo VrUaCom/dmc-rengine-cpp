@@ -1,0 +1,670 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "cases": 79,
+  "case_results": [
+    {
+      "name": "construct-preserve-headers-1",
+      "entry": "0x140314c50",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "reset-preserve-payloads-1",
+      "entry": "0x140315150",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "construct-preserve-headers-20260915",
+      "entry": "0x140314c50",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "reset-preserve-payloads-20260915",
+      "entry": "0x140315150",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "construct-preserve-headers-65535",
+      "entry": "0x140314c50",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "reset-preserve-payloads-65535",
+      "entry": "0x140315150",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "global-CRT-initializer",
+      "entry": "0x140025050",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "registered-global-cleanup",
+      "entry": "0x14034eca0",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "direct-cleanup-preserves-live-payloads",
+      "entry": "0x140314d00",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "deleting-flags-0",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "deleting-flags-1",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 1,
+      "service_kind": 4
+    },
+    {
+      "name": "deleting-flags-2",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "deleting-flags-3",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 1,
+      "service_kind": 4
+    },
+    {
+      "name": "deleting-flags-80000001",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 1,
+      "service_kind": 4
+    },
+    {
+      "name": "deleting-flags-ffffffff",
+      "entry": "0x140314d60",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 1,
+      "service_kind": 4
+    },
+    {
+      "name": "acquire-2-null",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-full-miss",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-free-0-result-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-0-result-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-0-result--1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-5-result-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-5-result-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 2704,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-5-result--1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 2704,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-31-result-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-31-result-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-free-31-result--1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "acquire-2-hit-0-refs-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-0-refs-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-0-refs-ffffffff",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-15-refs-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-15-refs-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-15-refs-ffffffff",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-31-refs-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-31-refs-1",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-hit-31-refs-ffffffff",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-2-first-duplicate",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 2168,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-null",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-full-miss",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-free-0-result-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-0-result-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-0-result--1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-5-result-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-5-result-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 2704,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-5-result--1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 2704,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-31-result-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": -1,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-31-result-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-free-31-result--1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "acquire-3-hit-0-refs-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-0-refs-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-0-refs-ffffffff",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-15-refs-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-15-refs-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-15-refs-ffffffff",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 8064,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-31-refs-0",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-31-refs-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-hit-31-refs-ffffffff",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 16640,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "acquire-3-first-duplicate",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 2168,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-null",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-absent",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-0-refs-0",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-0-refs-1",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 1,
+      "external_service_calls": 1,
+      "service_kind": 3
+    },
+    {
+      "name": "release-0-refs-2",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-0-refs-ffffffff",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-15-refs-0",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-15-refs-1",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 1,
+      "external_service_calls": 1,
+      "service_kind": 3
+    },
+    {
+      "name": "release-15-refs-2",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-15-refs-ffffffff",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-31-refs-0",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-31-refs-1",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 1,
+      "external_service_calls": 1,
+      "service_kind": 3
+    },
+    {
+      "name": "release-31-refs-2",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-31-refs-ffffffff",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "release-first-duplicate",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "cross-variant-lifecycle-step-0",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 1
+    },
+    {
+      "name": "cross-variant-lifecycle-step-1",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "cross-variant-lifecycle-step-2",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "cross-variant-lifecycle-step-3",
+      "entry": "0x140315180",
+      "byte_equal": true,
+      "result": 1,
+      "external_service_calls": 1,
+      "service_kind": 3
+    },
+    {
+      "name": "cross-variant-lifecycle-step-4",
+      "entry": "0x140314fa0",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 2
+    },
+    {
+      "name": "cross-variant-lifecycle-step-5",
+      "entry": "0x140315150",
+      "byte_equal": true,
+      "result": 0,
+      "external_service_calls": 0,
+      "service_kind": 0
+    },
+    {
+      "name": "cross-variant-lifecycle-step-6",
+      "entry": "0x140314e00",
+      "byte_equal": true,
+      "result": 24,
+      "external_service_calls": 1,
+      "service_kind": 1
+    }
+  ],
+  "unicorn_version": "2.1.4",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "source_sha256": {
+    "include/dmc_rengine/reverse/ptx_manager_state.hpp": "27e43e38c4cc14e0819bf0ebc71c74201e6c078cb6f62dd0631effc36af3b798",
+    "src/reverse/ptx_manager_state.cpp": "05a95d7c35bd2a9302388573dce36233af284d69afb9de892be2adc8b4ca563a",
+    "tests/reverse/ptx_manager_bridge.cpp": "afd0bf4e03bb2abb849055b8b86d5a806fa6b777baf9b37148768fc9ccc68f2b",
+    "scripts/reverse/verify_ptx_manager.py": "3634f3e0be93f9737f6b988014c8e426f881680f348c03c4cfce0a5eff81d4e8",
+    "scripts/reverse/canonical_image.py": "e409af8ba41756c6f36dca1096cc5c0f1da11cb189f4b7858003e904cdfa22ba",
+    "scripts/reverse/audit_crt_lifecycle.py": "152937ea7685f0cc36d8756cce0167686ed56f0ff7eb625643953d2d72ccd4a5",
+    "scripts/reverse/verify_crt_lifecycle.py": "a08a960fcc170c30d7cb313bd6ad2f0f0c512145cfa5716c5b15880d12b8a037"
+  },
+  "normal_internal_helpers_executed": [
+    "0x140345b24",
+    "0x140345b94",
+    "0x140346714",
+    "0x14024ea30",
+    "0x1403455f0"
+  ],
+  "intercepted_service_entries": [
+    "0x140336bb0",
+    "0x140336a70",
+    "0x1403317d0",
+    "0x140345554",
+    "0x1403458d0"
+  ],
+  "limitations": [
+    "Loaders, payload release, allocator and exit registry are explicit intercepted service boundaries.",
+    "Full manager memory, guards, return results and service effects are compared on tested normal paths.",
+    "Windows exception unwinding, allocator implementation, texture decoding/GPU effects and concurrent/reentrant calls remain open.",
+    "Canonical vtable address is a data tag in the C++ image model, not a native host vtable."
+  ]
+}

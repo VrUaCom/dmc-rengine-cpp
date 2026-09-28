@@ -1,0 +1,26 @@
+{
+  "schema": "dmc-rengine.runtime-tree-drive-reconciliation.v1",
+  "date": "2026-09-13",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "source_sheet": "1tmNY1O5b2dwYSRBzlPFtKndKBvRknmd1bUqkaTEahBU",
+  "source_tab": "Inheritance",
+  "read_range": "A1:D500",
+  "added": [
+    "IMMNotificationClient@DMC3\tIUnknown",
+    "CItem\tCWork",
+    "CParticle\tCEffectBase",
+    "CRealParticle\tCParticle",
+    "CFakeParticle\tCParticle"
+  ],
+  "missing": [],
+  "newCount": 438,
+  "oldCount": 433,
+  "unlinked_decorated_type": {
+    "name": "_com_error",
+    "type_va": "0x1405d8ea8",
+    "status": "not referenced by validated COL-linked hierarchy; no semantic deletion"
+  },
+  "status": "EXE_CONFIRMED_STRUCTURAL_ONLY",
+  "original_source_folders_recovered": false,
+  "full_game_decompiled": false
+}

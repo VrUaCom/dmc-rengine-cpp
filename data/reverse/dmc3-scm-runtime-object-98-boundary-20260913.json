@@ -1,0 +1,69 @@
+{
+  "schema": "dmc-rengine.scm-runtime-object-98-boundary.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "field": "runtimeObject+0x98",
+  "field_domain": "SCM runtime object, not a serialized SCM field",
+  "status": "EXE_CONFIRMED_RUNTIME_GIF_PRIM_CONTROL_SOURCE_WITH_PRODUCER_OPEN",
+  "confirmed_consumers": [
+    {
+      "site": "0x140304579",
+      "role": "independent SCM packet-builder read",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x14030A324",
+      "role": "SCM geometry GIFtag construction",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "geometry_giftag_projection": {
+    "constructor": "0x14030A320..0x14030A38D",
+    "formula": "((runtimeObject+0x98 & 0x7F8) | 5) << 47 | 0x0000400000008000 | 0x3000000000000000",
+    "regs_qword": "0x0000000000000412",
+    "decoded_layout_authority": "0x140032DB3..0x140032F22 decodes GIFtag NLOOP/EOP/PRE/PRIM/FLG/NREG",
+    "safe_interpretation": "The masked runtimeObject+0x98 value is projected into the GIFtag PRIM/control field. The tag is PRE-enabled and uses NREG=3 with PACKED ST/RGBAQ/XYZF2 descriptors.",
+    "safe_name": "runtime GIF PRIM/control source",
+    "status": "EXE_CONFIRMED"
+  },
+  "generated_descriptor_relation": {
+    "result": "runtime-derived state sourced from runtimeObject+0x98 is also carried into generated mesh/draw descriptor state at +0x4C in the recovered SCM runtime path",
+    "important_boundary": "This generated runtime descriptor +0x4C is not serialized SCM mesh+0x4C and is not MOD serialized mesh+0x4C.",
+    "status": "EXE_CONFIRMED_RUNTIME_RELATION"
+  },
+  "serialized_source_boundary": {
+    "audited_paths_without_direct_runtimeObject_plus_98_write": [
+      "0x140302F10 SCM object materialization",
+      "0x140308C00 runtime mesh/object post-init path",
+      "0x1402F9890 common SCM material helper",
+      "0x1402F9A80 common follow-up mesh state",
+      "0x1402F9F20 SCM-specialized allocation path"
+    ],
+    "result": "No direct serialized SCM lane -> runtimeObject+0x98 producer has been established in the recovered SCM initialization/material paths.",
+    "status": "BOUNDED_NEGATIVE_EVIDENCE"
+  },
+  "fresh_reverse_boundary": {
+    "reason": "Full canonical dmc3.exe bytes are not currently available in connected artifacts, so a new whole-image producer/xref census cannot be performed honestly in this pass.",
+    "policy": "Do not infer a producer from displacement similarity or from another model-family ABI. Reopen the producer search when the complete canonical executable is available."
+  },
+  "rejected_hypotheses": [
+    "runtimeObject+0x98 is a directly serialized SCM field",
+    "runtimeObject+0x98 is equivalent to serialized SCM mesh+0x4C",
+    "runtimeObject+0x98 is equivalent to serialized MOD mesh+0x4C",
+    "the exact high-level artistic primitive/material meaning can be named from the numeric GIFtag projection alone"
+  ],
+  "authoring_policy": "Runtime-only state. Do not expose as an SCM serialized authoring control and do not synthesize it from an unproven source formula.",
+  "remaining_frontier": "Recover the actual producer/setter chain for runtimeObject+0x98 from the complete canonical executable, then determine whether its value is derived from existing typed SCM state or from common runtime renderer state.",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "BOUNDED_NEGATIVE_EVIDENCE",
+    "PRESERVED_UNDECODED_PRODUCER",
+    "REJECTED"
+  ]
+}

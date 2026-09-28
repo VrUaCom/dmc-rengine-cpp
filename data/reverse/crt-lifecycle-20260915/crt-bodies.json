@@ -1,0 +1,6467 @@
+[
+  {
+    "root": "0x140001200",
+    "instruction_count": 14,
+    "boundary_end": "0x140001233",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "0b79dd43077b6415026fe21238b0124c71767e09af7c6cd7b006378df6e415c3",
+    "instruction_addresses": [
+      "0x140001200",
+      "0x140001205",
+      "0x140001206",
+      "0x14000120a",
+      "0x14000120f",
+      "0x140001216",
+      "0x140001219",
+      "0x14000121e",
+      "0x140001222",
+      "0x140001226",
+      "0x140001228",
+      "0x14000122d",
+      "0x140001231",
+      "0x140001232"
+    ],
+    "transfers": [
+      {
+        "site": "0x140001219",
+        "kind": "call",
+        "target": "0x140041a30",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140001226",
+        "kind": "jne",
+        "target": "0x140001216",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140001232",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140001440",
+    "instruction_count": 2,
+    "boundary_end": "0x140001450",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "8fae3eb9315b1f403b2a8d5118a8f0527ee5d4e91b6bcf5fcd5fee42a3fa8c89",
+    "instruction_addresses": [
+      "0x140001440",
+      "0x140001447"
+    ],
+    "transfers": [
+      {
+        "site": "0x140001447",
+        "kind": "jmp",
+        "target": "0x14002b070",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405d96b0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140001447",
+        "kind": "external_jump",
+        "target": "0x14002b070"
+      }
+    ]
+  },
+  {
+    "root": "0x140001450",
+    "instruction_count": 10,
+    "boundary_end": "0x140001482",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "8ba33a285daff6c7a17e2b3cd4fa503d4b432fa47277aaa5cf9f6256d4d7a3a2",
+    "instruction_addresses": [
+      "0x140001450",
+      "0x140001454",
+      "0x140001456",
+      "0x14000145d",
+      "0x140001461",
+      "0x140001466",
+      "0x14000146d",
+      "0x140001472",
+      "0x140001479",
+      "0x14000147d"
+    ],
+    "transfers": [
+      {
+        "site": "0x140001461",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x1405d99b0",
+          "rdx": "0x0",
+          "r8": "0x60",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14000146d",
+        "kind": "call",
+        "target": "0x140046240",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405d99b0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14000147d",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e670",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14000147d",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002160",
+    "instruction_count": 2,
+    "boundary_end": "0x140002170",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "d6efb44e6c32df03d254de066a3ac3cf005b92d442e4c855e6720a6b5d685621",
+    "instruction_addresses": [
+      "0x140002160",
+      "0x140002167"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002167",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e680",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140002167",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002370",
+    "instruction_count": 56,
+    "boundary_end": "0x14000252a",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "caec98de05df10875608d3b8ce87e64732c25fcafd5daacab12eae1be6bc4905",
+    "instruction_addresses": [
+      "0x140002370",
+      "0x140002374",
+      "0x14000237d",
+      "0x14000237f",
+      "0x140002385",
+      "0x14000238c",
+      "0x140002391",
+      "0x140002394",
+      "0x140002396",
+      "0x14000239c",
+      "0x1400023a3",
+      "0x1400023a8",
+      "0x1400023a9",
+      "0x1400023b3",
+      "0x1400023ba",
+      "0x1400023c5",
+      "0x1400023cf",
+      "0x1400023d7",
+      "0x1400023df",
+      "0x1400023e6",
+      "0x1400023eb",
+      "0x1400023f2",
+      "0x1400023f9",
+      "0x140002403",
+      "0x14000240d",
+      "0x140002416",
+      "0x14000241d",
+      "0x140002427",
+      "0x140002431",
+      "0x14000243b",
+      "0x140002445",
+      "0x14000244f",
+      "0x140002459",
+      "0x140002463",
+      "0x14000246d",
+      "0x140002477",
+      "0x140002481",
+      "0x14000248b",
+      "0x140002495",
+      "0x14000249f",
+      "0x1400024a9",
+      "0x1400024b3",
+      "0x1400024bd",
+      "0x1400024c7",
+      "0x1400024d1",
+      "0x1400024db",
+      "0x1400024e5",
+      "0x1400024ef",
+      "0x1400024f9",
+      "0x140002503",
+      "0x14000250d",
+      "0x140002514",
+      "0x140002519",
+      "0x14000251a",
+      "0x140002521",
+      "0x140002525"
+    ],
+    "transfers": [
+      {
+        "site": "0x14000238c",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x1405ea130",
+          "rdx": "0x0",
+          "r8": "0x6e0",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400023a3",
+        "kind": "call",
+        "target": "0x140036010",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405ea710",
+          "rdx": "0x0",
+          "r8": "0x400",
+          "r9": "0x0"
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400023e6",
+        "kind": "call",
+        "target": "0x140037950",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405ea130",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002514",
+        "kind": "call",
+        "target": "0x140038110",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405ea130",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002525",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e690",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400023a9",
+        "destination": "0x1405ea770",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023b3",
+        "destination": "0x1405ea774",
+        "width": 1,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023ba",
+        "destination": "0x1405ea778",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023c5",
+        "destination": "0x1405ea780",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023d7",
+        "destination": "0x1405ea784",
+        "width": 4,
+        "constant": null,
+        "operation": "movss"
+      },
+      {
+        "site": "0x1400023eb",
+        "destination": "0x1405ea79d",
+        "width": 1,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023f2",
+        "destination": "0x1405ea79f",
+        "width": 1,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400023f9",
+        "destination": "0x1405ea7a0",
+        "width": 4,
+        "constant": "0x780",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002403",
+        "destination": "0x1405ea7a4",
+        "width": 4,
+        "constant": "0x438",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000240d",
+        "destination": "0x1405ea7a8",
+        "width": 2,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002416",
+        "destination": "0x1405ea7aa",
+        "width": 1,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000241d",
+        "destination": "0x1405ea7ac",
+        "width": 4,
+        "constant": "0x36",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002427",
+        "destination": "0x1405ea7b0",
+        "width": 4,
+        "constant": "0x31",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002431",
+        "destination": "0x1405ea7b4",
+        "width": 4,
+        "constant": "0x2e",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000243b",
+        "destination": "0x1405ea7b8",
+        "width": 4,
+        "constant": "0xc8",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002445",
+        "destination": "0x1405ea7bc",
+        "width": 4,
+        "constant": "0xcd",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000244f",
+        "destination": "0x1405ea7c0",
+        "width": 4,
+        "constant": "0xd0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002459",
+        "destination": "0x1405ea7c4",
+        "width": 4,
+        "constant": "0xcb",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002463",
+        "destination": "0x1405ea7c8",
+        "width": 4,
+        "constant": "0x32",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000246d",
+        "destination": "0x1405ea7cc",
+        "width": 4,
+        "constant": "0x39",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002477",
+        "destination": "0x1405ea7d0",
+        "width": 4,
+        "constant": "0x21",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002481",
+        "destination": "0x1405ea7d4",
+        "width": 4,
+        "constant": "0x17",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000248b",
+        "destination": "0x1405ea7d8",
+        "width": 4,
+        "constant": "0x26",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002495",
+        "destination": "0x1405ea7dc",
+        "width": 4,
+        "constant": "0x25",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14000249f",
+        "destination": "0x1405ea7e0",
+        "width": 4,
+        "constant": "0x24",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024a9",
+        "destination": "0x1405ea7e4",
+        "width": 4,
+        "constant": "0x11",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024b3",
+        "destination": "0x1405ea7e8",
+        "width": 4,
+        "constant": "0x20",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024bd",
+        "destination": "0x1405ea7ec",
+        "width": 4,
+        "constant": "0x1f",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024c7",
+        "destination": "0x1405ea7f0",
+        "width": 4,
+        "constant": "0x1e",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024d1",
+        "destination": "0x1405ea7f4",
+        "width": 4,
+        "constant": "0x48",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024db",
+        "destination": "0x1405ea7f8",
+        "width": 4,
+        "constant": "0x4d",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024e5",
+        "destination": "0x1405ea7fc",
+        "width": 4,
+        "constant": "0x50",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024ef",
+        "destination": "0x1405ea800",
+        "width": 4,
+        "constant": "0x4b",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400024f9",
+        "destination": "0x1405ea804",
+        "width": 4,
+        "constant": "0x10",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002503",
+        "destination": "0x1405ea808",
+        "width": 4,
+        "constant": "0x12",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140002525",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002530",
+    "instruction_count": 11,
+    "boundary_end": "0x14000256c",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "ad1a1c7f72303f7f67cf1ededc5b5b11fc11c80178c46ab6b8a73b7c2bba0321",
+    "instruction_addresses": [
+      "0x140002530",
+      "0x140002534",
+      "0x140002539",
+      "0x140002540",
+      "0x140002547",
+      "0x14000254c",
+      "0x140002553",
+      "0x140002557",
+      "0x14000255c",
+      "0x140002563",
+      "0x140002567"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002557",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405eae50",
+          "rdx": "0x38",
+          "r8": "0x5",
+          "r9": "0x14002dfb0"
+        },
+        "local_stack_argument5": "0x14002dfd0",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002567",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e6d0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140002567",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002570",
+    "instruction_count": 15,
+    "boundary_end": "0x1400025c0",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "5cbf4314714ec4432392d27e7fb1628964febc9eff5ee00e04740027b7073b21",
+    "instruction_addresses": [
+      "0x140002570",
+      "0x140002574",
+      "0x140002576",
+      "0x14000257d",
+      "0x140002583",
+      "0x140002588",
+      "0x14000258d",
+      "0x140002594",
+      "0x14000259b",
+      "0x1400025a0",
+      "0x1400025a7",
+      "0x1400025ab",
+      "0x1400025b0",
+      "0x1400025b7",
+      "0x1400025bb"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002583",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x1405ea840",
+          "rdx": "0x0",
+          "r8": "0x558",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400025ab",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405eac80",
+          "rdx": "0x38",
+          "r8": "0x5",
+          "r9": "0x14002dfb0"
+        },
+        "local_stack_argument5": "0x14002dfd0",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400025bb",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e6f0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400025bb",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400026c0",
+    "instruction_count": 15,
+    "boundary_end": "0x140002710",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "8f3a0810cd9c2fed6d67e6f2c2990a2f574099a4ceb658784619b369759946f0",
+    "instruction_addresses": [
+      "0x1400026c0",
+      "0x1400026c4",
+      "0x1400026c6",
+      "0x1400026cd",
+      "0x1400026d1",
+      "0x1400026d6",
+      "0x1400026dd",
+      "0x1400026e2",
+      "0x1400026e9",
+      "0x1400026f0",
+      "0x1400026f7",
+      "0x1400026f9",
+      "0x140002700",
+      "0x140002707",
+      "0x14000270b"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400026d1",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140beafa0",
+          "rdx": "0x0",
+          "r8": "0x68",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400026dd",
+        "kind": "call",
+        "target": "0x140029b90",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140beafa0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14000270b",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e720",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400026e9",
+        "destination": "0x140beafa0",
+        "width": 8,
+        "constant": "0x1403712a8",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400026f9",
+        "destination": "0x140beaff8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140002700",
+        "destination": "0x140beb000",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14000270b",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002710",
+    "instruction_count": 11,
+    "boundary_end": "0x140002748",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "b17cb760b93be9837ccd772415001c53d38af95006afe61bb888cbf80f75d2a3",
+    "instruction_addresses": [
+      "0x140002710",
+      "0x140002714",
+      "0x14000271c",
+      "0x140002724",
+      "0x140002727",
+      "0x14000272f",
+      "0x140002734",
+      "0x140002737",
+      "0x14000273b",
+      "0x140002743",
+      "0x140002747"
+    ],
+    "transfers": [
+      {
+        "site": "0x14000272f",
+        "kind": "call",
+        "target": "0x140346c3e",
+        "import_symbol": "api-ms-win-crt-math-l1-1-0.dll!pow",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14000273b",
+        "destination": "0x140beaf94",
+        "width": 4,
+        "constant": null,
+        "operation": "movss"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140002747",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140002a60",
+    "instruction_count": 6,
+    "boundary_end": "0x140002a7b",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "9ee660e863c1863239776c31e7c3374a9462338230d99dcc8907bd22318f8ea4",
+    "instruction_addresses": [
+      "0x140002a60",
+      "0x140002a64",
+      "0x140002a6b",
+      "0x140002a70",
+      "0x140002a76",
+      "0x140002a7a"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002a6b",
+        "kind": "call",
+        "target": "0x140036f20",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405ea130",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140002a70",
+        "destination": "0x140c0b3f8",
+        "width": 4,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140002a7a",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140002a80",
+    "instruction_count": 6,
+    "boundary_end": "0x140002a9b",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "30e88861107badff7212280aa9c145e95499c623a44e21c644d723f18a1ec66f",
+    "instruction_addresses": [
+      "0x140002a80",
+      "0x140002a84",
+      "0x140002a8b",
+      "0x140002a90",
+      "0x140002a96",
+      "0x140002a9a"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002a8b",
+        "kind": "call",
+        "target": "0x140037db0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405ea130",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140002a90",
+        "destination": "0x140c0b3fc",
+        "width": 4,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140002a9a",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140002aa0",
+    "instruction_count": 10,
+    "boundary_end": "0x140002ad4",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "07571461dadeca25d40f6530897e5c99b1b7e9daa8b9e0108a7921802f54f32b",
+    "instruction_addresses": [
+      "0x140002aa0",
+      "0x140002aa4",
+      "0x140002aa6",
+      "0x140002aad",
+      "0x140002ab3",
+      "0x140002ab8",
+      "0x140002abf",
+      "0x140002ac4",
+      "0x140002acb",
+      "0x140002acf"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002ab3",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c0b410",
+          "rdx": "0x0",
+          "r8": "0x1850",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002abf",
+        "kind": "call",
+        "target": "0x1400420c0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140c0b410",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002acf",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e7a0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140002acf",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140002f20",
+    "instruction_count": 8,
+    "boundary_end": "0x140002f48",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "dc1a75a61da83a16e42344aefe7027d41b4ccd81dbbcc82ae4d1c77b653a27a7",
+    "instruction_addresses": [
+      "0x140002f20",
+      "0x140002f24",
+      "0x140002f26",
+      "0x140002f2d",
+      "0x140002f33",
+      "0x140002f38",
+      "0x140002f3f",
+      "0x140002f43"
+    ],
+    "transfers": [
+      {
+        "site": "0x140002f33",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c0cfa0",
+          "rdx": "0x0",
+          "r8": "0x2010",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140002f43",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e7b0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140002f43",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140003050",
+    "instruction_count": 4,
+    "boundary_end": "0x140003070",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "2f9534587636b0dcd6837890f7042da2fc70eb0a9e8a09242c13a30486798dfe",
+    "instruction_addresses": [
+      "0x140003050",
+      "0x140003052",
+      "0x140003059",
+      "0x14000305f"
+    ],
+    "transfers": [
+      {
+        "site": "0x14000305f",
+        "kind": "jmp",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c0f070",
+          "rdx": "0x0",
+          "r8": "0x1000",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14000305f",
+        "kind": "external_jump",
+        "target": "0x140346bea"
+      }
+    ]
+  },
+  {
+    "root": "0x140003070",
+    "instruction_count": 4,
+    "boundary_end": "0x140003090",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "a3c14c278e2bc66a85fb358a51a15d5fbc160f3dfc565a36015d03ad31bcca11",
+    "instruction_addresses": [
+      "0x140003070",
+      "0x140003072",
+      "0x140003079",
+      "0x14000307f"
+    ],
+    "transfers": [
+      {
+        "site": "0x14000307f",
+        "kind": "jmp",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c10070",
+          "rdx": "0x0",
+          "r8": "0x8004",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14000307f",
+        "kind": "external_jump",
+        "target": "0x140346bea"
+      }
+    ]
+  },
+  {
+    "root": "0x140003190",
+    "instruction_count": 9,
+    "boundary_end": "0x1400031bf",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "d38bc186abe31f210a7038a9729108c72c6fdfd248bf37a1f8c8222fc409c6ce",
+    "instruction_addresses": [
+      "0x140003190",
+      "0x140003194",
+      "0x140003196",
+      "0x14000319d",
+      "0x1400031a3",
+      "0x1400031a8",
+      "0x1400031af",
+      "0x1400031ba",
+      "0x1400031be"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400031a3",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c185f0",
+          "rdx": "0x0",
+          "r8": "0x430",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400031a8",
+        "destination": "0x140c18600",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400031af",
+        "destination": "0x140c185f0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x1400031be",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x1400034c0",
+    "instruction_count": 8,
+    "boundary_end": "0x1400034e8",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "822e3759d707d066852ad50f97054f3fb64d2cbf162da174a09b0c9f9c5fa982",
+    "instruction_addresses": [
+      "0x1400034c0",
+      "0x1400034c4",
+      "0x1400034c6",
+      "0x1400034cd",
+      "0x1400034d3",
+      "0x1400034d8",
+      "0x1400034df",
+      "0x1400034e3"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400034d3",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c1ac50",
+          "rdx": "0x0",
+          "r8": "0x741c8",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400034e3",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e7c0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400034e3",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140003af0",
+    "instruction_count": 10,
+    "boundary_end": "0x140003b24",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "11bc726e4cca6b134954a38c90b1b0de0d658d8ac99ec49b37f9f7f8acda7592",
+    "instruction_addresses": [
+      "0x140003af0",
+      "0x140003af4",
+      "0x140003af6",
+      "0x140003afd",
+      "0x140003b03",
+      "0x140003b08",
+      "0x140003b0f",
+      "0x140003b14",
+      "0x140003b1b",
+      "0x140003b1f"
+    ],
+    "transfers": [
+      {
+        "site": "0x140003b03",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c8f970",
+          "rdx": "0x0",
+          "r8": "0x14f0",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140003b0f",
+        "kind": "call",
+        "target": "0x14004eed0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140c8f970",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140003b1f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e7d0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140003b1f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140003b30",
+    "instruction_count": 8,
+    "boundary_end": "0x140003b60",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "00d581c6a9b04bec1adb4d17e8ae6528a4bbcb52e2270f71bd4726674e956347",
+    "instruction_addresses": [
+      "0x140003b30",
+      "0x140003b32",
+      "0x140003b39",
+      "0x140003b40",
+      "0x140003b47",
+      "0x140003b4e",
+      "0x140003b55",
+      "0x140003b5b"
+    ],
+    "transfers": [
+      {
+        "site": "0x140003b5b",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e820",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140003b39",
+        "destination": "0x140564594",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140003b40",
+        "destination": "0x140564595",
+        "width": 1,
+        "constant": null,
+        "operation": "or"
+      },
+      {
+        "site": "0x140003b47",
+        "destination": "0x14056459c",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140003b4e",
+        "destination": "0x1405645a4",
+        "width": 2,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140003b55",
+        "destination": "0x1405645a6",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140003b5b",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140005160",
+    "instruction_count": 2,
+    "boundary_end": "0x140005170",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "481862ad780bbac622d31ff35b9c3f430d7eaa820374e60e6da5222676b8e09a",
+    "instruction_addresses": [
+      "0x140005160",
+      "0x140005167"
+    ],
+    "transfers": [
+      {
+        "site": "0x140005167",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e830",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140005167",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140010670",
+    "instruction_count": 10,
+    "boundary_end": "0x1400106a4",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "8b8414ca095646d951a3d498c21f1fe1f337a10b93d7ce6d955bc335695b5837",
+    "instruction_addresses": [
+      "0x140010670",
+      "0x140010674",
+      "0x140010676",
+      "0x14001067d",
+      "0x140010683",
+      "0x140010688",
+      "0x14001068f",
+      "0x140010694",
+      "0x14001069b",
+      "0x14001069f"
+    ],
+    "transfers": [
+      {
+        "site": "0x140010683",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140c99d30",
+          "rdx": "0x0",
+          "r8": "0x6768",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001068f",
+        "kind": "call",
+        "target": "0x1401b78f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140c99d30",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001069f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e840",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001069f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400192b0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400192c0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "e75bc888483adec1ceb959598a0bcf4a39b297a9e9aca9b3da6be5bbc1c12178",
+    "instruction_addresses": [
+      "0x1400192b0",
+      "0x1400192b7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400192b7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e880",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400192b7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001c4c0",
+    "instruction_count": 11,
+    "boundary_end": "0x14001c4fc",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "1962f9b603a6117466ed7d0c9e2ed99c7ed04c671dc6a405633efee0fbe179dd",
+    "instruction_addresses": [
+      "0x14001c4c0",
+      "0x14001c4c4",
+      "0x14001c4c9",
+      "0x14001c4d0",
+      "0x14001c4d7",
+      "0x14001c4dc",
+      "0x14001c4e3",
+      "0x14001c4e7",
+      "0x14001c4ec",
+      "0x14001c4f3",
+      "0x14001c4f7"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001c4e7",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca8910",
+          "rdx": "0x28",
+          "r8": "0x3",
+          "r9": "0x1402c5ff0"
+        },
+        "local_stack_argument5": "0x14024ea30",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c4f7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e890",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001c4f7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001c500",
+    "instruction_count": 10,
+    "boundary_end": "0x14001c537",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "30b5472786cc8f068144866fc6b579a797e48dd02d801b970801830b9940df9a",
+    "instruction_addresses": [
+      "0x14001c500",
+      "0x14001c504",
+      "0x14001c506",
+      "0x14001c50d",
+      "0x14001c514",
+      "0x14001c51b",
+      "0x14001c522",
+      "0x14001c527",
+      "0x14001c52e",
+      "0x14001c532"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001c522",
+        "kind": "call",
+        "target": "0x1403378d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca8988",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c532",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e8b0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001c50d",
+        "destination": "0x140ca8988",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c514",
+        "destination": "0x140ca8990",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c51b",
+        "destination": "0x140ca8998",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001c532",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001c540",
+    "instruction_count": 10,
+    "boundary_end": "0x14001c577",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "3b9a4431162ca6e2e9cb74753e215dbaaef3bcace99030df25fb34a75e3c534f",
+    "instruction_addresses": [
+      "0x14001c540",
+      "0x14001c544",
+      "0x14001c546",
+      "0x14001c54d",
+      "0x14001c554",
+      "0x14001c55b",
+      "0x14001c562",
+      "0x14001c567",
+      "0x14001c56e",
+      "0x14001c572"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001c562",
+        "kind": "call",
+        "target": "0x1403378d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca89e8",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c572",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e8c0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001c54d",
+        "destination": "0x140ca89e8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c554",
+        "destination": "0x140ca89f0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c55b",
+        "destination": "0x140ca89f8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001c572",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001c580",
+    "instruction_count": 16,
+    "boundary_end": "0x14001c5d5",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "1de9bc63d620689d11e2d88e877155b4468fd4eabf4737cdccbb483fdaf5f0fe",
+    "instruction_addresses": [
+      "0x14001c580",
+      "0x14001c584",
+      "0x14001c58d",
+      "0x14001c58f",
+      "0x14001c596",
+      "0x14001c59d",
+      "0x14001c5a4",
+      "0x14001c5ab",
+      "0x14001c5b2",
+      "0x14001c5b7",
+      "0x14001c5b8",
+      "0x14001c5bf",
+      "0x14001c5c4",
+      "0x14001c5c5",
+      "0x14001c5cc",
+      "0x14001c5d0"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001c5b2",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca89c8",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c5bf",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca89c8",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c5d0",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e8d0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001c58f",
+        "destination": "0x140ca89c8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c596",
+        "destination": "0x140ca89d0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c59d",
+        "destination": "0x140ca89d8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c5a4",
+        "destination": "0x140ca89e0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001c5d0",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001c5e0",
+    "instruction_count": 12,
+    "boundary_end": "0x14001c625",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "412ff396ca0453b98f3dfbc91ee60e69ebc0763f2d8b87c17663827dee0094be",
+    "instruction_addresses": [
+      "0x14001c5e0",
+      "0x14001c5e4",
+      "0x14001c5e6",
+      "0x14001c5ed",
+      "0x14001c5f4",
+      "0x14001c5fb",
+      "0x14001c602",
+      "0x14001c609",
+      "0x14001c610",
+      "0x14001c615",
+      "0x14001c61c",
+      "0x14001c620"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001c610",
+        "kind": "call",
+        "target": "0x140337a80",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140ca89a0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001c620",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e8e0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001c5ed",
+        "destination": "0x140ca89a0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c5f4",
+        "destination": "0x140ca89a8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c5fb",
+        "destination": "0x140ca89b0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c602",
+        "destination": "0x140ca89b8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001c609",
+        "destination": "0x140ca89c0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001c620",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001d430",
+    "instruction_count": 2,
+    "boundary_end": "0x14001d440",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "9365e73d1c7c5f78d8a290ada4947e38c08e1e0b95c7e908effbcfbae9d3aa7c",
+    "instruction_addresses": [
+      "0x14001d430",
+      "0x14001d437"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001d437",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e8f0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001d437",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001e340",
+    "instruction_count": 2,
+    "boundary_end": "0x14001e350",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "c6b367b3541804940d5edf399c12232287e4ce11cdb0c2c1e3a02bceb933cd82",
+    "instruction_addresses": [
+      "0x14001e340",
+      "0x14001e347"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001e347",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e900",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001e347",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001e850",
+    "instruction_count": 23,
+    "boundary_end": "0x14001e8df",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "8455f5d6d61610c84f58193018b21a747f161f906ff2f52e8b5e91a92f846e8b",
+    "instruction_addresses": [
+      "0x14001e850",
+      "0x14001e854",
+      "0x14001e859",
+      "0x14001e860",
+      "0x14001e867",
+      "0x14001e86c",
+      "0x14001e873",
+      "0x14001e877",
+      "0x14001e87c",
+      "0x14001e87f",
+      "0x14001e889",
+      "0x14001e890",
+      "0x14001e897",
+      "0x14001e89e",
+      "0x14001e8a5",
+      "0x14001e8ac",
+      "0x14001e8b3",
+      "0x14001e8ba",
+      "0x14001e8c1",
+      "0x14001e8c8",
+      "0x14001e8cf",
+      "0x14001e8d6",
+      "0x14001e8da"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001e877",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140caa1a8",
+          "rdx": "0x10",
+          "r8": "0xa",
+          "r9": "0x1402d3b60"
+        },
+        "local_stack_argument5": "0x14024ea30",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001e8da",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e910",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001e87f",
+        "destination": "0x140caa248",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e890",
+        "destination": "0x140caa190",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e897",
+        "destination": "0x140caa192",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e89e",
+        "destination": "0x140caa194",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8a5",
+        "destination": "0x140caa196",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8ac",
+        "destination": "0x140caa198",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8b3",
+        "destination": "0x140caa19a",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8ba",
+        "destination": "0x140caa19c",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8c1",
+        "destination": "0x140caa19e",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8c8",
+        "destination": "0x140caa1a0",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001e8cf",
+        "destination": "0x140caa1a2",
+        "width": 2,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001e8da",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001efe0",
+    "instruction_count": 2,
+    "boundary_end": "0x14001eff0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "7d2d36aaf8578570201a0f4ab7efc710bf842ec8fa7d6c8daed0f67a5d005ad9",
+    "instruction_addresses": [
+      "0x14001efe0",
+      "0x14001efe7"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001efe7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e940",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001efe7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001f0f0",
+    "instruction_count": 2,
+    "boundary_end": "0x14001f100",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "050942529eb841df14131ea76e75fdeec04ec538c95f6acd6a5f933a9e08f42f",
+    "instruction_addresses": [
+      "0x14001f0f0",
+      "0x14001f0f7"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001f0f7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e950",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001f0f7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001f300",
+    "instruction_count": 16,
+    "boundary_end": "0x14001f355",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "b7b71977de3ff6931aaa94cbfdd058852ec0ca1073a4117c21561154582b8b72",
+    "instruction_addresses": [
+      "0x14001f300",
+      "0x14001f304",
+      "0x14001f30d",
+      "0x14001f30f",
+      "0x14001f316",
+      "0x14001f31d",
+      "0x14001f324",
+      "0x14001f32b",
+      "0x14001f332",
+      "0x14001f337",
+      "0x14001f338",
+      "0x14001f33f",
+      "0x14001f344",
+      "0x14001f345",
+      "0x14001f34c",
+      "0x14001f350"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001f332",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cab080",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001f33f",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cab080",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14001f350",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e960",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001f30f",
+        "destination": "0x140cab080",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f316",
+        "destination": "0x140cab088",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f31d",
+        "destination": "0x140cab090",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f324",
+        "destination": "0x140cab098",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001f350",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001f360",
+    "instruction_count": 9,
+    "boundary_end": "0x14001f3a0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "df542cddff7530a2b138d682216ae7f87e821dea47aa859d9ebcfa923eb01b42",
+    "instruction_addresses": [
+      "0x14001f360",
+      "0x14001f362",
+      "0x14001f369",
+      "0x14001f36c",
+      "0x14001f373",
+      "0x14001f379",
+      "0x14001f381",
+      "0x14001f388",
+      "0x14001f38f"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001f38f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e970",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001f36c",
+        "destination": "0x140cab150",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f373",
+        "destination": "0x140cab150",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f379",
+        "destination": "0x140cab130",
+        "width": 16,
+        "constant": null,
+        "operation": "movdqu"
+      },
+      {
+        "site": "0x14001f381",
+        "destination": "0x140cab140",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001f388",
+        "destination": "0x140cab148",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001f38f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001f5a0",
+    "instruction_count": 2,
+    "boundary_end": "0x14001f5b0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "86f971afbb8e775a1ac6225be0b48026a40c2d568dd36361f09f9d9d0d2aff2b",
+    "instruction_addresses": [
+      "0x14001f5a0",
+      "0x14001f5a7"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001f5a7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e980",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001f5a7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001f8b0",
+    "instruction_count": 2,
+    "boundary_end": "0x14001f8c0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "9ceb92e415cacff52de2287366b61fb29a92b0c3fae743de5c41bb8c01f97ead",
+    "instruction_addresses": [
+      "0x14001f8b0",
+      "0x14001f8b7"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001f8b7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e990",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001f8b7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x14001fbc0",
+    "instruction_count": 30,
+    "boundary_end": "0x14001fc78",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "1e9633354efcc64afd0dad025dd7b4cb8249691845db83a99cf3366034261bf4",
+    "instruction_addresses": [
+      "0x14001fbc0",
+      "0x14001fbc4",
+      "0x14001fbc6",
+      "0x14001fbcd",
+      "0x14001fbd3",
+      "0x14001fbd8",
+      "0x14001fbda",
+      "0x14001fbe4",
+      "0x14001fbeb",
+      "0x14001fbf2",
+      "0x14001fbf9",
+      "0x14001fc00",
+      "0x14001fc07",
+      "0x14001fc0e",
+      "0x14001fc14",
+      "0x14001fc1a",
+      "0x14001fc21",
+      "0x14001fc28",
+      "0x14001fc2f",
+      "0x14001fc36",
+      "0x14001fc3c",
+      "0x14001fc42",
+      "0x14001fc49",
+      "0x14001fc50",
+      "0x14001fc57",
+      "0x14001fc5e",
+      "0x14001fc65",
+      "0x14001fc6c",
+      "0x14001fc73",
+      "0x14001fc77"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001fbd3",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140cac970",
+          "rdx": "0x0",
+          "r8": "0xd0",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x14001fbda",
+        "destination": "0x140cac970",
+        "width": 4,
+        "constant": "0x100",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fbe4",
+        "destination": "0x140caca38",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fbeb",
+        "destination": "0x140caca30",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fbf2",
+        "destination": "0x140caca2d",
+        "width": 2,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fbf9",
+        "destination": "0x140caca24",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc00",
+        "destination": "0x140caca1c",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc07",
+        "destination": "0x140caca14",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc0e",
+        "destination": "0x140caca10",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc14",
+        "destination": "0x140caca0c",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc1a",
+        "destination": "0x140caca04",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc21",
+        "destination": "0x140cac9fc",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc28",
+        "destination": "0x140cac9f4",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc2f",
+        "destination": "0x140cac9ec",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc36",
+        "destination": "0x140cac9e8",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc3c",
+        "destination": "0x140cac9d8",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc42",
+        "destination": "0x140cac990",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc49",
+        "destination": "0x140cac984",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc50",
+        "destination": "0x140cac97c",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc57",
+        "destination": "0x140cac974",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc5e",
+        "destination": "0x140cac998",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc65",
+        "destination": "0x140cac9a0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14001fc6c",
+        "destination": "0x140caca2c",
+        "width": 1,
+        "constant": "0xff",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14001fc77",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x14001fe80",
+    "instruction_count": 2,
+    "boundary_end": "0x14001fe90",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "a758bbb8108e78a494ca6ba55a899a55c377a62677ea65cfbf137f5155f272f6",
+    "instruction_addresses": [
+      "0x14001fe80",
+      "0x14001fe87"
+    ],
+    "transfers": [
+      {
+        "site": "0x14001fe87",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e9a0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14001fe87",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140020490",
+    "instruction_count": 22,
+    "boundary_end": "0x1400204fb",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "196c211b3d5bdd5abfd667afefc9ef1553e2afef64a32ec65b53f817cb47d803",
+    "instruction_addresses": [
+      "0x140020490",
+      "0x140020492",
+      "0x140020496",
+      "0x14002049f",
+      "0x1400204a6",
+      "0x1400204ab",
+      "0x1400204b2",
+      "0x1400204b7",
+      "0x1400204bb",
+      "0x1400204c2",
+      "0x1400204c7",
+      "0x1400204c8",
+      "0x1400204cd",
+      "0x1400204d4",
+      "0x1400204d9",
+      "0x1400204dd",
+      "0x1400204e4",
+      "0x1400204e9",
+      "0x1400204ea",
+      "0x1400204f1",
+      "0x1400204f5",
+      "0x1400204f6"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400204c2",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140caf4b0",
+          "rdx": "0x20",
+          "r8": "0xb",
+          "r9": "0x14004c7a0"
+        },
+        "local_stack_argument5": "0x140337440",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400204e4",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140caf610",
+          "rdx": "0x20",
+          "r8": "0xb",
+          "r9": "0x14004c7a0"
+        },
+        "local_stack_argument5": "0x140337440",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400204f6",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034e9b0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400204f6",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140020700",
+    "instruction_count": 27,
+    "boundary_end": "0x1400207b6",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "dc9b0a1b15cec9643fbad975aeb15e3d8cd142e4b494eb1f9cd8937a1b27ffb4",
+    "instruction_addresses": [
+      "0x140020700",
+      "0x140020704",
+      "0x140020706",
+      "0x14002070d",
+      "0x140020713",
+      "0x140020718",
+      "0x140020720",
+      "0x140020727",
+      "0x140020729",
+      "0x140020731",
+      "0x140020734",
+      "0x14002073b",
+      "0x140020743",
+      "0x140020749",
+      "0x14002074f",
+      "0x140020756",
+      "0x14002075d",
+      "0x140020763",
+      "0x140020769",
+      "0x140020774",
+      "0x14002077d",
+      "0x140020787",
+      "0x140020792",
+      "0x140020799",
+      "0x1400207a3",
+      "0x1400207ad",
+      "0x1400207b1"
+    ],
+    "transfers": [
+      {
+        "site": "0x140020713",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140cb89a0",
+          "rdx": "0x0",
+          "r8": "0x840",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400207b1",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea00",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140020729",
+        "destination": "0x140cb89f0",
+        "width": 4,
+        "constant": null,
+        "operation": "movss"
+      },
+      {
+        "site": "0x140020734",
+        "destination": "0x140cb89a0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002073b",
+        "destination": "0x140cb89f8",
+        "width": 4,
+        "constant": null,
+        "operation": "movss"
+      },
+      {
+        "site": "0x140020743",
+        "destination": "0x140cb89a8",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020749",
+        "destination": "0x140cb89b4",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002074f",
+        "destination": "0x140cb89b8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020756",
+        "destination": "0x140cb89e8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002075d",
+        "destination": "0x140cb89c0",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020763",
+        "destination": "0x140cb89d4",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020769",
+        "destination": "0x140cb89ac",
+        "width": 8,
+        "constant": "0xffffffffffffffff",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020774",
+        "destination": "0x140cb89c4",
+        "width": 2,
+        "constant": "0x100",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002077d",
+        "destination": "0x140cb89c8",
+        "width": 4,
+        "constant": "0x585858",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020787",
+        "destination": "0x140cb89cc",
+        "width": 8,
+        "constant": "0x585858",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020792",
+        "destination": "0x140cb89d8",
+        "width": 1,
+        "constant": "0x16",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020799",
+        "destination": "0x140cb89fc",
+        "width": 4,
+        "constant": "0x43000000",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400207a3",
+        "destination": "0x140cb8a00",
+        "width": 4,
+        "constant": "0x43000000",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x1400207b1",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400209c0",
+    "instruction_count": 27,
+    "boundary_end": "0x140020a54",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "57e82f89fe325046117211a12215449466f469700fa33c49876977332ba243e2",
+    "instruction_addresses": [
+      "0x1400209c0",
+      "0x1400209c2",
+      "0x1400209c6",
+      "0x1400209cf",
+      "0x1400209d1",
+      "0x1400209d8",
+      "0x1400209df",
+      "0x1400209e6",
+      "0x1400209ed",
+      "0x1400209f4",
+      "0x1400209fb",
+      "0x140020a02",
+      "0x140020a09",
+      "0x140020a10",
+      "0x140020a15",
+      "0x140020a18",
+      "0x140020a1d",
+      "0x140020a1e",
+      "0x140020a21",
+      "0x140020a26",
+      "0x140020a27",
+      "0x140020a31",
+      "0x140020a38",
+      "0x140020a43",
+      "0x140020a4a",
+      "0x140020a4e",
+      "0x140020a4f"
+    ],
+    "transfers": [
+      {
+        "site": "0x140020a18",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cb9348",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140020a21",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cb9348",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140020a4f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea10",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400209d1",
+        "destination": "0x140cb9340",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209d8",
+        "destination": "0x140cb9348",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209df",
+        "destination": "0x140cb9350",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209e6",
+        "destination": "0x140cb9358",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209ed",
+        "destination": "0x140cb9360",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209f4",
+        "destination": "0x140cb9368",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x1400209fb",
+        "destination": "0x140cb9370",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020a02",
+        "destination": "0x140cb9378",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020a27",
+        "destination": "0x140cb9368",
+        "width": 4,
+        "constant": "0x2a4",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020a31",
+        "destination": "0x140cb9378",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140020a38",
+        "destination": "0x140cb9370",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140020a4f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400212c0",
+    "instruction_count": 12,
+    "boundary_end": "0x1400212f3",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "76cb8965a3eae3602795a9595e86dc6c59a91bc27c835afa23fb4aa270e2f8a3",
+    "instruction_addresses": [
+      "0x1400212c0",
+      "0x1400212c2",
+      "0x1400212c6",
+      "0x1400212cb",
+      "0x1400212d0",
+      "0x1400212d7",
+      "0x1400212dc",
+      "0x1400212e0",
+      "0x1400212e2",
+      "0x1400212e9",
+      "0x1400212ed",
+      "0x1400212ee"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400212d7",
+        "kind": "call",
+        "target": "0x140059390",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1405d0890",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400212e0",
+        "kind": "jne",
+        "target": "0x1400212d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400212ee",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea20",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400212ee",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140021500",
+    "instruction_count": 2,
+    "boundary_end": "0x140021510",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "88f818ecc8fabc475fad3b2bfce5a32e8050c30059d8260fa10b83358a614421",
+    "instruction_addresses": [
+      "0x140021500",
+      "0x140021507"
+    ],
+    "transfers": [
+      {
+        "site": "0x140021507",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea30",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140021507",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140021710",
+    "instruction_count": 2,
+    "boundary_end": "0x140021720",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "68f2423ae49340111ab8d129b8756d100beefcfd8058f2e9440e2d8ca49410eb",
+    "instruction_addresses": [
+      "0x140021710",
+      "0x140021717"
+    ],
+    "transfers": [
+      {
+        "site": "0x140021717",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea40",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140021717",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140021a20",
+    "instruction_count": 13,
+    "boundary_end": "0x140021a60",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "b5c01190067e682ed36097e23cb7d806530bd6ee2f23c0c174b431dc1fde2e37",
+    "instruction_addresses": [
+      "0x140021a20",
+      "0x140021a23",
+      "0x140021a2a",
+      "0x140021a2c",
+      "0x140021a33",
+      "0x140021a37",
+      "0x140021a40",
+      "0x140021a44",
+      "0x140021a47",
+      "0x140021a4b",
+      "0x140021a4e",
+      "0x140021a50",
+      "0x140021a57"
+    ],
+    "transfers": [
+      {
+        "site": "0x140021a4e",
+        "kind": "jl",
+        "target": "0x140021a40",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140021a57",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea50",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140021a57",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140021f60",
+    "instruction_count": 6,
+    "boundary_end": "0x140021f80",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "9b241b43523fd92d1eef8961c0fc9b5838b50491ed6c5b99ad0a0a93787fadf7",
+    "instruction_addresses": [
+      "0x140021f60",
+      "0x140021f64",
+      "0x140021f6b",
+      "0x140021f70",
+      "0x140021f77",
+      "0x140021f7b"
+    ],
+    "transfers": [
+      {
+        "site": "0x140021f6b",
+        "kind": "call",
+        "target": "0x140311f80",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cd9b08",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140021f7b",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea60",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140021f7b",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140021f80",
+    "instruction_count": 26,
+    "boundary_end": "0x140022003",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "5581b1c7c7a6c59a9ef14cc9f3207382de8ac60dcb15d6124e85c0ec863f2afb",
+    "instruction_addresses": [
+      "0x140021f80",
+      "0x140021f82",
+      "0x140021f86",
+      "0x140021f8f",
+      "0x140021f91",
+      "0x140021f97",
+      "0x140021f9e",
+      "0x140021fa3",
+      "0x140021faa",
+      "0x140021faf",
+      "0x140021fb6",
+      "0x140021fbb",
+      "0x140021fc1",
+      "0x140021fc8",
+      "0x140021fcd",
+      "0x140021fce",
+      "0x140021fd3",
+      "0x140021fda",
+      "0x140021fdf",
+      "0x140021fe5",
+      "0x140021fec",
+      "0x140021ff1",
+      "0x140021ff2",
+      "0x140021ff9",
+      "0x140021ffd",
+      "0x140021ffe"
+    ],
+    "transfers": [
+      {
+        "site": "0x140021f9e",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140cd9b80",
+          "rdx": "0x0",
+          "r8": "0x15d80",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140021fc8",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cdc380",
+          "rdx": "0x260",
+          "r8": "0x10",
+          "r9": "0x140315350"
+        },
+        "local_stack_argument5": "0x140315390",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140021fec",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cde980",
+          "rdx": "0x260",
+          "r8": "0x6",
+          "r9": "0x140315350"
+        },
+        "local_stack_argument5": "0x140315390",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140021ffe",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ea70",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140021ffe",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140022810",
+    "instruction_count": 5,
+    "boundary_end": "0x140022830",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "65df761f8b0a56159f3dbcf0fd472d2ec0fb31f2b5816f6989add0306f94e45c",
+    "instruction_addresses": [
+      "0x140022810",
+      "0x140022812",
+      "0x140022819",
+      "0x140022820",
+      "0x140022827"
+    ],
+    "transfers": [
+      {
+        "site": "0x140022827",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eac0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140022819",
+        "destination": "0x140cefe80",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022820",
+        "destination": "0x140cefe88",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140022827",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140022930",
+    "instruction_count": 2,
+    "boundary_end": "0x140022940",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "ecce735d0ba0750eb7e54308586d532f2d6942541f6da769bbafcbbc0f2b6ee0",
+    "instruction_addresses": [
+      "0x140022930",
+      "0x140022937"
+    ],
+    "transfers": [
+      {
+        "site": "0x140022937",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ead0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140022937",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140022d40",
+    "instruction_count": 11,
+    "boundary_end": "0x140022d7c",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "a818c3872e91998d0fe3bbeab2a75debc9d920566068496348b9f30e2df58585",
+    "instruction_addresses": [
+      "0x140022d40",
+      "0x140022d44",
+      "0x140022d49",
+      "0x140022d50",
+      "0x140022d57",
+      "0x140022d5c",
+      "0x140022d63",
+      "0x140022d67",
+      "0x140022d6c",
+      "0x140022d73",
+      "0x140022d77"
+    ],
+    "transfers": [
+      {
+        "site": "0x140022d67",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf1048",
+          "rdx": "0x20",
+          "r8": "0x2",
+          "r9": "0x14004c7a0"
+        },
+        "local_stack_argument5": "0x140337440",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140022d77",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eae0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140022d77",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140022e80",
+    "instruction_count": 16,
+    "boundary_end": "0x140022ed5",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "17a69a1a9c92b226d3bd74bed4fe1e0d67d330f5363792df76cc0c000c0c5a64",
+    "instruction_addresses": [
+      "0x140022e80",
+      "0x140022e84",
+      "0x140022e8d",
+      "0x140022e8f",
+      "0x140022e96",
+      "0x140022e9d",
+      "0x140022ea4",
+      "0x140022eab",
+      "0x140022eb2",
+      "0x140022eb7",
+      "0x140022eb8",
+      "0x140022ebf",
+      "0x140022ec4",
+      "0x140022ec5",
+      "0x140022ecc",
+      "0x140022ed0"
+    ],
+    "transfers": [
+      {
+        "site": "0x140022eb2",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf1140",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140022ebf",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf1140",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140022ed0",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb10",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140022e8f",
+        "destination": "0x140cf1140",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022e96",
+        "destination": "0x140cf1148",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022e9d",
+        "destination": "0x140cf1150",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022ea4",
+        "destination": "0x140cf1158",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140022ed0",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140022ee0",
+    "instruction_count": 9,
+    "boundary_end": "0x140022f20",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "fa990358faa0d55b024263ea33a13da53d5427bf9b57f42deebf8b3f2eb7b640",
+    "instruction_addresses": [
+      "0x140022ee0",
+      "0x140022ee2",
+      "0x140022ee9",
+      "0x140022eec",
+      "0x140022ef3",
+      "0x140022ef9",
+      "0x140022f01",
+      "0x140022f08",
+      "0x140022f0f"
+    ],
+    "transfers": [
+      {
+        "site": "0x140022f0f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb20",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140022eec",
+        "destination": "0x140cf11a0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022ef3",
+        "destination": "0x140cf11a0",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022ef9",
+        "destination": "0x140cf1180",
+        "width": 16,
+        "constant": null,
+        "operation": "movdqu"
+      },
+      {
+        "site": "0x140022f01",
+        "destination": "0x140cf1190",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140022f08",
+        "destination": "0x140cf1198",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140022f0f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140023120",
+    "instruction_count": 2,
+    "boundary_end": "0x140023130",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "126406ea1c22040c95dd58eb091c19ea472cbc675feff5f81007e6eb47298fa9",
+    "instruction_addresses": [
+      "0x140023120",
+      "0x140023127"
+    ],
+    "transfers": [
+      {
+        "site": "0x140023127",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb30",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140023127",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140023430",
+    "instruction_count": 24,
+    "boundary_end": "0x14002349c",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "1d268e229a8cc4f607c372ea75c3d08f0806809e633f133e885fe1eda9acc3b7",
+    "instruction_addresses": [
+      "0x140023430",
+      "0x140023432",
+      "0x140023436",
+      "0x14002343d",
+      "0x14002343f",
+      "0x140023442",
+      "0x140023448",
+      "0x14002344d",
+      "0x14002344f",
+      "0x140023452",
+      "0x14002345a",
+      "0x14002345f",
+      "0x140023466",
+      "0x14002346c",
+      "0x140023470",
+      "0x140023477",
+      "0x14002347a",
+      "0x14002347e",
+      "0x140023482",
+      "0x140023484",
+      "0x14002348b",
+      "0x140023492",
+      "0x140023496",
+      "0x140023497"
+    ],
+    "transfers": [
+      {
+        "site": "0x140023448",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140cf2520",
+          "rdx": "0x0",
+          "r8": "0x670",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023482",
+        "kind": "jne",
+        "target": "0x140023470",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023497",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb40",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140023452",
+        "destination": "0x140cf2b50",
+        "width": 4,
+        "constant": null,
+        "operation": "movss"
+      },
+      {
+        "site": "0x14002345f",
+        "destination": "0x140cf2b60",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023466",
+        "destination": "0x140cf2b68",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002348b",
+        "destination": "0x140cf2b80",
+        "width": 8,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140023497",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400236a0",
+    "instruction_count": 13,
+    "boundary_end": "0x1400236f0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "18b0a489721d355e1ccd964743c871d4599e837eef879ce23595daab8b6b14fc",
+    "instruction_addresses": [
+      "0x1400236a0",
+      "0x1400236a7",
+      "0x1400236ae",
+      "0x1400236b5",
+      "0x1400236bb",
+      "0x1400236bf",
+      "0x1400236c6",
+      "0x1400236c9",
+      "0x1400236cd",
+      "0x1400236d0",
+      "0x1400236d2",
+      "0x1400236d9",
+      "0x1400236e0"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400236d0",
+        "kind": "jl",
+        "target": "0x1400236b5",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400236e0",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb50",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400236d9",
+        "destination": "0x140cf2e90",
+        "width": 1,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x1400236e0",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400238f0",
+    "instruction_count": 2,
+    "boundary_end": "0x140023900",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "32454d95cba393ff992bd24e60df0b0a543e1e478019c92746d856b136a14021",
+    "instruction_addresses": [
+      "0x1400238f0",
+      "0x1400238f7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400238f7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb60",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400238f7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140023d00",
+    "instruction_count": 2,
+    "boundary_end": "0x140023d10",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "a4e941bd8ad71e0cde5d40943ae5ce15f67003181db6321a0a6a04ea569aedd6",
+    "instruction_addresses": [
+      "0x140023d00",
+      "0x140023d07"
+    ],
+    "transfers": [
+      {
+        "site": "0x140023d07",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb70",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140023d07",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140023e10",
+    "instruction_count": 41,
+    "boundary_end": "0x140023eea",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "9800e9e4a1b18079b749cffe2bada844a441ba3e48796967ded2a9d53569711f",
+    "instruction_addresses": [
+      "0x140023e10",
+      "0x140023e12",
+      "0x140023e16",
+      "0x140023e1f",
+      "0x140023e21",
+      "0x140023e27",
+      "0x140023e2e",
+      "0x140023e33",
+      "0x140023e3a",
+      "0x140023e41",
+      "0x140023e48",
+      "0x140023e4d",
+      "0x140023e50",
+      "0x140023e55",
+      "0x140023e56",
+      "0x140023e59",
+      "0x140023e5e",
+      "0x140023e5f",
+      "0x140023e66",
+      "0x140023e6b",
+      "0x140023e6e",
+      "0x140023e73",
+      "0x140023e74",
+      "0x140023e77",
+      "0x140023e7c",
+      "0x140023e7d",
+      "0x140023e7f",
+      "0x140023e85",
+      "0x140023e8f",
+      "0x140023e95",
+      "0x140023e9f",
+      "0x140023ea6",
+      "0x140023ead",
+      "0x140023eb3",
+      "0x140023ebd",
+      "0x140023ec4",
+      "0x140023ece",
+      "0x140023ed9",
+      "0x140023ee0",
+      "0x140023ee4",
+      "0x140023ee5"
+    ],
+    "transfers": [
+      {
+        "site": "0x140023e2e",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140cf3310",
+          "rdx": "0x0",
+          "r8": "0x340",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023e50",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf3598",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023e59",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf3598",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023e6e",
+        "kind": "call",
+        "target": "0x140329200",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf35c0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023e77",
+        "kind": "call",
+        "target": "0x1403376f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf35c0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140023ee5",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eb80",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140023e3a",
+        "destination": "0x140cf3310",
+        "width": 8,
+        "constant": "0x140508728",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023e7f",
+        "destination": "0x140cf3590",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023e85",
+        "destination": "0x140cf3320",
+        "width": 4,
+        "constant": "0xffffffff",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023e8f",
+        "destination": "0x140cf35f4",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023e95",
+        "destination": "0x140cf331c",
+        "width": 4,
+        "constant": "0x1",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023e9f",
+        "destination": "0x140cf35b8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023ea6",
+        "destination": "0x140cf35e0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023ead",
+        "destination": "0x140cf35e8",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023eb3",
+        "destination": "0x140cf35ec",
+        "width": 4,
+        "constant": "0xffffffff",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023ebd",
+        "destination": "0x140cf3324",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023ec4",
+        "destination": "0x140cf358c",
+        "width": 4,
+        "constant": "0xffffffff",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140023ece",
+        "destination": "0x140cf3648",
+        "width": 8,
+        "constant": "0x10100",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140023ee5",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140023ff0",
+    "instruction_count": 15,
+    "boundary_end": "0x140024056",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "256e5f2f7c3e1d15d4849a4d9c78ff89bbfdbc1022dc586bf2f418fbbc1c3088",
+    "instruction_addresses": [
+      "0x140023ff0",
+      "0x140023ff4",
+      "0x140023ffb",
+      "0x140024000",
+      "0x140024007",
+      "0x14002400c",
+      "0x140024012",
+      "0x140024019",
+      "0x14002401e",
+      "0x140024025",
+      "0x14002402f",
+      "0x140024039",
+      "0x140024043",
+      "0x14002404d",
+      "0x140024051"
+    ],
+    "transfers": [
+      {
+        "site": "0x140024019",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140cf3708",
+          "rdx": "0x303a8",
+          "r8": "0x2",
+          "r9": "0x14032b810"
+        },
+        "local_stack_argument5": "0x14032b8a0",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140024051",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ebb0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140024025",
+        "destination": "0x140cf3700",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002402f",
+        "destination": "0x140cf3704",
+        "width": 4,
+        "constant": "0x64",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140024039",
+        "destination": "0x140d23a64",
+        "width": 4,
+        "constant": "0x64",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140024043",
+        "destination": "0x140d53e0c",
+        "width": 4,
+        "constant": "0x64",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140024051",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140024160",
+    "instruction_count": 2,
+    "boundary_end": "0x140024170",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "1f5b0e87f1000b600e08c9a3050964fd6da2057ebc748ee8f497974893f68715",
+    "instruction_addresses": [
+      "0x140024160",
+      "0x140024167"
+    ],
+    "transfers": [
+      {
+        "site": "0x140024167",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ebf0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140024167",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140024270",
+    "instruction_count": 11,
+    "boundary_end": "0x1400242ae",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "b2b1234c3ffddc20490d313504d33d2b033fbaa47a92c80f8253e5126f5e6d66",
+    "instruction_addresses": [
+      "0x140024270",
+      "0x140024274",
+      "0x14002427b",
+      "0x140024280",
+      "0x140024287",
+      "0x14002428c",
+      "0x140024292",
+      "0x140024299",
+      "0x14002429e",
+      "0x1400242a5",
+      "0x1400242a9"
+    ],
+    "transfers": [
+      {
+        "site": "0x140024299",
+        "kind": "call",
+        "target": "0x140345b24",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d543b0",
+          "rdx": "0x168",
+          "r8": "0x1",
+          "r9": "0x14032bf20"
+        },
+        "local_stack_argument5": "0x14032bf80",
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400242a9",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec00",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400242a9",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400243b0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400243c0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "0b1c05dac08482a0ab7410765685e9f244ecfd1f288ee2c8b1e9a6e4492e4868",
+    "instruction_addresses": [
+      "0x1400243b0",
+      "0x1400243b7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400243b7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec40",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400243b7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400245c0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400245d0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "4627192d92a36d99636b937b2d625005abfff7cbc18d5bd75f1c6fac3d78b35b",
+    "instruction_addresses": [
+      "0x1400245c0",
+      "0x1400245c7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400245c7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec50",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400245c7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400246d0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400246e0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "605fb54d4acfa81bbe1679f7dfc0d4158a64bbcff367c8fa228e60ec7431535e",
+    "instruction_addresses": [
+      "0x1400246d0",
+      "0x1400246d7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400246d7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec60",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400246d7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400248e0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400248f0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "f150699c3e3b86489632446fd31ddbb2f6fab94b8003983fe0bef08cd23389ec",
+    "instruction_addresses": [
+      "0x1400248e0",
+      "0x1400248e7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400248e7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec70",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400248e7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140024f30",
+    "instruction_count": 2,
+    "boundary_end": "0x140024f40",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "db94071e0afb02ad3e2092eb8850bddde4df25f44600b0c72a18e561fcf5f599",
+    "instruction_addresses": [
+      "0x140024f30",
+      "0x140024f37"
+    ],
+    "transfers": [
+      {
+        "site": "0x140024f37",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec80",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140024f37",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025040",
+    "instruction_count": 2,
+    "boundary_end": "0x140025050",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "30386634880543c5bf226e0cbdbcd5ed54b2973003330ba83810c7e6a5f0ef65",
+    "instruction_addresses": [
+      "0x140025040",
+      "0x140025047"
+    ],
+    "transfers": [
+      {
+        "site": "0x140025047",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ec90",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140025047",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025050",
+    "instruction_count": 6,
+    "boundary_end": "0x140025070",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "01ada829b95b35934221b61e206daadc1432a31ef88ba0aa8732160dfeeeebab",
+    "instruction_addresses": [
+      "0x140025050",
+      "0x140025054",
+      "0x14002505b",
+      "0x140025060",
+      "0x140025067",
+      "0x14002506b"
+    ],
+    "transfers": [
+      {
+        "site": "0x14002505b",
+        "kind": "call",
+        "target": "0x140314c50",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d5b860",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14002506b",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034eca0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14002506b",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025170",
+    "instruction_count": 2,
+    "boundary_end": "0x140025180",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "3a09ae86a2ffc92952acaca4f18af4590551d447d49e6807fd43a7bc53ba6947",
+    "instruction_addresses": [
+      "0x140025170",
+      "0x140025177"
+    ],
+    "transfers": [
+      {
+        "site": "0x140025177",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ecb0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140025177",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025580",
+    "instruction_count": 6,
+    "boundary_end": "0x1400255a0",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "097b87bc0f905042ed39cd88f3d06f19cc11d92423657c900e0b7c6e30baadc3",
+    "instruction_addresses": [
+      "0x140025580",
+      "0x140025584",
+      "0x14002558b",
+      "0x140025590",
+      "0x140025597",
+      "0x14002559b"
+    ],
+    "transfers": [
+      {
+        "site": "0x14002558b",
+        "kind": "call",
+        "target": "0x140337360",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d6ce80",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14002559b",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ecc0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x14002559b",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025aa0",
+    "instruction_count": 12,
+    "boundary_end": "0x140025ae5",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "3959485b2141873b5f4f8463cf077159a35943798c26e07ff9768e5088f2c06e",
+    "instruction_addresses": [
+      "0x140025aa0",
+      "0x140025aa4",
+      "0x140025aa6",
+      "0x140025aad",
+      "0x140025ab4",
+      "0x140025abb",
+      "0x140025ac2",
+      "0x140025ac9",
+      "0x140025ad0",
+      "0x140025ad5",
+      "0x140025adc",
+      "0x140025ae0"
+    ],
+    "transfers": [
+      {
+        "site": "0x140025ad0",
+        "kind": "call",
+        "target": "0x140337a80",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d6d228",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140025ae0",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ecd0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140025aad",
+        "destination": "0x140d6d228",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140025ab4",
+        "destination": "0x140d6d230",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140025abb",
+        "destination": "0x140d6d238",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140025ac2",
+        "destination": "0x140d6d240",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140025ac9",
+        "destination": "0x140d6d248",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140025ae0",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140025bf0",
+    "instruction_count": 12,
+    "boundary_end": "0x140025c2f",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "a645dfe6bf987266bc579b8a943c8ad9ab728507e9ed5b461fee002533d071ca",
+    "instruction_addresses": [
+      "0x140025bf0",
+      "0x140025bf4",
+      "0x140025bfb",
+      "0x140025c00",
+      "0x140025c07",
+      "0x140025c0c",
+      "0x140025c11",
+      "0x140025c17",
+      "0x140025c1c",
+      "0x140025c1f",
+      "0x140025c26",
+      "0x140025c2a"
+    ],
+    "transfers": [
+      {
+        "site": "0x140025c07",
+        "kind": "call",
+        "target": "0x14032d3c0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d6d310",
+          "rdx": "0x2c",
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140025c0c",
+        "kind": "call",
+        "target": "0x140330850",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140025c2a",
+        "kind": "jmp",
+        "target": "0x14032d3c0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": "0x24",
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140025c00",
+        "destination": "0x140d6d300",
+        "width": 8,
+        "constant": "0x140d6d310",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140025c1f",
+        "destination": "0x140d6d3c8",
+        "width": 8,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140025c2a",
+        "kind": "external_jump",
+        "target": "0x14032d3c0"
+      }
+    ]
+  },
+  {
+    "root": "0x140026030",
+    "instruction_count": 2,
+    "boundary_end": "0x140026040",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "fcdd19da0fcab1866897aba92bd0ca8a338e2c245870ccaf703220005f2fe5be",
+    "instruction_addresses": [
+      "0x140026030",
+      "0x140026037"
+    ],
+    "transfers": [
+      {
+        "site": "0x140026037",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ece0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140026037",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140026140",
+    "instruction_count": 8,
+    "boundary_end": "0x140026168",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "e7a8a26e4b71cbe4edf3f1886082def652c49712fe99ed11a400b6f413c98110",
+    "instruction_addresses": [
+      "0x140026140",
+      "0x140026144",
+      "0x140026146",
+      "0x14002614d",
+      "0x140026153",
+      "0x140026158",
+      "0x14002615f",
+      "0x140026163"
+    ],
+    "transfers": [
+      {
+        "site": "0x140026153",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140d6d880",
+          "rdx": "0x0",
+          "r8": "0x100",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140026163",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ecf0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140026163",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140026270",
+    "instruction_count": 8,
+    "boundary_end": "0x140026298",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "7f15a1044795ff2ceb6ea86ea2ea78a560822651c2a080be8eba95d86c3dcc40",
+    "instruction_addresses": [
+      "0x140026270",
+      "0x140026274",
+      "0x140026276",
+      "0x14002627d",
+      "0x140026283",
+      "0x140026288",
+      "0x14002628f",
+      "0x140026293"
+    ],
+    "transfers": [
+      {
+        "site": "0x140026283",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140d6d980",
+          "rdx": "0x0",
+          "r8": "0x150",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140026293",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ed00",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140026293",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400263a0",
+    "instruction_count": 2,
+    "boundary_end": "0x1400263b0",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "39bab40e734b54eebfe28729d73fb62de477f50157a4e057f19b92ac23039249",
+    "instruction_addresses": [
+      "0x1400263a0",
+      "0x1400263a7"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400263a7",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ed10",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x1400263a7",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x1400264b0",
+    "instruction_count": 22,
+    "boundary_end": "0x140026521",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "0b587cecf782f41745a606a3bf8088536bb58f0d0e927f9c9638f8945ae8fa57",
+    "instruction_addresses": [
+      "0x1400264b0",
+      "0x1400264b4",
+      "0x1400264b6",
+      "0x1400264bd",
+      "0x1400264c3",
+      "0x1400264c8",
+      "0x1400264cf",
+      "0x1400264d4",
+      "0x1400264d6",
+      "0x1400264dd",
+      "0x1400264e4",
+      "0x1400264e9",
+      "0x1400264f0",
+      "0x1400264f4",
+      "0x1400264f7",
+      "0x1400264fb",
+      "0x1400264ff",
+      "0x140026501",
+      "0x140026508",
+      "0x140026512",
+      "0x140026518",
+      "0x14002651c"
+    ],
+    "transfers": [
+      {
+        "site": "0x1400264c3",
+        "kind": "call",
+        "target": "0x140346bea",
+        "import_symbol": "VCRUNTIME140.dll!memset",
+        "local_arguments": {
+          "rcx": "0x140d6dc90",
+          "rdx": "0x0",
+          "r8": "0x1a0",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400264cf",
+        "kind": "call",
+        "target": "0x140338580",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d6dc90",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1400264ff",
+        "kind": "jne",
+        "target": "0x1400264f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14002651c",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ed20",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1400264dd",
+        "destination": "0x140d6dd20",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140026508",
+        "destination": "0x140d6de28",
+        "width": 4,
+        "constant": "0xffffffff",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140026512",
+        "destination": "0x140d6de2c",
+        "width": 1,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14002651c",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140026630",
+    "instruction_count": 8,
+    "boundary_end": "0x140026670",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "1340a7fff98ecda9d67d5afc5bbc542442648c4fa79214aa0ffa622ab3878207",
+    "instruction_addresses": [
+      "0x140026630",
+      "0x140026632",
+      "0x14002663d",
+      "0x140026644",
+      "0x14002664b",
+      "0x140026651",
+      "0x140026658",
+      "0x14002665f"
+    ],
+    "transfers": [
+      {
+        "site": "0x14002665f",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ed30",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x140026632",
+        "destination": "0x140d6f8e0",
+        "width": 8,
+        "constant": "0x3039",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002663d",
+        "destination": "0x140d6f8d0",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x14002664b",
+        "destination": "0x140d6f8d0",
+        "width": 4,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140026651",
+        "destination": "0x140d6f8d8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      },
+      {
+        "site": "0x140026658",
+        "destination": "0x140d6f8e8",
+        "width": 8,
+        "constant": "0x0",
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x14002665f",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140029870",
+    "instruction_count": 2,
+    "boundary_end": "0x14002a870",
+    "boundary_kind": "bounded_search_envelope_not_function_extent",
+    "body_sha256": "34d60ad2a69cb27c87c4a75dc846d8395b5b7c65f120af4be604b245fa430a42",
+    "instruction_addresses": [
+      "0x140029870",
+      "0x140029877"
+    ],
+    "transfers": [
+      {
+        "site": "0x140029877",
+        "kind": "jmp",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034ed40",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140029877",
+        "kind": "external_jump",
+        "target": "0x1403458d0"
+      }
+    ]
+  },
+  {
+    "root": "0x140345970",
+    "instruction_count": 70,
+    "boundary_end": "0x140345a8e",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "19109b3ece2089cb96e47764c2f30ae4d0459f6327f2a9310eeac7ad97dc7d31",
+    "instruction_addresses": [
+      "0x140345970",
+      "0x140345975",
+      "0x14034597a",
+      "0x14034597b",
+      "0x14034597f",
+      "0x140345982",
+      "0x140345989",
+      "0x14034598e",
+      "0x140345993",
+      "0x14034599a",
+      "0x1403459a0",
+      "0x1403459a3",
+      "0x1403459a6",
+      "0x1403459ac",
+      "0x1403459b3",
+      "0x1403459b6",
+      "0x1403459bc",
+      "0x1403459c3",
+      "0x1403459c6",
+      "0x1403459c9",
+      "0x1403459cf",
+      "0x1403459d6",
+      "0x1403459d9",
+      "0x1403459dc",
+      "0x1403459e2",
+      "0x1403459e5",
+      "0x1403459e8",
+      "0x1403459ea",
+      "0x1403459ed",
+      "0x1403459ef",
+      "0x1403459f2",
+      "0x1403459f4",
+      "0x1403459fc",
+      "0x1403459ff",
+      "0x140345a04",
+      "0x140345a0b",
+      "0x140345a0d",
+      "0x140345a14",
+      "0x140345a19",
+      "0x140345a1b",
+      "0x140345a1e",
+      "0x140345a20",
+      "0x140345a23",
+      "0x140345a26",
+      "0x140345a29",
+      "0x140345a2c",
+      "0x140345a33",
+      "0x140345a3a",
+      "0x140345a41",
+      "0x140345a46",
+      "0x140345a4b",
+      "0x140345a4d",
+      "0x140345a52",
+      "0x140345a56",
+      "0x140345a57",
+      "0x140345a58",
+      "0x140345a5b",
+      "0x140345a5e",
+      "0x140345a60",
+      "0x140345a64",
+      "0x140345a6a",
+      "0x140345a71",
+      "0x140345a74",
+      "0x140345a76",
+      "0x140345a78",
+      "0x140345a7d",
+      "0x140345a82",
+      "0x140345a83",
+      "0x140345a88",
+      "0x140345a8d"
+    ],
+    "transfers": [
+      {
+        "site": "0x14034598e",
+        "kind": "call",
+        "target": "0x140346c0e",
+        "import_symbol": "VCRUNTIME140.dll!__vcrt_InitializeCriticalSectionEx",
+        "local_arguments": {
+          "rcx": "0x140d71bc0",
+          "rdx": "0xfa0",
+          "r8": "0x0",
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x14034599a",
+        "kind": "call",
+        "target": null,
+        "import_symbol": "KERNEL32.dll!GetModuleHandleW",
+        "local_arguments": {
+          "rcx": "0x14050cc80",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459a6",
+        "kind": "je",
+        "target": "0x140345a78",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459b6",
+        "kind": "call",
+        "target": null,
+        "import_symbol": "KERNEL32.dll!GetProcAddress",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": "0x14050cca0",
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459c9",
+        "kind": "call",
+        "target": null,
+        "import_symbol": "KERNEL32.dll!GetProcAddress",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": "0x14050ccc0",
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459dc",
+        "kind": "call",
+        "target": null,
+        "import_symbol": "KERNEL32.dll!GetProcAddress",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": "0x14050cce0",
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459e8",
+        "kind": "je",
+        "target": "0x140345a58",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459ed",
+        "kind": "je",
+        "target": "0x140345a58",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459f2",
+        "kind": "je",
+        "target": "0x140345a58",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x1403459ff",
+        "kind": "call",
+        "target": "0x140346714",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a0b",
+        "kind": "call",
+        "target": null,
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140d71be8",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a41",
+        "kind": "call",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x140345a90",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a64",
+        "kind": "call",
+        "target": null,
+        "import_symbol": "KERNEL32.dll!CreateEventW",
+        "local_arguments": {
+          "rcx": "0x0",
+          "rdx": "0x1",
+          "r8": "0x0",
+          "r9": "0x0"
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a74",
+        "kind": "jne",
+        "target": "0x140345a3a",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a76",
+        "kind": "jmp",
+        "target": "0x140345a83",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a7d",
+        "kind": "call",
+        "target": "0x1403464f4",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x7",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345a88",
+        "kind": "call",
+        "target": "0x1403464f4",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x7",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [
+      {
+        "site": "0x1403459f4",
+        "destination": "0x140d71bf0",
+        "width": 8,
+        "constant": null,
+        "operation": "and"
+      },
+      {
+        "site": "0x140345a2c",
+        "destination": "0x140d71bf8",
+        "width": 8,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x140345a33",
+        "destination": "0x140d71c00",
+        "width": 8,
+        "constant": null,
+        "operation": "mov"
+      },
+      {
+        "site": "0x140345a6a",
+        "destination": "0x140d71bf0",
+        "width": 8,
+        "constant": null,
+        "operation": "mov"
+      }
+    ],
+    "terminals": [
+      {
+        "site": "0x140345a57",
+        "kind": "ret",
+        "target": null
+      },
+      {
+        "site": "0x140345a8d",
+        "kind": "int3",
+        "target": null
+      },
+      {
+        "site": "0x140345a82",
+        "kind": "int3",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140345f08",
+    "instruction_count": 49,
+    "boundary_end": "0x140345fc3",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "6a2d88b2951cb8350137882b160d7bc1da3b9f07558f5c516ced1cffb5217377",
+    "instruction_addresses": [
+      "0x140345f08",
+      "0x140345f0a",
+      "0x140345f0e",
+      "0x140345f13",
+      "0x140345f18",
+      "0x140345f1d",
+      "0x140345f1f",
+      "0x140345f24",
+      "0x140345f29",
+      "0x140345f2c",
+      "0x140345f31",
+      "0x140345f36",
+      "0x140345f38",
+      "0x140345f3d",
+      "0x140345f3f",
+      "0x140345f41",
+      "0x140345f46",
+      "0x140345f4d",
+      "0x140345f52",
+      "0x140345f57",
+      "0x140345f59",
+      "0x140345f5e",
+      "0x140345f60",
+      "0x140345f62",
+      "0x140345f67",
+      "0x140345f6c",
+      "0x140345f6e",
+      "0x140345f70",
+      "0x140345f77",
+      "0x140345f7c",
+      "0x140345f81",
+      "0x140345f86",
+      "0x140345f8b",
+      "0x140345f8d",
+      "0x140345f92",
+      "0x140345f97",
+      "0x140345f99",
+      "0x140345f9b",
+      "0x140345fa0",
+      "0x140345fa5",
+      "0x140345fa7",
+      "0x140345fab",
+      "0x140345fac",
+      "0x140345fad",
+      "0x140345fb2",
+      "0x140345fb7",
+      "0x140345fb8",
+      "0x140345fbd",
+      "0x140345fc2"
+    ],
+    "transfers": [
+      {
+        "site": "0x140345f13",
+        "kind": "call",
+        "target": "0x140346c9e",
+        "import_symbol": "api-ms-win-crt-runtime-l1-1-0.dll!_set_app_type",
+        "local_arguments": {
+          "rcx": "0x2",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f18",
+        "kind": "call",
+        "target": "0x1403467e8",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f1f",
+        "kind": "call",
+        "target": "0x140346cc8",
+        "import_symbol": "api-ms-win-crt-stdio-l1-1-0.dll!_set_fmode",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f24",
+        "kind": "call",
+        "target": "0x140346ce6",
+        "import_symbol": "api-ms-win-crt-stdio-l1-1-0.dll!__p__commode",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f2c",
+        "kind": "call",
+        "target": "0x1400898a0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f38",
+        "kind": "call",
+        "target": "0x1403456c8",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x1",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f3f",
+        "kind": "je",
+        "target": "0x140345fad",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f41",
+        "kind": "call",
+        "target": "0x140346840",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f4d",
+        "kind": "call",
+        "target": "0x1403458d0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x14034688c",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f52",
+        "kind": "call",
+        "target": "0x1403464e0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f59",
+        "kind": "call",
+        "target": "0x140346c6e",
+        "import_symbol": "api-ms-win-crt-runtime-l1-1-0.dll!_configure_narrow_argv",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f60",
+        "kind": "jne",
+        "target": "0x140345fb8",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f62",
+        "kind": "call",
+        "target": "0x1403467f0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f67",
+        "kind": "call",
+        "target": "0x140346824",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f6e",
+        "kind": "je",
+        "target": "0x140345f7c",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f77",
+        "kind": "call",
+        "target": "0x140346ca4",
+        "import_symbol": "api-ms-win-crt-math-l1-1-0.dll!__setusermatherr",
+        "local_arguments": {
+          "rcx": "0x1400898a0",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f7c",
+        "kind": "call",
+        "target": "0x14024ea30",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f81",
+        "kind": "call",
+        "target": "0x14024ea30",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f86",
+        "kind": "call",
+        "target": "0x1400898a0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f8d",
+        "kind": "call",
+        "target": "0x140346cda",
+        "import_symbol": "api-ms-win-crt-locale-l1-1-0.dll!_configthreadlocale",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f92",
+        "kind": "call",
+        "target": "0x1402dad50",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f99",
+        "kind": "je",
+        "target": "0x140345fa0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345f9b",
+        "kind": "call",
+        "target": "0x140346c74",
+        "import_symbol": "api-ms-win-crt-runtime-l1-1-0.dll!_initialize_narrow_environment",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345fa0",
+        "kind": "call",
+        "target": "0x1400898a0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345fb2",
+        "kind": "call",
+        "target": "0x1403464f4",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x7",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345fbd",
+        "kind": "call",
+        "target": "0x1403464f4",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": "0x7",
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140345fac",
+        "kind": "ret",
+        "target": null
+      },
+      {
+        "site": "0x140345fc2",
+        "kind": "int3",
+        "target": null
+      },
+      {
+        "site": "0x140345fb7",
+        "kind": "int3",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140345fc4",
+    "instruction_count": 5,
+    "boundary_end": "0x140345fd4",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "43727c7f14fd2d6ec829e021bdee1cf390281c4def2edea0a17fcaee595f66d1",
+    "instruction_addresses": [
+      "0x140345fc4",
+      "0x140345fc8",
+      "0x140345fcd",
+      "0x140345fcf",
+      "0x140345fd3"
+    ],
+    "transfers": [
+      {
+        "site": "0x140345fc8",
+        "kind": "call",
+        "target": "0x140346808",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140345fd3",
+        "kind": "ret",
+        "target": null
+      }
+    ]
+  },
+  {
+    "root": "0x140345fd4",
+    "instruction_count": 6,
+    "boundary_end": "0x140345fed",
+    "boundary_kind": "unwind_range_end",
+    "body_sha256": "f85b74f7c1e3cbaed8064ee0d69280a71d88bcd1428b3ecc617e10d7396cb04a",
+    "instruction_addresses": [
+      "0x140345fd4",
+      "0x140345fd8",
+      "0x140345fdd",
+      "0x140345fe2",
+      "0x140345fe4",
+      "0x140345fe8"
+    ],
+    "transfers": [
+      {
+        "site": "0x140345fd8",
+        "kind": "call",
+        "target": "0x1403466cc",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345fdd",
+        "kind": "call",
+        "target": "0x1400898a0",
+        "import_symbol": null,
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      },
+      {
+        "site": "0x140345fe8",
+        "kind": "jmp",
+        "target": "0x140346ce0",
+        "import_symbol": "api-ms-win-crt-heap-l1-1-0.dll!_set_new_mode",
+        "local_arguments": {
+          "rcx": null,
+          "rdx": null,
+          "r8": null,
+          "r9": null
+        },
+        "local_stack_argument5": null,
+        "conditional_on_site_reached": true
+      }
+    ],
+    "explicit_known_address_writes": [],
+    "terminals": [
+      {
+        "site": "0x140345fe8",
+        "kind": "external_jump",
+        "target": "0x140346ce0"
+      }
+    ]
+  }
+]

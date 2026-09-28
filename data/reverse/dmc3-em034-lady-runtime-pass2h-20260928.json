@@ -1,0 +1,279 @@
+{
+  "schema": "dmc-rengine.em034-lady-runtime-pass2h.v1",
+  "date": "2026-09-28",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "status": "EXE_AND_CORPUS_CONFIRMED",
+  "semantic_rule": "promote role labels from convergent EXE behavior + reconstructed canonical MOD geometry; keep proper names and left/right handedness separately gated",
+  "resources": {
+    "slot20": {
+      "component": 0,
+      "role": "launcher_assembly",
+      "size": 38720,
+      "nodes": 3,
+      "vertices": 955,
+      "dimensions": [
+        150.34,
+        32.68,
+        27
+      ],
+      "sha256": "160fa4ac612ddf6c62bd00ca248ed612f7410488f406f4e4990cb5c10b6be74b",
+      "evidence": [
+        "long launcher silhouette",
+        "articulated three-node MOD",
+        "independent em034_013 controller",
+        "active during missile/grapple state families"
+      ],
+      "proper_name": "PRESERVED_UNDECODED"
+    },
+    "slot21": {
+      "component": 1,
+      "role": "handgun_A",
+      "size": 22048,
+      "nodes": 1,
+      "vertices": 544,
+      "dimensions": [
+        21.89,
+        2.54,
+        13.65
+      ],
+      "sha256": "ee62e8b87b66d0b01609df40089fea11d308dc6b02238c7a07ac2acaec8a4218",
+      "active_host": "node9_negative_x_hand",
+      "evidence": [
+        "complete handgun silhouette",
+        "rigid one-node MOD",
+        "paired with slot22 at action44"
+      ]
+    },
+    "slot22": {
+      "component": 2,
+      "role": "handgun_B",
+      "size": 23648,
+      "nodes": 1,
+      "vertices": 584,
+      "dimensions": [
+        25.75,
+        2.54,
+        14.42
+      ],
+      "sha256": "8843fb42321896b5846ddb4faf93741dc1193a590fe31767ccf95ae96c699464",
+      "active_host": "node13_positive_x_hand",
+      "evidence": [
+        "second complete handgun silhouette",
+        "rigid one-node MOD",
+        "paired with slot21 at action44"
+      ]
+    },
+    "slot23": {
+      "component": 3,
+      "role": "vertical_bowgun_crossbow",
+      "size": 23904,
+      "nodes": 4,
+      "vertices": 587,
+      "dimensions": [
+        30.9,
+        4.69,
+        18.55
+      ],
+      "sha256": "b1ca603658913e06e18468ee801deea2ac237bf8b0ea1ab50de7a8eab0591fec",
+      "active_host": "special runtime transform CEm034+0x43C0",
+      "evidence": [
+        "stock/body and transverse/vertical bow limb in reconstructed mesh",
+        "four-node MOD",
+        "action46 active placement",
+        "repeated Shl05 creation"
+      ],
+      "rejected": [
+        "hook"
+      ]
+    },
+    "slot24": {
+      "component": 4,
+      "role": "machine_gun_smg_class",
+      "size": 34000,
+      "nodes": 1,
+      "vertices": 842,
+      "dimensions": [
+        42.28,
+        4.67,
+        20.14
+      ],
+      "sha256": "e0a70ac54cf82ad69cb1c607554d22bf292048dae107738c7fa0dc989c975c97",
+      "active_host": "node13_positive_x_hand",
+      "evidence": [
+        "compact long-magazine automatic-firearm silhouette",
+        "action50 active placement",
+        "Shl00 source transform"
+      ]
+    },
+    "slot25": {
+      "owner": "CEm034Shl02",
+      "role": "missile_rocket_projectile",
+      "size": 2800,
+      "nodes": 1,
+      "vertices": 62,
+      "dimensions": [
+        6.81,
+        6.81,
+        111.78
+      ],
+      "sha256": "f65eeb79ebdcc07e2091eed191929fcc97516901d4bd6af396deb5e056385169",
+      "evidence": [
+        "long narrow projectile silhouette",
+        "Shl02 ownership",
+        "actions3/4/5 frame4 spawn",
+        "Shl02 three-second lifetime"
+      ]
+    },
+    "slot26": {
+      "owner": "CEm034Shl03",
+      "role": "grappling_blade_hook_head",
+      "size": 8800,
+      "nodes": 2,
+      "vertices": 212,
+      "dimensions": [
+        38.53,
+        3.98,
+        11.59
+      ],
+      "sha256": "002f5d83b49f6ee498c745f158fb524da2aaee91d42a4eb8ef0c23fe8d347833",
+      "evidence": [
+        "pointed/serrated hook-blade silhouette",
+        "paired with slot30",
+        "Shl03 owner-action-gated grapple-domain lifecycle"
+      ]
+    },
+    "slot30": {
+      "owner": "CEm034Shl03",
+      "role": "tether_cable_chain_strip",
+      "size": 3744,
+      "nodes": 5,
+      "vertices": 82,
+      "dimensions": [
+        28,
+        1.67,
+        1.67
+      ],
+      "sha256": "3f2f749edfd3c52bb27c3d0013b4e0eeb2b31f71e9adcf70012b72de280a1dcc",
+      "evidence": [
+        "thin segmented five-node strip",
+        "paired with slot26",
+        "same Shl03 lifecycle"
+      ]
+    }
+  },
+  "body_skeleton": {
+    "source": "em034_001.mod",
+    "node_count": 23,
+    "bind_rotation_note": "relevant bind local rotations are zero to floating-point noise",
+    "arm_chains": [
+      [
+        3,
+        6,
+        7,
+        8,
+        9
+      ],
+      [
+        3,
+        10,
+        11,
+        12,
+        13
+      ]
+    ],
+    "nodes": {
+      "3": {
+        "parent": 2,
+        "world": [
+          0,
+          117.52,
+          -0.52
+        ],
+        "role": "torso_back_chain"
+      },
+      "9": {
+        "parent": 8,
+        "world": [
+          -61.75,
+          136.84,
+          -2.18
+        ],
+        "role": "negative_x_hand_endpoint"
+      },
+      "13": {
+        "parent": 12,
+        "world": [
+          61.75,
+          136.84,
+          -2.18
+        ],
+        "role": "positive_x_hand_endpoint"
+      },
+      "14": {
+        "parent": 1,
+        "world": [
+          0,
+          104.7,
+          0
+        ],
+        "role": "pelvis_leg_root"
+      },
+      "16": {
+        "parent": 15,
+        "world": [
+          -8.04,
+          51.83,
+          0.37
+        ],
+        "role": "negative_x_lower_leg_chain"
+      },
+      "19": {
+        "parent": 14,
+        "world": [
+          8.04,
+          94.43,
+          0.37
+        ],
+        "role": "positive_x_hip_upper_leg_chain"
+      }
+    },
+    "side_label_boundary": "negative-X vs positive-X proven; human left/right labels not promoted without coordinate-handedness/front-axis proof"
+  },
+  "placement_semantics": {
+    "preset0": "stowed_body_storage",
+    "preset1": "active_held",
+    "per_component": {
+      "0": {
+        "preset0": "back_torso_stowed_node3",
+        "preset1": "active_held_node9_negative_x_hand"
+      },
+      "1": {
+        "preset0": "pelvis_holster_stowed_node14",
+        "preset1": "active_held_node9_negative_x_hand"
+      },
+      "2": {
+        "preset0": "leg_holster_stowed_node16",
+        "preset1": "active_held_node13_positive_x_hand"
+      },
+      "3": {
+        "preset0": "hip_body_stowed_node19",
+        "preset1": "active_held_special_CEm034_plus_0x43C0"
+      },
+      "4": {
+        "preset0": "pelvis_body_stowed_node14",
+        "preset1": "active_held_node13_positive_x_hand"
+      }
+    }
+  },
+  "rejected": [
+    "slot23 = hook",
+    "preset0/preset1 = hidden/visible",
+    "slots25/26/30 persistent body attachments"
+  ],
+  "open_nonblocking": [
+    "proper-name promotion for launcher",
+    "negative-X hand vs positive-X hand to human left/right",
+    "exact gameplay names for Shl00/Shl01/Shl04/Shl05 beyond proven runtime domains"
+  ],
+  "pass4_blocking_semantics_remaining": false
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "dmc3-vtable-pointer-boundaries-v1",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "anchors": 915,
+  "pointer_slot_candidates": 13894,
+  "additional_slots": 12,
+  "unique_targets": 3315,
+  "unique_unvisited_targets": 899,
+  "stops": {
+    "next_validated_locator_slot": 632,
+    "noncode_pointer": 283
+  },
+  "formerly_capped_runs": [
+    {
+      "anchor": "0x1404c6a18",
+      "class_name": "CComEm000",
+      "count": 256,
+      "stop": "next_validated_locator_slot",
+      "end_exclusive": "0x1404c7218",
+      "semantic_extent_confirmed": false
+    },
+    {
+      "anchor": "0x1404c75e0",
+      "class_name": "CComEm006",
+      "count": 262,
+      "stop": "next_validated_locator_slot",
+      "end_exclusive": "0x1404c7e10",
+      "semantic_extent_confirmed": false
+    },
+    {
+      "anchor": "0x1404c7ea0",
+      "class_name": "CComEm008",
+      "count": 262,
+      "stop": "next_validated_locator_slot",
+      "end_exclusive": "0x1404c86d0",
+      "semantic_extent_confirmed": false
+    }
+  ],
+  "vptr_stores_verified": 9,
+  "secondary_this_adjustors_verified": 3,
+  "input_sha256": {
+    "data/reverse/runtime-tree-20260913/vtable_anchors.tsv": "462a4727bca9d610bcbc56984d325cdb2c04159a49bbce70b2f8592ac79ed0d6",
+    "data/reverse/root-expansion-20260915/visited.tsv.gz": "d3b1e0f7820302c5e15a188085d476c6de43acae1931aeb704b54db02dd1051f",
+    "data/reverse/root-expansion-audit-20260915/vtable-slot-candidates.tsv.gz": "689b84a9290b05551787f8c25039d8c664dcc036192b046ee6c79174badffb67"
+  },
+  "limitations": [
+    "A contiguous code-pointer run bounded by RTTI is not proof that every slot is a virtual method.",
+    "Typed receiver/slot consumers, exact method signatures and inherited slot mappings remain open.",
+    "Unvisited candidates remain excluded from confirmed metadata-root seeding."
+  ]
+}

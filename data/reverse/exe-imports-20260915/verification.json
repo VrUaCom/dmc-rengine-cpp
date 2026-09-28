@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "operand_cases": 7,
+  "rip_slots_independently_matched_to_objdump": 633,
+  "input_cfg_git_blobs_match_committed_pass": true,
+  "remaining_unresolved_indirect_sites": 9388
+}

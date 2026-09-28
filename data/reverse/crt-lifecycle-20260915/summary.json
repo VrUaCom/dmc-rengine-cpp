@@ -1,0 +1,27 @@
+{
+  "schema": "dmc3-crt-lifecycle-v1",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "status": "STRUCTURAL_CONFIRMED",
+  "complex_crt_roots": 83,
+  "exit_registration_sites": 71,
+  "resolved_callback_targets": 71,
+  "unresolved_callback_sites": 0,
+  "callback_terminal_kinds": {
+    "ret": 55,
+    "external_jump": 16
+  },
+  "no_operation_callbacks": 40,
+  "vector_construction_sites": 11,
+  "input_sha256": {
+    "data/reverse/root-expansion-20260915/metadata-roots.tsv.gz": "2524f8346764e132497694b3f2ec24df8c86822579a3a586eae8b259e4c126fa",
+    "data/reverse/root-expansion-20260915/crt-prefixes.tsv.gz": "86d37b7c421c31ee286931316213b8a9fe08f070070b5ca4788939c59ab639f8",
+    "data/reverse/runtime-tree-20260913/vtable_anchors.tsv": "462a4727bca9d610bcbc56984d325cdb2c04159a49bbce70b2f8592ac79ed0d6"
+  },
+  "limitations": [
+    "Local constants stop at branch boundaries and calls invalidate Win64 volatile registers.",
+    "Reported arguments are conditional on reaching the site; no path feasibility or initialization success is claimed.",
+    "Callees, exception cleanup and object users are not recursively reconstructed.",
+    "Registration does not imply a nontrivial destructor; no-op callbacks remain explicit.",
+    "No full-game or full-lifecycle completion claim."
+  ]
+}

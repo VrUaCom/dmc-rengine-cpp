@@ -1,0 +1,29 @@
+[
+  {
+    "class_name": "CComEm000",
+    "secondary_anchor": "0x1404c7220",
+    "subobject_offset": 208,
+    "thunk": "0x140062a98",
+    "adjustment": -208,
+    "target": "0x140062ab0",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "class_name": "CComEm006",
+    "secondary_anchor": "0x1404c7e18",
+    "subobject_offset": 208,
+    "thunk": "0x14006e5f8",
+    "adjustment": -208,
+    "target": "0x14006e610",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "class_name": "CComEm008",
+    "secondary_anchor": "0x1404c86d8",
+    "subobject_offset": 208,
+    "thunk": "0x140079988",
+    "adjustment": -208,
+    "target": "0x1400799a0",
+    "status": "EXE_CONFIRMED"
+  }
+]

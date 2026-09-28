@@ -1,0 +1,75 @@
+{
+  "schema": "dmc-rengine.em034-lady-equipment-binding-pass4.v1",
+  "date": "2026-09-28",
+  "branch": "reverse/em034-lady-runtime-20260927",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/em034_lady_equipment_contract.hpp",
+    "test": "tests/em034_lady_equipment_contract_tests.cpp",
+    "cmake_stem": "em034_lady_equipment_contract"
+  },
+  "domains": {
+    "persistent_components": {
+      "slots": [
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "presence": "persistent while loaded",
+      "visibility_toggle": false,
+      "placements": [
+        "stowed",
+        "active_held"
+      ]
+    },
+    "dynamic_actors": {
+      "classes": [
+        "CEm034Shl00",
+        "CEm034Shl01",
+        "CEm034Shl02",
+        "CEm034Shl03",
+        "CEm034Shl04",
+        "CEm034Shl05"
+      ],
+      "dedicated_model_slots": [
+        25,
+        26,
+        30
+      ]
+    }
+  },
+  "mandatory_reader_corrections": [
+    "remove static slots20..26/30 -> joint9 model",
+    "persistent static equipment is slots20..24 only",
+    "default persistent placement is exact stowed record per component",
+    "component0 keeps placement and independent MotionScript control domain separate",
+    "component3 active placement keeps CEm034+0x43C0 special parent",
+    "slots25/26/30 materialize only through dynamic Shl actor domains",
+    "action50 placement reset is lane1/channel1 value2, not channel0 value2"
+  ],
+  "rejected": [
+    "all Lady weapon resources are one Kalina Ann source-space assembly",
+    "slots20..26/30 all attach to joint9",
+    "preset0/preset1 mean hidden/visible",
+    "one scalar Lady weapon state is sufficient"
+  ],
+  "evidence_dependencies": [
+    "dmc3-em034-lady-runtime-pass1-20260927.json",
+    "dmc3-em034-lady-runtime-pass2-20260927.json",
+    "dmc3-em034-lady-runtime-pass2e-20260928.json",
+    "dmc3-em034-lady-runtime-pass2f-20260928.json",
+    "dmc3-em034-lady-runtime-pass2g-20260928.json",
+    "dmc3-em034-lady-runtime-pass2h-20260928.json"
+  ],
+  "gates": {
+    "pass1": "closed_for_binding_scope",
+    "pass2": "closed_for_binding_scope",
+    "pass3": "closed_for_required_binding_transitions",
+    "pass4": "implemented_upstream_contract",
+    "pass5": "reader_migration_not_started",
+    "pass6_plus": "not_started",
+    "build_verification": "pending_no_check_run_on_branch"
+  }
+}

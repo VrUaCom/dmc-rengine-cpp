@@ -4,7 +4,7 @@
 **Canonical implementation base reviewed:** `main@64d2d27db4b4b974addcc0e78c342fb169e2fd97`  
 **Latest reviewed public/status promotion:** PR #377 — canonical model-format truth + discovery reconciliation  
 **Latest SCM reverse completion:** `reverse/mod-completion-20260907` — terminal field/runtime map + machine receipt  
-**Latest SCM authoring promotions:** bounded real alpha/translation/rotation authoring + PAC reintegration receipts  
+**Latest SCM authoring promotions:** bounded real alpha/translation/rotation authoring + real size-changing canonical rebuild + PAC reintegration receipts  
 **Latest MOD/SCM/MOT consolidation:** PR #372 — unified model-format consolidation and MOD container gates  
 **Active branch advancement:** `reverse/mod-completion-20260907`  
 **Latest canonical Native Reader integration review:** `NativeReaderModuleRegistry` verified on current `main`  
@@ -12,6 +12,18 @@
 **Overall status:** L1/L2/L3 remain incomplete. The canonical DMC3 HD MOD and SCM reverses are complete for their defined serialized/runtime scopes; writer/integration/original-game acceptance remain separate bounded programs. MOT continues on its runtime/player proof track.
 
 ## Authority split
+
+### Internal game structure — fresh structural pass, 2026-09-13
+
+The active user objective is the **internal DMC3 runtime tree**, including
+classes, addresses and their relationships. The fresh canonical-EXE census
+reproduces 915 COL/vftable anchors and 12,235 unwind ranges; it records 408
+decorated type candidates, 407 hierarchy-linked types and 438 direct
+inheritance edges. All 433 old Drive edges are retained, with five additional
+base-subtree relations. This is structural evidence, not full-game
+decompilation or mobile-port completion. See the
+[internal runtime tree report](../research/dmc3-internal-runtime-tree-2026-09-13.md)
+and its generated class/address graph.
 
 - GitHub `main` is canonical implementation truth.
 - A PR branch is branch truth until promoted.
@@ -154,7 +166,11 @@ canonical exact no-edit parity  78/78 PASS
 
 Real hash-bound same-layout receipts additionally cover alpha-control, node translation and node rotation through parent PAC reintegration, canonical reopen/extraction and exact inverse restoration.
 
-Still open are real-retail size-changing rebuild, provenance-bound retail texture rewrite, broader PAC/PNST/NBZ authored-delivery coverage and original `dmc3.exe` acceptance. These are writer/integration/acceptance gates and do not reopen SCM reverse.
+PR #386 adds a real hash-bound size-changing canonical rebuild and PAC packed-reflow receipt. For `st001.scm`, object 0 / mesh 0 grows from 167 to 168 vertices, SCM size grows from 887,760 to 887,776 bytes, non-degenerate triangles remain 118, and the rebuilt SCM reparses canonically. Reintegration into physical slot 2 of real `st001.pac` grows the parent from 4,632,960 to 4,632,976 bytes; reopening and re-extracting slot 2 returns the exact authored SCM, while every non-target top-level physical slot remains byte-identical. Machine authority: `data/reverse/dmc3-scm-real-size-changing-pac-reintegration-attestation-20260913.json`.
+
+Therefore the explicit **real-retail size-changing SCM -> PAC gate is closed at that bounded class**.
+
+Still open are provenance-bound retail texture rewrite, additional representative semantic edit receipts where useful, broader PNST authored-delivery coverage, retail NBZ authored-resource delivery/resolver selection and original `dmc3.exe` acceptance. These are writer/integration/acceptance gates and do not reopen SCM reverse.
 
 ## MOT state
 
@@ -217,7 +233,7 @@ animatedLocal
 
 ## L1 — Resource Materialization
 
-Closed/advanced evidence includes NBZ/PAC/PNST product paths, authoring infrastructure, MOD Writer Gate 1, real retail PNST reintegration and synthetic NBZ reopen.
+Closed/advanced evidence includes NBZ/PAC/PNST product paths, authoring infrastructure, MOD Writer Gate 1, real retail MOD PNST reintegration, real SCM PAC size-changing reflow/reopen and synthetic NBZ reopen.
 
 Mandatory remaining acceptance chain:
 

@@ -1,0 +1,83 @@
+[
+  {
+    "anchor": "0x1404c6a18",
+    "load_site": "0x140062a2d",
+    "store_site": "0x140062a34",
+    "receiver_register": "rdi",
+    "receiver_displacement": 0,
+    "range_begin": "0x140062a00",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c6a18",
+    "load_site": "0x140062a66",
+    "store_site": "0x140062a70",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x140062a60",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c6a18",
+    "load_site": "0x140062aba",
+    "store_site": "0x140062ac4",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x140062ab0",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c75e0",
+    "load_site": "0x14006e58d",
+    "store_site": "0x14006e594",
+    "receiver_register": "rdi",
+    "receiver_displacement": 0,
+    "range_begin": "0x14006e560",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c75e0",
+    "load_site": "0x14006e5c6",
+    "store_site": "0x14006e5d0",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x14006e5c0",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c75e0",
+    "load_site": "0x14006e61a",
+    "store_site": "0x14006e624",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x14006e610",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c7ea0",
+    "load_site": "0x14007991d",
+    "store_site": "0x140079924",
+    "receiver_register": "rdi",
+    "receiver_displacement": 0,
+    "range_begin": "0x1400798f0",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c7ea0",
+    "load_site": "0x140079956",
+    "store_site": "0x140079960",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x140079950",
+    "status": "EXE_CONFIRMED"
+  },
+  {
+    "anchor": "0x1404c7ea0",
+    "load_site": "0x1400799aa",
+    "store_site": "0x1400799b4",
+    "receiver_register": "rcx",
+    "receiver_displacement": 0,
+    "range_begin": "0x1400799a0",
+    "status": "EXE_CONFIRMED"
+  }
+]

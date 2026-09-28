@@ -8,13 +8,12 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
-// Corpus-backed contract recovered in naming reverse pass #254.
+// FXBANK contract recovered from corpus plus canonical dmc3.exe.
 //
-// `*_effect.pac` is a two-slot PNST. Slot 0 is a CRLF ASCII manifest and slot
-// 1 is a PNST containing the records named by that manifest. This is direct
-// enclosing-container naming evidence. It is NOT evidence that `.index` is a
-// runtime manifest, and no original executable read site for this text has
-// been proven yet.
+// `*_effect.pac` / the em034 effect bank is a two-slot PNST. Slot 0 is a CRLF
+// ASCII manifest and slot 1 is the physical record PNST. The canonical loader
+// at 0x1402C04C0 tokenizes the manifest and dispatches each record by
+// (kind,u16 id). This does not make external `.index` runtime authority.
 struct EffectPackContract final {
     static constexpr std::string_view canonical_target_sha256 =
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
@@ -26,6 +25,11 @@ struct EffectPackContract final {
     static constexpr char comment_prefix = '#';
     static constexpr std::string_view terminator_line = "# End";
     static constexpr char field_separator = ' ';
+    static constexpr char model_kind = 'M';
+
+    static constexpr std::uint64_t runtime_loader_va = 0x1402C04C0ULL;
+    static constexpr bool manifest_read_site_found = true;
+    static constexpr bool model_consumes_following_physical_slot = true;
 
     struct KindExtent final {
         char kind{};
@@ -65,22 +69,17 @@ struct EffectPackContract final {
     static constexpr std::array<std::size_t, 4> observed_p_extents{
         336U, 528U, 704U, 896U};
 
-    // A record the manifest does not name.
+    // One observed M-companion byte shape, not the companion rule.
     //
-    // em000's pack holds 183 populated records and 173 manifest lines. The ten
-    // extra are byte-identical: a `0x31` word followed by twelve zeros, each
-    // sitting in the slot immediately after a record the manifest calls `M`.
-    // Skipping exactly those, manifest line k names record k for all 173 —
-    // kind and identifier, in order, with no exception.
-    //
-    // The reference extraction names each of them after the record before it,
-    // but the bytes carry no identifier: all ten are the same sixteen bytes.
-    // So the rule is the constant, not an identifier match, and the adjacency
-    // to `M` is recorded as observed rather than required — a companion that
-    // followed something else would still be a companion.
+    // em000 contains ten populated M companions that are byte-identical: a
+    // `0x31` word followed by twelve zeros. Later em034 evidence proves that
+    // an M companion may instead be a PTX payload. Companion identity therefore
+    // comes from the loader's physical-slot consumption rule, never from these
+    // bytes. This predicate is retained only to recognize the observed 0x31
+    // payload family.
     static constexpr std::size_t companion_record_size = 16U;
     static constexpr std::uint32_t companion_leading_word = 0x31U;
-    static constexpr char companion_observed_after_kind = 'M';
+    static constexpr char companion_observed_after_kind = model_kind;
     static constexpr std::size_t companion_observed_count = 10U;
 
     /// Whether these record bytes are the unnamed companion record.
@@ -195,8 +194,6 @@ struct EffectPackContract final {
     static constexpr std::size_t texture_dimensions_offset = 0x10U;
     static constexpr std::uint32_t texture_observed_square_small = 128U;
     static constexpr std::uint32_t texture_observed_square_large = 256U;
-
-    static constexpr bool manifest_read_site_found = false;
 
     [[nodiscard]] static constexpr std::size_t extent_for(char kind) noexcept {
         for (const auto& entry : kinds) {

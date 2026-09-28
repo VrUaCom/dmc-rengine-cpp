@@ -1,0 +1,71 @@
+{
+  "schema": "dmc3-tree-completeness-audit-v1",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "tree_complete": false,
+  "hierarchy_types": 407,
+  "inheritance_edges": 438,
+  "rtti_roots_without_observed_base": 57,
+  "crt": {
+    "initterm": {
+      "rows": 6984,
+      "unique_targets": 6984,
+      "coverage": {
+        "visited_start": 6984
+      },
+      "unique_not_visited": 0
+    },
+    "initterm_e": {
+      "rows": 3,
+      "unique_targets": 3,
+      "coverage": {
+        "visited_start": 3
+      },
+      "unique_not_visited": 0
+    }
+  },
+  "vtable_first_entries": {
+    "rows": 915,
+    "unique_targets": 894,
+    "coverage": {
+      "visited_start": 915
+    },
+    "unique_not_visited": 0
+  },
+  "vtable_pointer_run_candidates": {
+    "rows": 13882,
+    "unique_targets": 3307,
+    "coverage": {
+      "visited_start": 9168,
+      "not_visited": 4714
+    },
+    "unique_not_visited": 899
+  },
+  "candidate_run_stop_reasons": {
+    "next_locator_boundary": 629,
+    "noncode_pointer": 283,
+    "cap_256": 3
+  },
+  "exception_handlers": {
+    "rows": 2210,
+    "unique_targets": 4,
+    "coverage": {
+      "visited_start": 2210
+    },
+    "unique_not_visited": 0
+  },
+  "input_file_sha256": {
+    "structure-runtime-check/types.tsv": "d9a7238af4a1766e8266de393e314e80926af852c61c1a2d1c55c8211e7a4a18",
+    "structure-runtime-check/inheritance.tsv": "8ce8124c80478f7d46849834f3156f3be3038563fe67903be84736e89b7243e4",
+    "structure-runtime-check/vtable_anchors.tsv": "462a4727bca9d610bcbc56984d325cdb2c04159a49bbce70b2f8592ac79ed0d6",
+    "structure-runtime-check/runtime_ranges.tsv": "437779879bab7e72088c565f9f62dffeb9f0ae7d790c290d0dcf986b7d2fbb8f",
+    "root-pass/data/reverse/root-expansion-20260915/visited.tsv.gz": "d3b1e0f7820302c5e15a188085d476c6de43acae1931aeb704b54db02dd1051f",
+    "structure-pass/data/reverse/exe-structure-20260915/crt-initializers.tsv.gz": "a46e0555bb8bfcebc1127efaec6a3a297456a9b3e1f83a27e44b430729644679"
+  },
+  "limitations": [
+    "Not visited means absent from this CFG, not unknown to all prior research.",
+    "A first vtable entry may be a thunk or shared method; it is not necessarily a unique function.",
+    "Executable pointer runs after first entries are candidates, not proven vtable extents.",
+    "RTTI roots can be legitimate interfaces or external bases, not automatically missing parent classes.",
+    "No exhaustive universe of classes, callbacks, globals, ownership, update/draw or shutdown edges has been established."
+  ]
+}

@@ -32,14 +32,20 @@ canonical rebuild + reparse     78/78 PASS
 canonical exact no-edit parity  78/78 PASS
 ```
 
-This closes that explicit no-edit corpus gate. It does **not** prove universal stage editing, every retail SCM variant, Capcom offline-tool equivalence or original-game acceptance.
+Real hash-bound same-layout receipts additionally cover alpha-control, node translation and node rotation through parent PAC reintegration and canonical reopen/extraction.
+
+PR #386 adds a bounded real-retail size-changing path. On hash-bound `st001.scm`, `append_break_vertex_copy()` grows object 0 / mesh 0 from 167 to 168 vertices, keeps non-degenerate strip triangles at 118, grows the SCM by 16 bytes, reparses canonically, then reintegrates the authored child into physical slot 2 of real `st001.pac`. The parent grows by the same 16 bytes; re-extraction returns the exact authored SCM and all seven non-target top-level physical slots remain byte-identical.
+
+Machine receipt: `data/reverse/dmc3-scm-real-size-changing-pac-reintegration-attestation-20260913.json`.
+
+This closes that explicit real-retail size-changing SCM -> PAC gate. It does **not** prove universal stage editing, every retail SCM variant, Capcom offline-tool equivalence, NBZ delivery or original-game acceptance.
 
 ## Still open
 
-- provenance-bound representative same-layout semantic edits across SCM domains;
+- provenance-bound representative semantic edit receipts where additional writer-domain promotion is useful;
 - provenance-bound retail texture rewrite;
-- real-retail size-changing canonical rebuild;
-- SCM PAC/PNST/NBZ reintegration;
+- broader PNST authored-resource delivery for SCM;
+- retail NBZ authored-resource delivery and resolver selection;
 - original `dmc3.exe` acceptance.
 
 ## Why SCM is different from MOD

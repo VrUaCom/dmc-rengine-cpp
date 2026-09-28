@@ -71,6 +71,15 @@ target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
 dmc_rengine_enable_warnings(dmc-rengine)
 
 include(CTest)
+option(DMC_RENGINE_BUILD_REVERSE_TOOLS "Build canonical EXE structural research tools" OFF)
+if(DMC_RENGINE_BUILD_REVERSE_TOOLS)
+    add_executable(dmc3-runtime-tree tools/reverse/dmc3_runtime_tree.cpp)
+    target_link_libraries(dmc3-runtime-tree PRIVATE DMCRengine::Core)
+    dmc_rengine_enable_warnings(dmc3-runtime-tree)
+    if(BUILD_TESTING)
+        add_test(NAME dmc3_runtime_tree_self_test COMMAND dmc3-runtime-tree --self-test)
+    endif()
+endif()
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
@@ -103,6 +112,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         texture_slot_framing
         texture_slot_packed_reflow_writer
         texture_slot_runtime_materialization
+        runtime_block_arena
         texture_slot_index_name_authority
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
@@ -133,8 +143,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod_writer
         mod_writer_corpus
         mod_authored_child_bridge
+        em034_lady_equipment_contract
         mod_skin
         scm_writer
+        scm_reflow_authoring
         scm_vertex_authoring
         scm_normal_authoring
         scm_uv_authoring
