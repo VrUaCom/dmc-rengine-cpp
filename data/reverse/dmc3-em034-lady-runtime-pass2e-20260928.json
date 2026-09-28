@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v4",
+  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v5",
   "date": "2026-09-28",
   "branch": "reverse/em034-lady-runtime-20260927",
   "canonical_artifacts": {
@@ -410,16 +410,53 @@
       "action50 corrected channel regression",
       "RuntimeBodyRootScaled represented without joint13 fallback",
       "component3 RuntimeBodyRootScaled exact materialization using body root node0 and +0x4400 scale",
-      "action46 component3 uniform scale 1.0/1.5 bridge"
+      "action46 component3 uniform scale 1.0/1.5 bridge",
+      "dynamic Shl02/03 latent presentation resources",
+      "exact Shl03 slot30 five-node tether skinning via canonical MOD skin palette",
+      "evidence-safe Shl02 standalone trajectory boundary",
+      "separate raw MOT and MotionScript Play UI paths",
+      "multi-script em034_012/em034_013 retention and routing",
+      "lane-exact CEm034 Script Play"
     ],
-    "build_verification": "NOT_RUN: no automatic CI workflow is associated with the branch head in the connected repository",
-    "apk_build_started": false,
+    "build_verification": "GREEN: exact-head CI run #883 on 7566c0c2788ca7927096eeec3e15582dc7e5686c",
+    "apk_build_started": true,
     "rejected": [
       "all Lady equipment on joint9",
       "mode0/mode1 as hidden/visible",
       "dynamic Shl actors as persistent attachments",
       "single scalar Lady weapon state",
       "component3 ActiveDeployed approximated as body joint13"
-    ]
+    ],
+    "apk_debug_built": true,
+    "apk_physical_acceptance": false
+  },
+  "final_reader_validation": {
+    "reader_branch": "fix/em034-lady-assembly-info-export",
+    "reader_head": "7566c0c2788ca7927096eeec3e15582dc7e5686c",
+    "pr104_state": "DRAFT",
+    "merged": false,
+    "ci": {
+      "workflow": "DMC Native Reader core architecture",
+      "run_number": 883,
+      "run_id": 36386599387,
+      "conclusion": "success",
+      "exact_head": true
+    },
+    "debug_apk": {
+      "workflow_artifact_id": 10954881333,
+      "workflow_artifact_name": "dmc-native-reader-v70-modular-debug",
+      "artifact_zip_sha256": "97a9a9189a82ec7795a5eeda4a68540aadb24a453a541d81d636c6593db873a2",
+      "extracted_apk_name": "DMC-Native-Reader-v70-Lady-final-debug.apk",
+      "extracted_apk_sha256": "24e20a23203c497da7dc20bef44cb58b09e8a9cbc921c91533026a43754b702f",
+      "versionCode": 70,
+      "versionName": "1.0.43"
+    },
+    "release_unsigned_artifact": {
+      "workflow_artifact_id": 10954692126,
+      "workflow_artifact_name": "dmc-native-reader-v70-modular-release-unsigned",
+      "artifact_zip_sha256": "e275e7374337199613652b309238bc3478ee15957492543a861c99fa34d1ddf4"
+    },
+    "physical_android_acceptance": "PENDING",
+    "merge_gate": "Do not merge PR #104 until physical Android Lady acceptance passes"
   }
 }
