@@ -1,16 +1,176 @@
 {
-  "schema":"dmc-rengine.em034-lady-runtime-pass2e.v1",
-  "date":"2026-09-28",
-  "canonical_exe_sha256":"e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-  "shared_actor_state":{"field":"+0x08","tick":"0x1403261B0","retire_path":"0x1403261E0","retire_state":3},
-  "classes":{
-    "CEm034Shl00":{"phase":"0x140172590","timer":"+0x52C","retire_condition":"timer < 0","child":"+0x520"},
-    "CEm034Shl01":{"phase":"0x140172B20","timer":"+0x538","timer_initial":1.0,"retire_condition":"timer < 0","children":["+0x520","+0x528"]},
-    "CEm034Shl02":{"phase":"0x140173800","timer":"+0xD68","timer_initial":3.0,"retire_condition":"timer < 0","child":"+0xD60"},
-    "CEm034Shl03":{"gate":"0x140174550","owner":"+0x1510","owner_action_virtual":"+0x250 vslot +0x08","retained_actions":[94,95,96,98,99,144],"retire_actions":"97, 100..143, or outside 94..144"},
-    "CEm034Shl04":{"state1":"0x1401756E0","state1_expiry":"transition to state2 and reset +0x09","state2":"0x1401753A0","state2_timer":"+0x530","state2_timer_initial":3.0,"state2_expiry":"state3","children":["+0x520","+0x528"]},
-    "CEm034Shl05":{"phase_a":"0x140175C50","timer_a":"+0x528","timer_a_initial":1.0,"phase_b":"0x140175ED0","timer_b":"+0x52C","retire_condition":"active phase timer < 0","child":"+0x520"}
+  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v2",
+  "date": "2026-09-28",
+  "branch": "reverse/em034-lady-runtime-20260927",
+  "canonical_artifacts": {
+    "dmc3.exe": {
+      "size": 6356432,
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    },
+    "em034.pac": {
+      "size": 2690416,
+      "sha256": "1a5a245c8348dee3fa37ef1a83da39f15f5c1576e252daf5adc897e349f56dff"
+    },
+    "em034-extract-original.zip": {
+      "size": 2413153,
+      "sha256": "26f96362317a4cfa122237a3362f4430cbb383d5e5c57202e1a9b0ad50a43e65"
+    },
+    "em034-extract-formats-corrected.zip": {
+      "size": 2401140,
+      "sha256": "e2d7f05f1df3cca83c73e0cc3f8cf67e8d8d5ac64d1ac4adfd6c0e8dec6ff875"
+    }
   },
-  "status":"EXE_CONFIRMED",
-  "remaining":["final actor-manager unlink/free internals","persistent slots20..24 visibility semantics"]
+  "placement": {
+    "helper": "0x1401713F0",
+    "reset_helper": "0x140168B00",
+    "preset0": "BodyStowed",
+    "preset1": "HandHeld",
+    "preset0_table": "0x14057AFC0",
+    "preset1_table": "0x14057B0B0",
+    "components": [
+      {"component":0,"slot":20,"preset0_node":3,"preset1_node":9,"manager":"+0x8E8","runtime_block":"+0x4000","control_gate":"+0x4020"},
+      {"component":1,"slot":21,"preset0_node":14,"preset1_node":9,"manager":"+0x900","runtime_block":"+0x40C0"},
+      {"component":2,"slot":22,"preset0_node":16,"preset1_node":13,"manager":"+0x908","runtime_block":"+0x4180"},
+      {"component":3,"slot":23,"preset0_node":19,"preset1_node":13,"manager":"+0x910","runtime_block":"+0x4240","preset1_special_parent":"+0x43C0"},
+      {"component":4,"slot":24,"preset0_node":14,"preset1_node":13,"manager":"+0x930","runtime_block":"+0x4300"}
+    ],
+    "body_skeleton": {
+      "mod_slot": 1,
+      "node_count": 23,
+      "hand_terminal_nodes": [9,13],
+      "stowed_body_nodes": [3,14,16,19],
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "state_entry_groups": [
+      {"states":["0x2E","0x30..0x52"],"result":"component1 HandHeld via direct materialization of preset1 record"},
+      {"states":["0x53..0x59","0x5E","0x61"],"result":"component0 HandHeld attached"},
+      {"states":["0x5A..0x5D","0x64..0x73"],"result":"component0 BodyStowed + independent em034_013; +0x4020=0"},
+      {"states":["0x5F","0x62"],"result":"component0 HandHeld attached"},
+      {"states":["0x60","0x63"],"result":"component0 HandHeld attached + component4 HandHeld"},
+      {"states":["0x7B"],"result":"component0 BodyStowed + independent em034_013"},
+      {"states":["0x7C","0x7D"],"result":"component0 initialized at HandHeld transform + independent em034_013"},
+      {"states":["0x7F"],"result":"component1 HandHeld + component2 HandHeld"},
+      {"states":["0x81"],"result":"component3 HandHeld"},
+      {"states":["0x85","0x8F"],"result":"baseline core placement at entry"}
+    ],
+    "script_transitions": [
+      {"state":"0x5C","action":9,"lane":0,"channel":0,"value":1,"result":"component0 HandHeld attached; +0x4020=1"},
+      {"state":"0x5D","action":10,"lane":0,"channel":0,"value":1,"result":"component0 HandHeld attached; +0x4020=1"},
+      {"state":"0x59","action":6,"lane":0,"channel":0,"value":1,"result":"component0 BodyStowed; start em034_013 action6; +0x4020=0"},
+      {"state":"0x61","action":14,"lane":0,"channel":0,"value":1,"result":"component0 BodyStowed; start em034_013 action14; +0x4020=0"},
+      {"state":"0x81","action":46,"lane":1,"channel":2,"value":1,"result":"component3 BodyStowed"},
+      {"state":"0x85","action":50,"lane":1,"channel":1,"value":1,"result":"component4 HandHeld"},
+      {"state":"0x85","action":50,"lane":1,"channel":0,"value":2,"result":"component4 BodyStowed"}
+    ],
+    "lane_correction": "states0x59/0x61 delayed slot20 transition consumes lane0 +0x5070 channel0, not lane1",
+    "status": "EXE_CONFIRMED"
+  },
+  "visibility": {
+    "mode0_mode1_are_visibility": false,
+    "bounded_cem034_code_range": "0x140168600..0x1401721D0",
+    "core_manager_direct_reference_count": 33,
+    "reference_counts": {
+      "+0x8E8": 8,
+      "+0x900": 8,
+      "+0x908": 5,
+      "+0x910": 4,
+      "+0x930": 8
+    },
+    "state_dependent_manager_pointer_write_or_null_count": 0,
+    "separate_cem034_per_slot_visibility_toggle_found": false,
+    "conclusion": "slots20..24 are persistent resident component domains; CEm034 state/script paths transition placement/control rather than explicit per-slot visibility",
+    "scope_limit": "generic renderer culling outside CEm034 owner logic remains outside this claim",
+    "status": "EXE_CONFIRMED"
+  },
+  "common_actor_retire": {
+    "retire_request": "0x1403261E0",
+    "actor_manager_tick": "0x1403265A0",
+    "countdown_to_lifecycle4": "0x140326644",
+    "remove_and_destruct": "0x140326240",
+    "actor_manager_remove": "0x140326800",
+    "global_actor_manager": "0x140CF2520",
+    "class_phase_field": "+0x08",
+    "actor_lifecycle_field": "+0x1C",
+    "retire_countdown_field": "+0x20",
+    "retire_countdown_ticks": 3,
+    "chain": [
+      "class condition writes phase +0x08 = 3",
+      "class dispatcher calls 0x1403261E0",
+      "lifecycle1/2 -> lifecycle3 + countdown3",
+      "0x1403265A0 decrements countdown each manager traversal",
+      "countdown0 -> lifecycle4",
+      "0x140326240 invokes virtual +0x10, removes actor, writes lifecycle0, invokes primary vtable slot0"
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "shl_retire": {
+    "direct_phase3_write_count": 7,
+    "direct_phase3_write_sites": [
+      "0x1401725F0",
+      "0x140172BCD",
+      "0x1401738D4",
+      "0x14017459C",
+      "0x1401753DB",
+      "0x140175C8B",
+      "0x140175F30"
+    ],
+    "CEm034Shl00": {
+      "hard_timeout_seconds": 120.0,
+      "phase1_exit": "hard timeout OR collision/hit",
+      "phase2_linger_seconds": 1.0,
+      "phase3_write_sites": ["0x1401725F0","0x140175C8B"]
+    },
+    "CEm034Shl01": {
+      "phase1_exit": "collision/query",
+      "phase2_linger_seconds": 1.0,
+      "phase3_write_site": "0x140172BCD"
+    },
+    "CEm034Shl02": {
+      "phase1_exit": "collision +0x278 OR world/query 0x140244810",
+      "phase2_linger_seconds": 3.0,
+      "phase3_write_site": "0x1401738D4"
+    },
+    "CEm034Shl03": {
+      "owner_pointer": "+0x1510",
+      "owner_state_guard": "0x140174550",
+      "allowed_owner_states": ["0x5E","0x5F","0x60","0x62","0x63","0x90"],
+      "retire_owner_states": "0x61, 0x64..0x8F, and states outside 0x5E..0x90",
+      "phase3_write_site": "0x14017459C"
+    },
+    "CEm034Shl04": {
+      "factory_lifetime_argument": "XMM2 -> +0x530",
+      "action60_phase1_lifetime_seconds": "120 + 30*i",
+      "shl03_phase3_lifetime_seconds": "90 + 30*derived_index",
+      "phase2_linger_seconds": 3.0,
+      "phase3_write_site": "0x1401753DB"
+    },
+    "CEm034Shl05": {
+      "hard_timeout_seconds": 120.0,
+      "phase1_exit": "hard timeout OR collision/hit",
+      "phase2_linger_seconds": 1.0,
+      "phase3_write_sites": ["0x140175F30","0x140175C8B"]
+    },
+    "status": "EXE_CONFIRMED"
+  },
+  "slot_identity": {
+    "20": {"structural":"large primary launcher body; host for independent em034_013, Shl02 rocket domain and Shl03 grapple domain","human_candidate":"Kalina Ann","status":"SEMANTIC_CANDIDATE"},
+    "21": {"structural":"handgun A","status":"EXE_AND_CORPUS_CONFIRMED structural"},
+    "22": {"structural":"handgun B","status":"EXE_AND_CORPUS_CONFIRMED structural"},
+    "23": {"structural":"compact crossbow/dagger-launcher form; source domain for Shl05 projectile actor","status":"EXE_AND_CORPUS_CONFIRMED structural"},
+    "24": {"structural":"compact submachine-gun form with front blade; source domain for repeated Shl00 projectile creation","status":"EXE_AND_CORPUS_CONFIRMED structural"},
+    "25": {"structural":"rocket/missile projectile owned by Shl02 and sourced from slot20 domain","status":"EXE_AND_CORPUS_CONFIRMED"},
+    "26": {"structural":"grappling blade/hook head owned by Shl03","status":"EXE_AND_CORPUS_CONFIRMED structural"},
+    "30": {"structural":"articulated grappling chain/cable owned by Shl03","status":"EXE_AND_CORPUS_CONFIRMED structural"}
+  },
+  "reader_gate": {
+    "canonical_equipment_binding_reverse_ready": true,
+    "reader_implementation_started": false,
+    "apk_build_started": false,
+    "rejected": [
+      "all Lady equipment on joint9",
+      "mode0/mode1 as hidden/visible",
+      "dynamic Shl actors as persistent attachments",
+      "single scalar Lady weapon state"
+    ]
+  }
 }
