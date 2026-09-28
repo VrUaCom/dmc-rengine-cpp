@@ -1,0 +1,42 @@
+{
+  "schema":"dmc-rengine.em034-lady-runtime-pass2i.v1",
+  "date":"2026-09-28",
+  "canonical_exe_sha256":"e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "entry_dispatcher":"0x14016A410",
+  "switch":{"byte_map":"0x14016ACAC","offset_map":"0x14016AC48","state_range":"0x00..0x8F"},
+  "controllers":{"lane0":"CEm034+0x5070","lane1":"CEm034+0x5190","slot20":"CEm034+0x52B0"},
+  "body_start_map":[
+    {"states":"0..6","bank":0,"actions":"0..6","lanes":"both"},
+    {"states":"8..14","bank":0,"actions":"8..14","lanes":"both"},
+    {"states":"15..20","bank":1,"actions":"0..5","lanes":"both"},
+    {"state":22,"bank":1,"action":7,"lanes":"both"},
+    {"states":"24..26","bank":1,"actions":"9..11","lanes":"both"},
+    {"state":35,"bank":1,"action":20,"lanes":"both"},
+    {"states":"38..41","bank":1,"actions":"23..26","lanes":"both"},
+    {"states":"42..45","bank":2,"actions":"0..3","lanes":"both"},
+    {"state":46,"bank":3,"action":0,"lanes":"both"},
+    {"states":"48..54","bank":3,"actions":"2..8","lanes":"both"},
+    {"states":"55..61","lane0":{"bank":0,"action":1},"lane1":{"bank":3,"actions":"9..15"}},
+    {"states":"62..68","lane0":{"bank":3,"action":16},"lane1":{"bank":3,"actions":"16..22"}},
+    {"states":"69..75","lane0":{"bank":3,"action":23},"lane1":{"bank":3,"actions":"23..29"}},
+    {"states":"76..82","lane0":{"bank":3,"action":30},"lane1":{"bank":3,"actions":"30..36"}},
+    {"states":"83..115","bank":4,"actions":"0..32","lanes":"both"},
+    {"states":"123..130","bank":4,"actions":"40..47","lanes":"both"},
+    {"state":133,"bank":4,"action":50,"lanes":"both"},
+    {"state":143,"bank":4,"action":60,"lanes":"both"}
+  ],
+  "no_body_script_states":"7,21,23,27..34,36..37,47,116..122,131..132,134..142",
+  "slot20_entry_starts":[
+    {"states":"90..93","bank":4,"actions":"7..10"},
+    {"states":"100..115","bank":4,"actions":"17..32"},
+    {"state":123,"bank":4,"action":40},
+    {"state":124,"bank":4,"action":41},
+    {"state":125,"bank":4,"action":42}
+  ],
+  "delayed_slot20_starts":[
+    {"state":89,"body_action":6,"trigger":"lane0/channel0=1","slot20_action":6},
+    {"state":97,"body_action":14,"trigger":"lane0/channel0=1","slot20_action":14}
+  ],
+  "rejected":"one state = one duplicated body-script timeline",
+  "status":"EXE_CONFIRMED"
+}
