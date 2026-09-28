@@ -296,3 +296,115 @@ The minimum canonical em034 runtime model needs:
 - semantic meaning of action50 frame64 channel1=2;
 - complete slot20 independent-MOT state set beyond the confirmed PAC11 binding;
 - exact mapping of all remaining bank4 actions and all other banks.
+
+
+## Pass 2D — Shl actor inheritance and destruction entrypoints
+
+### All six Lady Shl classes are CShell actors
+
+**EXE_CONFIRMED**
+
+The canonical executable RTTI/class-hierarchy census closes the inheritance boundary for every dynamic Lady child actor:
+
+```text
+CEm034Shl00..05
+  -> CShell
+     -> CActor
+        -> CWork
+        -> IActor
+        -> ICollisionHandle
+```
+
+Therefore Shl00..05 are independent actor/collision objects. They are not persistent CEm034 equipment attachments and their lifetime must not be represented as a visibility bit on slots20..24.
+
+This also separates two previously conflated questions:
+
+1. core component presentation/control for persistent slots20..24;
+2. spawn/update/retire/destruction lifecycle for Shl00..05.
+
+### Exact inherited polymorphic-head layout
+
+**EXE_CONFIRMED**
+
+The canonical RTTI Complete Object Locators for `CActor`, `CShell`, and every `CEm034Shl00..05` instance agree on the same three object heads:
+
+```text
++0x000  primary CWork/CActor/CShell-derived head
++0x060  secondary actor interface head
++0x0D0  secondary collision interface head
+```
+
+The two secondary heads retain the CActor multiple-inheritance layout. Each Lady Shl class has six bases in its class-hierarchy descriptor, versus five for CShell, consistent with one further derived class layer over the shared shell actor.
+
+| class | primary COL | +0x60 COL | +0xD0 COL | primary vtable |
+|---|---:|---:|---:|---:|
+| CEm034Shl00 | 0x5157C0 | 0x515860 | 0x515888 | 0x1404D8588 |
+| CEm034Shl01 | 0x5158B0 | 0x515950 | 0x515978 | 0x1404D8738 |
+| CEm034Shl02 | 0x5159A0 | 0x515A40 | 0x515A68 | 0x1404D88E8 |
+| CEm034Shl03 | 0x515A90 | 0x515B30 | 0x515B58 | 0x1404D8A98 |
+| CEm034Shl04 | 0x515B80 | 0x515C20 | 0x515C48 | 0x1404D8C48 |
+| CEm034Shl05 | 0x515C70 | 0x515D10 | 0x515D38 | 0x1404D8DF8 |
+
+The corresponding secondary vtables are recorded in
+`data/reverse/dmc3-em034-lady-runtime-pass2d-20260928.json`.
+
+### Primary vtable slot 0 is the deleting-destructor entry
+
+**EXE_CONFIRMED**
+
+The RTTI/vtable atlas records `CEm034` primary vtable
+`0x1404D80E8` with first virtual target `0x140168840`. Independent Pass-1
+reverse already identifies `0x140168840` as the CEm034 deleting destructor.
+This provides a direct control for interpreting the same primary-vtable position
+in the six Shl classes.
+
+The recovered deleting-destructor entries are therefore:
+
+| class | deleting destructor | factory |
+|---|---:|---:|
+| CEm034Shl00 | 0x1401721D0 | 0x140172240 |
+| CEm034Shl01 | 0x140172960 | 0x1401729D0 |
+| CEm034Shl02 | 0x1401735E0 | 0x140173620 |
+| CEm034Shl03 | 0x140174010 | 0x1401745F0 |
+| CEm034Shl04 | 0x1401751A0 | 0x140175210 |
+| CEm034Shl05 | 0x140175AA0 | 0x140175B10 |
+
+The first targets of the +0x60/+0xD0 vtables are adjustor entries into the same
+derived destruction boundary and are retained in the machine-readable Pass-2D
+record.
+
+### Lifecycle boundary now closed, destruction trigger still open
+
+The following model is now **REJECTED**:
+
+```text
+Shl actor disappears
+  == hide one persistent equipment slot
+```
+
+Correct architectural split:
+
+```text
+slots20..24
+  persistent CEm034-owned component/control domains
+  placement preset + optional independent MotionScript control
+
+Shl00..05
+  independent CShell/CActor instances
+  own actor + collision lifecycle
+  spawn through the already recovered action/phase paths
+  retire through actor lifecycle and ultimately the class deleting destructor
+```
+
+What is **not** yet promoted:
+
+- the exact per-class condition that marks a Shl actor for retire/remove;
+- the actor-manager/remove function that reaches the deleting destructor;
+- whether a class becomes non-rendered for an interval before retirement;
+- gameplay/artistic names for Shl00..05.
+
+Those require the live canonical EXE call/xref path around the class update
+methods / CShell retire path. The retained RTTI atlas proves the class and
+destruction boundary, but it does not contain the required call-xref graph.
+
+Status: **EXE_CONFIRMED structural lifecycle boundary; retire trigger PRESERVED_UNDECODED**.
