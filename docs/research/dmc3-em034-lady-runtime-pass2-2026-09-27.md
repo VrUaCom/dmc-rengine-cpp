@@ -194,7 +194,9 @@ Therefore slot23 has an exact attachment-state transition for action46:
 
 CEm034 state `0x85` = em034_012 bank4/action50.
 
-State entry starts action50 on both script lanes. No main attachment-table change is emitted at entry.
+State entry starts action50 on both script lanes and performs the common
+`0x140168B00` baseline reset. Therefore component4/slot24 begins this state
+in preset0.
 
 Action50 signal stream:
 
@@ -203,18 +205,22 @@ Action50 signal stream:
 - frame39: `(2,0,0,0,0)`
 - frame64: `(0,2,0,0,0)`
 
-The update path consumes lane1:
+Live canonical-EXE revalidation of the consumer at `0x140169F2A` corrects
+the earlier interpretation:
 
-- channel1 == 1 -> `slot24 index4, mode1`;
-- channel0 == 2 -> `slot24 index4, mode0`;
-- channel0 == 1 -> starts a separate flag/timer path, not an attachment-table rewrite.
+- lane1 channel1 == 1 -> `slot24 / component4, preset1`;
+- lane1 channel1 == 2 -> `slot24 / component4, preset0`;
+- lane1 channel0 == 1 -> starts the separate `+0x57DD` flag/timer path;
+- lane1 channel0 == 2 -> clears that flag/timer path.
 
-Thus the exact slot24 transition is:
+Thus the exact slot24 placement transition is:
 
-- frame10 -> mode1
-- frame39 -> mode0
+- state entry -> preset0;
+- frame10 -> preset1;
+- frame64 -> preset0.
 
-The frame64 channel1 value 2 is observed in the script but is not promoted here to an attachment meaning.
+Frame39 is **not** the placement reset. It is lane1/channel0 value2 and belongs
+to the separate flag/timer path.
 
 **EXE_AND_CORPUS_CONFIRMED**
 
@@ -290,12 +296,11 @@ The minimum canonical em034 runtime model needs:
 
 ## Still unresolved
 
-- exact gameplay names for each slot20–24 and Shl00..05;
-- complete visibility state separate from attachment mode;
-- destruction/return lifecycle of Shl02/Shl03;
-- semantic meaning of action50 frame64 channel1=2;
-- complete slot20 independent-MOT state set beyond the confirmed PAC11 binding;
-- exact mapping of all remaining bank4 actions and all other banks.
+- exact gameplay names for slots20..24 and Shl00..05;
+- exact human labels for placement preset0/preset1;
+- complete semantic mapping of all remaining MotionScript banks/actions;
+- final actor-manager unlink/free internals after shared Shl retire completion, if needed by authoring/runtime emulation;
+- canonical Lady EquipmentBinding/WeaponBinding implementation in Native Reader.
 
 
 ## Pass 2D — Shl actor inheritance and destruction entrypoints
@@ -919,3 +924,152 @@ effective parent is **REJECTED**.
 
 No human labels such as hand/back/holster are assigned to either preset.
 Those remain semantic interpretation rather than runtime structure.
+
+## Pass 2G — complete script-channel to component placement matrix
+
+### MotionScript signal getter ABI
+
+**EXE_CONFIRMED**
+
+Live disassembly closes the ABI of `0x140059350`:
+
+```text
+uint8_t GetSignal(controller, row, channel)
+{
+    if (channel >= 5)
+        return 0;
+    return controller[(row + 0x1D) * 5 + channel];
+}
+```
+
+For the CEm034 consumers in this pass, `row == 0`, so `r8d` is the exact
+MotionScript channel index `0..4`.
+
+Controller identity is also exact:
+
+```text
+CEm034+0x5070 = em034_012 lane0
+CEm034+0x5190 = em034_012 lane1
+CEm034+0x52B0 = em034_013 independent slot20 controller
+```
+
+The main CEm034 update surface contains 22 direct `0x140059350` calls.
+Two additional lane1/channel0 consumers exist in the `+0x5994` phase
+controllers at `0x14016DB92` and `0x14016DD80`. Neither is a persistent
+component placement consumer.
+
+### Exact state-switch decoding
+
+The CEm034 update function `0x140169060` bounds state to `0x00..0x8F` and
+dispatches through:
+
+```text
+byte map    0x14016A374
+offset map  0x14016A324
+```
+
+The state-entry setter `0x14016A410` uses:
+
+```text
+byte map    0x14016ACAC
+offset map  0x14016AC48
+```
+
+and has the same exact `state <= 0x8F` bound.
+
+This closes both the entry-placement and per-frame channel-consumer sides.
+
+### Persistent component matrix
+
+| component | slot | state/action surface | controller/channel | value | canonical effect |
+|---:|---:|---|---|---:|---|
+| 0 | 20 | baseline `0x140168B00` | none | - | preset0 |
+| 0 | 20 | states `0x53..0x59,0x5E,0x61` | entry | - | preset1, body-constraint domain |
+| 0 | 20 | states `0x5F,0x62` | entry | - | preset1, body-constraint domain |
+| 0 | 20 | states `0x60,0x63` / actions 13,16 | entry | - | preset1, body-constraint domain |
+| 0 | 20 | state `0x7B` / action40 | entry | - | preset0 + independent em034_013 domain |
+| 0 | 20 | state `0x7B` / action40 | lane0/ch0 | 1 | preset1 + body-constraint domain |
+| 0 | 20 | states `0x5A..0x5D,0x64..0x73` | entry | - | preset0 + independent em034_013 domain |
+| 0 | 20 | states `0x5C,0x5D` / actions9,10 | lane0/ch0 | 1 | preset1 + body-constraint domain |
+| 0 | 20 | states `0x59,0x61` / actions6,14 | lane0/ch0 | 1 | preset0 + start independent em034_013 |
+| 0 | 20 | states `0x7C,0x7D` / actions41,42 | entry | - | preset1 with independent em034_013 running |
+| 1 | 21 | baseline | none | - | preset0 |
+| 1 | 21 | state `0x2A` | lane0/ch0 | 1 | preset1 |
+| 1 | 21 | state `0x2A` | lane0/ch0 | 2 | preset0 |
+| 1 | 21 | state `0x7F` / action44 | entry | - | preset1 |
+| 2 | 22 | baseline | none | - | preset0 |
+| 2 | 22 | state `0x7F` / action44 | entry | - | preset1 |
+| 3 | 23 | baseline | none | - | preset0 |
+| 3 | 23 | state `0x81` / action46 | entry | - | preset1 |
+| 3 | 23 | state `0x81` / action46 | lane1/ch2 | 1 | preset0 |
+| 4 | 24 | baseline | none | - | preset0 |
+| 4 | 24 | state `0x2B` | lane0/ch0 | 1 | preset1 |
+| 4 | 24 | state `0x2B` | lane0/ch0 | 2 | preset0 |
+| 4 | 24 | states `0x60,0x63` / actions13,16 | entry | - | preset1 |
+| 4 | 24 | state `0x85` / action50 | entry | - | preset0 |
+| 4 | 24 | state `0x85` / action50 | lane1/ch1 | 1 | preset1 |
+| 4 | 24 | state `0x85` / action50 | lane1/ch1 | 2 | preset0 |
+
+No direct MotionScript-channel placement consumer for component2/slot22 was
+found. Its recovered Lady-specific transition is state-entry preset1 at
+action44, followed by later common baseline reset to preset0.
+
+### Direct 0x140059350 consumer census
+
+| call site | state surface | lane/channel | consumed value / role |
+|---|---|---|---|
+| 0x140169162 | 0x7B | lane0/ch0 | 1 -> component0 preset1/body domain |
+| 0x14016928F | 0x2A | lane0/ch0 | 1 -> component1 preset1 |
+| 0x14016937F | 0x2A | lane0/ch0 | 2 -> component1 preset0 |
+| 0x14016948A | 0x2B | lane0/ch0 | 1 -> component4 preset1 |
+| 0x14016957A | 0x2B | lane0/ch0 | 2 -> component4 preset0 |
+| 0x14016966B | 0x34..0x36,0x3B..0x3D,0x42..0x44,0x49..0x4B,0x50..0x52 | lane1/ch0 | 1 -> Shl00 creation surface |
+| 0x14016984F | 0x5C,0x5D | lane0/ch0 | 1 -> component0 preset1/body domain |
+| 0x1401698A3 | 0x59,0x61 | lane0/ch0 | 1 -> component0 preset0 + independent em034_013 |
+| 0x140169919 | 0x56..0x58 | lane1/ch0 | 1 -> Shl02 creation |
+| 0x1401699FB | 0x60,0x63 | lane1/ch0 | 1 -> runtime/effect trigger |
+| 0x140169A39 | 0x60,0x63 | lane1/ch1 | 1 -> runtime/effect trigger |
+| 0x140169ABC | 0x53..0x55,0x5A,0x5B,0x5E,0x64..0x73 | lane1/ch0 | 1 -> Shl01 creation surface |
+| 0x140169BB2 | 0x7F | lane1/ch0 | 1 -> Shl00 creation |
+| 0x140169BDD | 0x7F | lane1/ch1 | nonzero -> runtime selector `+0x57D7` |
+| 0x140169D9E | 0x81 | lane1/ch0 | 1 -> Shl05 creation |
+| 0x140169ED7 | 0x81 | lane1/ch1 | 1 -> runtime parameter 1.0 -> 1.5 |
+| 0x140169EF7 | 0x81 | lane1/ch2 | 1 -> component3 preset0 |
+| 0x140169F62 | 0x85 | lane1/ch1 | 1 -> component4 preset1 |
+| 0x140169F7B | 0x85 | lane1/ch1 | 2 -> component4 preset0 |
+| 0x140169FA4 | 0x85 | lane1/ch0 | 1 -> start `+0x57DD` flag/timer path |
+| 0x14016A013 | 0x85 | lane1/ch0 | 2 -> clear `+0x57DD` flag/timer path |
+| 0x14016A0B4 | 0x8F | lane1/ch0 | 1 -> Shl04 creation loop |
+| 0x14016DB92 | `+0x5994` phase controller | lane1/ch0 | 1 -> acknowledge/clear phase signal |
+| 0x14016DD80 | `+0x5994` phase controller | lane1/ch0 | 1 -> acknowledge/clear phase signal |
+
+### Action50 correction promoted to canonical authority
+
+The previous Pass-2 interpretation assigned the component4 preset0 transition
+to action50 frame39/channel0 value2. Live re-disassembly rejects that mapping.
+
+Correct trace:
+
+```text
+frame10  lane1/ch1 = 1 -> component4 preset1
+frame25  lane1/ch0 = 1 -> flag/timer on
+frame39  lane1/ch0 = 2 -> flag/timer off
+frame64  lane1/ch1 = 2 -> component4 preset0
+```
+
+This correction is applied both to this document and to
+`data/reverse/dmc3-em034-lady-runtime-pass2-20260927.json`.
+
+### Pass-4 boundary
+
+The structural component/channel/placement/visibility/lifecycle matrix is now
+sufficient to stop modeling Lady equipment as guessed joints.
+
+The remaining semantic work is deliberately separate:
+
+- human names for component0..4 / slots20..24;
+- human names for Shl00..05;
+- human names for preset0/preset1.
+
+Until those are independently proven, the canonical implementation should use
+neutral identifiers and exact state/preset/control-domain data.
