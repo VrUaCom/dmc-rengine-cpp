@@ -1792,3 +1792,127 @@ Still open for pixel/runtime parity:
   top-level MOD slot is yet promoted.
 
 Status: **EXE_AND_CORPUS_CONFIRMED visual ownership/transform boundary**.
+
+
+## Pass 2K — small Shl visual census and Shl03 tether target chain
+
+### Shl00 / Shl01 / Shl04 / Shl05 do not own dedicated MOD managers
+
+**EXE_CONFIRMED bounded class-range census**
+
+The class implementation ranges for the four small shell actors were scanned for
+the DMC3 runtime MOD-manager construction/access surfaces used by Shl02/Shl03
+(`0x140089270`, `0x140089DE0`, manager transform vslot `+0x198`).
+
+Results:
+
+```text
+CEm034Shl00: no dedicated visual-manager construction
+CEm034Shl01: no dedicated visual-manager construction
+CEm034Shl04: no dedicated visual-manager construction
+CEm034Shl05: no dedicated visual-manager construction
+```
+
+A `0x140089270` occurrence at the upper boundary of the Shl01 census belongs
+to the following Shl02 constructor, not Shl01.
+
+These four actors are therefore retained as shell/effect/collision runtime
+events. Reader must not invent a top-level MOD attachment for them. Dedicated
+latent 3D MOD presentation remains confined to the evidence-backed:
+
+```text
+Shl02 -> slot25
+Shl03 -> slots26 + 30
+```
+
+### Shl02 lifecycle correction
+
+**EXE_CONFIRMED**
+
+The raw `Shl02+0xD68 = 3.0` value is not the complete actor lifetime and must
+not be described as three seconds.
+
+The recovered default-timescale phase sequence is:
+
+```text
+spawn
+state1:
+    CShell helper 0x140244870
+    flags = 3
+    normalized direction * scalar 30.0
+    position += actorDelta * velocity
+    Shl02 overrides shell phase timer +0x17C = 1.0
+    -> transition to state2 after the first default actor update
+
+state2:
+    initialize +0xD68 = 3.0
+    subtract actorDelta each update
+    transition to state3 only when remaining < 0
+
+state3:
+    shared retire path 0x1403261E0
+```
+
+`CActor::tick 0x1403261B0` computes actor delta `+0x14` from the global
+time-scale selector and actor-local `+0x18`; the base constructor initializes
+the local factor to 1.0. Thus, in the Reader's default game-frame domain, the
+no-world/no-early-collision presentation path retires on the sixth actor update
+from spawn, not at `spawn + 3`.
+
+Gameplay collision/steering may terminate or redirect the shell earlier and
+remains authoritative when world collision is present.
+
+### Shl03 slot30 target chain
+
+**EXE_CONFIRMED**
+
+`0x140174050` updates the five-node slot30 visual domain from a five-point
+chain. The owner anchor is slot20 node2:
+
+```text
+CEm034+0x8F8 -> slot20 node2 manager -> current matrix +0x110
+A = node2 world translation
+B = Shl03 actor position (+0x80)
+```
+
+The target positions written into the Shl03 chain container are:
+
+```text
+P0 = A
+P1 = A + 0.25 * (B - A)
+P2 = A + 0.50 * (B - A)
+P3 = A + 0.75 * (B - A)
+P4 = B
+```
+
+The chain container at `Shl03+0x1480` is allocated by
+`0x1402C8F60(..., count=5, spacing=70)`; each element has stride `0x80`.
+The visual-manager domain at `Shl03+0xD00` exposes five nodes.
+
+For each visual node, the update writes:
+
+- translation from the corresponding current chain point;
+- orientation through `0x14032EEE0` from the chain direction;
+- a longitudinal scale derived from segment length divided by the canonical
+  spacing 70.0.
+
+This closes the geometry target and node-projection contract.
+
+### Remaining tether solver boundary
+
+The chain container stores target/current/history fields and a current sample
+index. The temporal target-to-current/history evolution is a shared generic
+chain subsystem rather than Lady-specific code. Its allocation/init family is
+`0x1402C8F60..`; target projection is fully known, but the exact temporal
+smoothing/history update used by Shl03 has not yet been promoted.
+
+Therefore:
+
+- Shl03 actor transform: **EXE_CONFIRMED**
+- slot30 five-point target chain: **EXE_CONFIRMED**
+- slot30 node projection/orientation/segment scale: **EXE_CONFIRMED**
+- generic temporal tether smoothing/history: **PRESERVED_UNDECODED**
+
+A Reader may show the exact actor-level slot30 transform and exact straight
+target chain, but must label temporal cable lag/smoothing as non-parity until
+the shared chain solver is closed.
