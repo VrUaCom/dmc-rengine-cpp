@@ -30,6 +30,13 @@ struct EffectRecord final {
     std::uint64_t extent{};
     bool extent_matches_kind{false};
     bool kind_known{false};
+
+    // M only: the immediately following physical slot consumed by the EXE
+    // registrar ABI. The slot is recorded even when it is empty.
+    std::optional<std::uint32_t> companion_slot_index;
+    std::uint64_t companion_offset{};
+    std::uint64_t companion_extent{};
+    bool companion_populated{false};
 };
 
 struct EffectPackDocument final {
@@ -37,13 +44,13 @@ struct EffectPackDocument final {
     std::uint32_t manifest_line_count{};
     std::uint32_t populated_record_count{};
     /**
-     * Populated records the manifest does not name.
+     * Populated physical companion slots consumed by manifest kind `M`.
      *
-     * Byte-identical sixteen-byte companions, each observed in the slot after
-     * a record the manifest calls `M`. They are counted rather than dropped
-     * silently: a pack whose companion count is not what its records suggest
-     * is worth looking at, and a reader that hides them is a reader that
-     * cannot be asked.
+     * The canonical loader 0x1402C04C0 always advances one additional physical
+     * record slot after an M record and passes both pointers to 0x1402E35D0.
+     * The companion may be empty or may contain arbitrary payload bytes (the
+     * corpus includes both 0x31/zero blocks and PTX payloads), so byte identity
+     * is not companion authority.
      */
     std::uint32_t companion_record_count{};
     bool manifest_names_every_populated_record{false};
@@ -64,9 +71,10 @@ struct EffectPackParseResult final {
     }
 };
 
-// Structural reader for the effect-container convention recovered in #254.
-// It requires exactly one manifest line for each populated record payload and
-// refuses malformed/ambiguous structures instead of inventing names.
+// Structural/runtime reader for the FXBANK convention. The canonical loader
+// consumes one physical inner-PNST slot per manifest record and one additional
+// physical slot after every M record. It refuses malformed/ambiguous structures
+// instead of inventing names or treating companion bytes as naming authority.
 class EffectPackParser final {
 public:
     static constexpr std::uint32_t k_max_records = 4096U;
