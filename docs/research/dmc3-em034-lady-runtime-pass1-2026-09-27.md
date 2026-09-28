@@ -280,3 +280,229 @@ Do not implement yet as a guessed approximation. Required architecture for the n
 - map Shl00..05 spawn/destruction conditions to script channels;
 - recover visibility enable/disable paths for slots20–24;
 - only then assign human semantic labels (pistol, launcher, hook, SMG, cable, hand/back).
+
+
+## Pass 2A — exact CEm034 state/action/channel routing
+
+### +0x250 state-machine vtable
+
+**EXE_CONFIRMED**
+
+The CEm034 subobject at `+0x250` uses vtable `0x1404D84A0`.
+
+Relevant entries:
+
+```text
+vtable +0x38 -> 0x140169060  state/update consumer
+vtable +0x40 -> 0x14016AD40  state-change thunk
+```
+
+`0x14016AD40` adjusts `this` by `-0x250`, forces the third argument to
+`-1`, and jumps to `0x14016A410`.
+
+`0x14016A410(CEm034*, state, selector)` stores the new state at
+`CEm034+0x5990` and starts the matching script action. The helper
+`0x140171AB0` interprets selector `-1` as **start both slot12 controllers**:
+
+- `CEm034+0x5070` — object lane 0;
+- `CEm034+0x5190` — object lane 1.
+
+Therefore ordinary virtual state changes through the CEm034 state-machine
+subobject execute both object lanes of `em034_012.bin`.
+
+This closes the previous action-selection uncertainty for states reached through
+that vtable path.
+
+### Exact bank-4 state/action mapping
+
+**EXE_CONFIRMED**
+
+The state selector in `0x14016A410` maps the target Lady states to bank 4:
+
+| CEm034 state | slot12 bank/action | additional entry behavior |
+|---:|---|---|
+| 96 | bank4 action13 | component0/slot20 preset1; component4/slot24 preset1 |
+| 127 | bank4 action44 | component1/slot21 preset1; component2/slot22 preset1 |
+| 129 | bank4 action46 | component3/slot23 preset1 |
+| 133 | bank4 action50 | no placement write required at entry |
+
+Other recovered bank-4 mappings include:
+
+- states83..89 -> actions0..6;
+- state94 -> action11;
+- state95 -> action12;
+- state97 -> action14;
+- state98 -> action15;
+- state99 -> action16;
+- states100..115 -> actions17..32;
+- state143 -> action60.
+
+States90..93 and 100..115 also start the slot13 controller at
+`CEm034+0x52B0` with the corresponding bank4 action, which is the
+slot20-specific MotionScript path recovered earlier.
+
+### Action 13 / state 96
+
+**EXE_AND_CORPUS_CONFIRMED structural routing**
+
+State96 uses update target `0x1401699D7` and reads the second slot12 controller
+(`CEm034+0x5190`).
+
+- opcode3 byteIndex0 == 1:
+  - clears that byte;
+  - when the internal count gate permits, calls `0x140171C70(this,0)`.
+- opcode3 byteIndex1 == 1:
+  - clears that byte;
+  - under its separate internal gate, enters the event path ending at
+    `0x140338940`.
+
+`0x140171C70` has now been structurally closed:
+
+- it takes its source transform from the runtime object of **MOD slot24**
+  (`CEm034+0x930`);
+- it derives a position/orientation through the CEm034 body/runtime-node path;
+- it creates **CEm034Shl00** through factory `0x140172240`.
+
+Retail bank4/action13 has:
+
+```text
+frame 2   [1,0,0,0,0]
+frame 3   [0,1,0,0,0]
+frame 5   [1,0,0,0,0]
+frame 8   [1,0,0,0,0]
+frame 14  [1,0,0,0,0]
+frame 17  [1,0,0,0,0]
+frame 20  [1,0,0,0,0]
+```
+
+Thus the repeated byteIndex0 signals feed the Shl00 creation path sourced from
+slot24. The gameplay/artistic name of Shl00 remains **PRESERVED_UNDECODED**.
+
+### Action 44 / state 127
+
+**EXE_AND_CORPUS_CONFIRMED structural routing**
+
+State entry moves:
+
+- slot21/component1 -> preset1;
+- slot22/component2 -> preset1.
+
+Update target `0x140169B90` consumes the second slot12 controller:
+
+- byteIndex0 == 1:
+  - clears it;
+  - enters a transform/setup path that creates **CEm034Shl00**
+    via factory `0x140172240`.
+- byteIndex1 controls an internal branch flag at the state-machine subobject
+  `+0x57D7`, selecting between two runtime source paths in the following
+  operation.
+
+Retail action44:
+
+```text
+frame14 [1,1,0,0,0]
+frame21 [1,0,0,0,0]
+frame28 [1,1,0,0,0]
+```
+
+Therefore all three byteIndex0 events enter the Shl00 path, while byteIndex1
+selects the secondary branch state.
+
+No gameplay name is assigned to that branch yet.
+
+### Action 46 / state 129
+
+**EXE_AND_CORPUS_CONFIRMED structural routing**
+
+State entry moves slot23/component3 -> preset1.
+
+Update target `0x140169D7C` consumes the second slot12 controller:
+
+- byteIndex0 == 1:
+  - clears it;
+  - builds a child transform;
+  - creates **CEm034Shl05** via factory `0x140175B10`.
+- byteIndex1 == 1:
+  - writes runtime float `1.5` to the state-machine field corresponding to
+    `CEm034+0x43?0` / subobject-relative `+0x41B0`;
+  - the exact gameplay label remains **PRESERVED_UNDECODED**.
+- byteIndex2 == 1:
+  - clears it;
+  - moves slot23/component3 -> preset0.
+
+Retail action46:
+
+```text
+frame 1  [0,1,0,0,0]
+frame27  [1,1,0,0,0]
+frame32  [1,1,0,0,0]
+frame37  [1,1,0,0,0]
+frame42  [1,1,0,0,0]
+frame78  [0,0,1,0,0]
+```
+
+This closes the structural sequence:
+
+```text
+state129 entry -> slot23 preset1
+frames27/32/37/42 -> Shl05 creation
+frame78 -> slot23 preset0
+```
+
+### Action 50 / state 133
+
+**EXE_AND_CORPUS_CONFIRMED**
+
+Update target `0x140169F2A` consumes the second slot12 controller.
+
+byteIndex1 is the exact placement switch for slot24/component4:
+
+```text
+value 1 -> slot24 preset1
+value 2 -> slot24 preset0
+```
+
+Retail action50:
+
+```text
+frame10 [0,1,0,0,0] -> slot24 preset1
+frame25 [1,0,0,0,0]
+frame39 [2,0,0,0,0]
+frame64 [0,2,0,0,0] -> slot24 preset0
+```
+
+byteIndex0 has a separate lifecycle path:
+
+- value1 clears the signal and arms/starts an internal state which can enter
+  `0x140171C70(this,1)`;
+- value2 clears/resets that state.
+
+Since `0x140171C70` is the slot24-sourced Shl00 creator, action50 has both a
+slot24 placement channel and a separate Shl00 lifecycle channel.
+
+The old single scalar interpretation “weapon state 1 -> 2” is therefore
+**REJECTED**.
+
+## Pass 2A conclusions
+
+The following are now closed:
+
+- ✅ actions13/44/46/50 have exact CEm034 state numbers;
+- ✅ ordinary state entry starts both slot12 object lanes;
+- ✅ action13 byteIndex0 -> slot24-sourced Shl00 path;
+- ✅ action44 byteIndex0 -> Shl00 path;
+- ✅ action46 byteIndex0 -> Shl05 path;
+- ✅ action46 byteIndex2 -> slot23 preset0;
+- ✅ action50 byteIndex1 -> slot24 preset1/preset0;
+- ✅ action50 byteIndex0 is a separate Shl00 lifecycle lane.
+
+Still open:
+
+- complete visibility enable/disable writes for slots20..24;
+- exact semantic names of slots20..24;
+- exact gameplay names of Shl00/Shl05;
+- Shl01/Shl02/Shl03/Shl04 script/lifecycle conditions;
+- human labels for placement preset0/preset1.
+
+No Native Reader implementation is authorized from this section alone; the
+remaining visibility/lifecycle gates must be closed first.
