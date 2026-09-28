@@ -264,10 +264,10 @@
           "source": "lane1 channel1==1"
         },
         {
-          "frame": 39,
+          "frame": 64,
           "slot": 24,
           "mode": 0,
-          "source": "lane1 channel0==2"
+          "source": "lane1 channel1==2"
         }
       ],
       "signals": [
@@ -312,7 +312,22 @@
           ]
         ]
       ],
-      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+      "evidence": "EXE_AND_CORPUS_CONFIRMED",
+      "runtime_flag_path": [
+        {
+          "frame": 25,
+          "channel": 0,
+          "value": 1,
+          "effect": "+0x57DD flag/timer on"
+        },
+        {
+          "frame": 39,
+          "channel": 0,
+          "value": 2,
+          "effect": "+0x57DD flag/timer off"
+        }
+      ],
+      "correction": "Live canonical-EXE revalidation: frame39 channel0==2 is not an attachment reset; frame64 channel1==2 restores component4/slot24 preset0."
     }
   },
   "dynamic_resources": {
