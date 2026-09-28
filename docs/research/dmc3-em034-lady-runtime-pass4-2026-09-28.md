@@ -140,29 +140,27 @@ The former action50 mapping:
 is rejected. Frame39 belongs to the separate +0x57DD flag/timer path. The
 actual placement reset is frame64 / lane1 channel1 value2.
 
-## Old Native Reader model explicitly rejected
+## Native Reader migration status
 
-The current Reader branch
-`fix/em034-lady-assembly-info-export` still contains a pre-reverse viewer
-candidate that groups:
+The pre-reverse viewer candidate that grouped `slots20..26 + 30` on body
+joint9 is **REJECTED and removed** from
+`fix/em034-lady-assembly-info-export`.
 
-`slots20..26 + 30`
+The Reader now implements the canonical split:
 
-as one source-space "Kalina Ann assembly" and attaches all eight MODs to body
-joint9.
-
-That model is now **REJECTED**.
-
-Required Reader migration:
-
-1. include only slots20..24 as persistent equipment;
-2. default them to their exact stowed placement records;
-3. keep slot20 independent-control state separate from placement;
-4. keep slot23 active special-parent override;
-5. keep slots25/26/30 out of the static appearance composite;
-6. materialize those dynamic resources only in their Shl actor/runtime domain;
-7. drive component placement from the canonical state/channel transitions;
-8. remove every Lady-specific "all weapons -> joint9" fallback.
+1. only slots20..24 are persistent equipment;
+2. both costumes default to the exact stowed placement records;
+3. slot20 placement and independent MotionScript control-domain state are
+   separate axes;
+4. slot23 active placement uses the exact RuntimeBodyRootScaled parent;
+5. slots25/26/30 remain outside the seven-part static Lady composite;
+6. Shl02/03 resources are retained as latent runtime visuals;
+7. state/channel transitions drive the persistent components;
+8. `em034_012` and `em034_013` are retained simultaneously;
+9. raw MOT playback is separate from Script Play;
+10. script playback is lane-aware and uses the recovered state/action map;
+11. slot30 is skinned from the EXE-confirmed five per-frame tether matrices;
+12. no Lady-specific all-weapons->joint9 fallback remains.
 
 ## Evidence-safe human names
 
@@ -205,9 +203,25 @@ PASS 1 — reverse skeleton/ownership: **closed for binding scope**
 PASS 2 — channel/lifecycle/visibility matrix: **closed for binding scope**  
 PASS 3 — end-to-end script/runtime bridges: **closed for required binding transitions**  
 PASS 4 — canonical Rengine EquipmentBinding contract: **implemented**  
-PASS 5 — Native Reader migration: **not started in this pass**  
-PASS 6+ — Reader integration tests / CI / APK: **not started**
+PASS 5 — Native Reader canonical migration: **implemented**  
+PASS 6 — Reader host/native integration tests: **implemented**  
+PASS 6A — exact-head CI before final slot30 fidelity pass: **GREEN**  
+PASS 6B — final slot30/source-scene exact-head CI: **running**  
+PASS 7 — APK/device acceptance: **blocked only on final green exact-head gate**
 
-Build verification remains a separate gate. The branch currently has no active
-GitHub check-run because the repository build workflow runs on `main` pushes
-or pull requests.
+Validated Reader behavior now includes:
+
+- both Lady costumes through one CEm034 runtime;
+- five persistent component bindings with exact placement records;
+- exact component3 body-root/scale bridge;
+- two simultaneous MotionScript controllers;
+- five-channel opcode3 timelines;
+- lane-exact script state/action mapping;
+- raw MOT and Script Play as separate modes;
+- corrected action50 signal trace;
+- Shl02 exact spawn pose with external gameplay-target trajectory boundary;
+- Shl03 actor presentation;
+- slot30 per-frame five-bone tether skinning through the canonical MOD skin
+  palette.
+
+PR #104 remains DRAFT and must not merge until physical Android acceptance.
