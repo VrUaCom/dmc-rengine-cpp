@@ -585,3 +585,163 @@ is now split more precisely:
 
 For the canonical Lady equipment model, Shl lifecycle is now sufficiently
 separated from persistent component visibility.
+
+
+## Pass 2F — persistent component visibility closure
+
+### Result
+
+**EXE_CONFIRMED bounded closure**
+
+For the five persistent CEm034 component managers:
+
+```text
+component0 / slot20 -> CEm034+0x08E8
+component1 / slot21 -> CEm034+0x0900
+component2 / slot22 -> CEm034+0x0908
+component3 / slot23 -> CEm034+0x0910
+component4 / slot24 -> CEm034+0x0930
+```
+
+the canonical CEm034 code contains no separate per-component gameplay
+visibility enable/disable state.
+
+The previously used vocabulary `mode0/mode1` is therefore a placement-preset
+selector, not a hidden/visible selector.
+
+### The component hosts are CCnsMatrix constraints
+
+RTTI identifies the five local placement hosts as `CCnsMatrix` objects.
+The shared evaluator at `0x1402CBBE0` proves the meaning of host `+0x28`:
+
+```text
+host+0x28 == 1 -> consume external parent matrix from host+0x30
+host+0x28 == 2 -> consume inline matrix at host+0x40
+other          -> generic constraint path 0x14030E9B0
+```
+
+The CCnsMatrix initializer at `0x1402CBCB0` initializes `+0x28=0`,
+`+0x30=null` and an inline identity matrix. This is constructor state, not a
+Lady render-disable state.
+
+Every recovered Lady placement path for slots20..24 writes:
+
+```text
+manager+0x100 = component CCnsMatrix host
+host+0x30     = selected parent runtime transform
+host+0x28     = 1
+```
+
+and supplies the selected local transform in host `+0x80..+0xB0`.
+
+Thus `host+0x28=1` means external-parent matrix constraint mode.
+
+### Exact persistent host map
+
+| component | resource manager | CCnsMatrix host | auxiliary/local domain |
+|---:|---:|---:|---:|
+| 0 / slot20 | +0x08E8 | +0x4000 | +0x4080 |
+| 1 / slot21 | +0x0900 | +0x40C0 | +0x4140 |
+| 2 / slot22 | +0x0908 | +0x4180 | +0x4200 |
+| 3 / slot23 | +0x0910 | +0x4240 | +0x42C0 |
+| 4 / slot24 | +0x0930 | +0x4300 | +0x4380 |
+
+### Placement helper 0x1401713F0
+
+`0x1401713F0(CEm034*, componentIndex, preset)` selects between:
+
+```text
+preset0 table base = 0x14057AFC0
+preset1 table base = 0x14057B0B0
+record stride      = 0x30
+```
+
+and rebinds the selected component's CCnsMatrix parent/local transform.
+
+For component3/slot23, preset1 has the already-recovered special parent
+`CEm034+0x43C0`. This remains a placement exception, not visibility.
+
+Slot20 additionally updates its independent-controller gate `+0x4020`
+when returning to the body-constraint domain. The gate controls whether
+em034_013 ticks; it does not detach or hide the slot20 model.
+
+### Direct-reference census
+
+Within the complete canonical CEm034 class code block through the first
+CEm034Shl class boundary, direct references to the five manager fields are:
+
+```text
+slot20 +0x08E8: 11
+slot21 +0x0900: 10
+slot22 +0x0908:  7
+slot23 +0x0910:  6
+slot24 +0x0930: 10
+```
+
+The recovered references classify into:
+
+- resource load/binding destination;
+- baseline placement setup;
+- state/script placement rebind;
+- source/runtime matrix reset;
+- transform sampling/update for actor/effect creation.
+
+No CEm034 gameplay path in this bounded surface:
+
+- clears a loaded component manager field;
+- writes `manager+0x100 = null`;
+- switches the component CCnsMatrix host to a disabled state;
+- uses `host+0x28=0` as a state transition;
+- changes MOD alpha/object flags as a script-conditioned visibility operation;
+- routes opcode-3 channels to a separate render enable/disable primitive.
+
+The only zero state observed for the CCnsMatrix mode is construction/
+initialization before runtime placement binding.
+
+### Canonical visibility model for slots20..24
+
+For Reader/runtime reconstruction the minimum evidence-backed state is now:
+
+```text
+resource presence:
+  present when the component resource was successfully loaded and CEm034 owns it
+
+placement:
+  preset0 | preset1
+
+control domain:
+  component0 additionally has body-constraint vs independent em034_013 control
+
+visibility:
+  no independent script-driven per-slot toggle recovered
+```
+
+Consequently, a Reader field such as:
+
+```text
+bool visible;
+```
+
+must not be synthesized from `preset0/preset1`.
+
+If a presentation field is required by the UI, the canonical static model is
+`persistent-present` for loaded slots20..24, with placement/control state kept
+separate.
+
+This does not claim that renderer-global culling, scene-level actor removal or
+resource-load failure can never make a component absent on screen. It closes
+the narrower and relevant question: **CEm034 has no recovered independent
+per-slot weapon visibility state for slots20..24.**
+
+### Promotion
+
+The previous open item:
+
+```text
+visibility enable/disable for slots20–24
+```
+
+is now closed as:
+
+**EXE_CONFIRMED — no separate CEm034-local visibility toggle; placement and
+control-domain transitions are the canonical runtime state.**
