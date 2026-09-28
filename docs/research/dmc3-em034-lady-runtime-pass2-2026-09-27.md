@@ -864,3 +864,58 @@ retroactively conflated with Lady placement mode.
 
 This closes the persistent-component visibility blocker for the canonical
 CEm034 binding model.
+
+
+## Pass 2G — canonical 5 x 2 placement table extraction
+
+**EXE_CONFIRMED**
+
+The two placement tables consumed by `0x1401713F0` were extracted directly
+from the re-verified canonical executable:
+
+```text
+preset0 base 0x14057AFC0
+preset1 base 0x14057B0B0
+record stride 0x30
+component count 5
+```
+
+Each record contains:
+
+```text
++0x00 float4 translation
++0x10 float4 rotation XYZ + homogeneous lane
++0x20 signed byte serialized body-node selector
++0x21..+0x2F zero in these ten canonical records
+```
+
+The exact decoded records are:
+
+| component / slot | preset | translation xyz | rotation xyz (rad) | serialized node |
+|---|---:|---|---|---:|
+| 0 / 20 | 0 | (-2.0,-20.0,-17.0) | (-1.570796,0,1.082104) | 3 |
+| 0 / 20 | 1 | (-8.4,-1.0,-1.3) | (0,0,3.141593) | 9 |
+| 1 / 21 | 0 | (-1.0,-4.0,13.0) | (1.867502,0.048869,2.408554) | 14 |
+| 1 / 21 | 1 | (-7.5,-0.6,-0.8) | (0,0,0) | 9 |
+| 2 / 22 | 0 | (-9.2,-13.0,-9.1) | (0,0,1.658063) | 16 |
+| 2 / 22 | 1 | (7.7,-0.8,0.5) | (0,0,3.141593) | 13 |
+| 3 / 23 | 0 | (10.0,-15.0,-2.5) | (0,0,-1.658063) | 19 |
+| 3 / 23 | 1 | (7.2,-1.2,2.7) | (0,-0.174533,0) | 13* |
+| 4 / 24 | 0 | (17.0,-5.0,-16.0) | (-1.221730,-0.235619,0.628318) | 14 |
+| 4 / 24 | 1 | (7.2,-0.8,-0.4) | (0,0,3.141593) | 13 |
+
+`* component3/preset1` is the canonical runtime exception already recovered in
+Pass 2B: although the serialized table byte is 13, `0x1401713F0` does not
+resolve body node 13 for this case. It binds the component to the internal
+runtime transform at `CEm034+0x43C0`.
+
+Therefore a correct implementation must preserve both facts:
+
+1. raw placement record node byte = 13;
+2. effective runtime parent = `CEm034+0x43C0`.
+
+Replacing the raw byte with a fabricated node or treating node13 as the
+effective parent is **REJECTED**.
+
+No human labels such as hand/back/holster are assigned to either preset.
+Those remain semantic interpretation rather than runtime structure.
