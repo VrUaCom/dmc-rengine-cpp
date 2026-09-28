@@ -1073,3 +1073,332 @@ The remaining semantic work is deliberately separate:
 
 Until those are independently proven, the canonical implementation should use
 neutral identifiers and exact state/preset/control-domain data.
+
+
+## Pass 2E — live canonical EXE closure: placement/control matrix, visibility boundary, Shl retirement, and slot identity
+
+Date: 2026-09-28
+
+### Canonical artifacts revalidated
+
+The live reverse pass used the uploaded retail artifacts directly, not only the previous notes/RTTI atlas:
+
+| artifact | size | SHA-256 |
+|---|---:|---|
+| dmc3.exe | 6,356,432 | e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082 |
+| em034.pac | 2,690,416 | 1a5a245c8348dee3fa37ef1a83da39f15f5c1576e252daf5adc897e349f56dff |
+| em034-extract original ZIP | 2,413,153 | 26f96362317a4cfa122237a3362f4430cbb383d5e5c57202e1a9b0ad50a43e65 |
+| em034-extract corrected ZIP | 2,401,140 | e2d7f05f1df3cca83c73e0cc3f8cf67e8d8d5ac64d1ac4adfd6c0e8dec6ff875 |
+
+Status: **EXE_AND_CORPUS_CONFIRMED input authority**.
+
+### Placement-preset semantics are now human-readable
+
+The two 0x30-byte attachment-record tables used by `0x1401713F0` were re-read directly from the canonical executable.
+
+Preset 0, table base `0x14057AFC0`:
+
+| component | slot | node | translation |
+|---:|---:|---:|---|
+| 0 | 20 | 3 | (-2.0, -20.0, -17.0) |
+| 1 | 21 | 14 | (-1.0, -4.0, 13.0) |
+| 2 | 22 | 16 | (-9.2, -13.0, -9.1) |
+| 3 | 23 | 19 | (10.0, -15.0, -2.5) |
+| 4 | 24 | 14 | (17.0, -5.0, -16.0) |
+
+Preset 1, table base `0x14057B0B0`:
+
+| component | slot | node | translation |
+|---:|---:|---:|---|
+| 0 | 20 | 9 | (-8.4, -1.0, -1.3) |
+| 1 | 21 | 9 | (-7.5, -0.6, -0.8) |
+| 2 | 22 | 13 | (7.7, -0.8, 0.5) |
+| 3 | 23 | 13 | (7.2, -1.2, 2.7) |
+| 4 | 24 | 13 | (7.2, -0.8, -0.4) |
+
+The canonical body MOD `em034_001.mod` has 23 nodes. Its hierarchy establishes:
+
+- node 9 = terminal node of one arm/hand chain;
+- node 13 = terminal node of the opposite arm/hand chain;
+- node 3 = torso/spine domain;
+- node 14 = pelvis/lower-body root;
+- nodes 16 and 19 = leg/hip-chain nodes.
+
+Therefore the two preset semantics can now be promoted without inventing per-slot “back/holster” labels:
+
+```text
+preset0 = BodyStowed
+preset1 = HandHeld
+```
+
+The per-slot stowed location still comes from the exact node index; it must not be flattened to a universal `Back` or `Holster` enum.
+
+Status: **EXE_AND_CORPUS_CONFIRMED**.
+
+### `0x1401713F0` is placement/control, not render visibility
+
+Fresh disassembly of `0x1401713F0` confirms that mode 0/1:
+
+- selects the corresponding 0x30-byte placement record;
+- rebuilds the component runtime transform;
+- changes the parent/world-matrix source;
+- writes runtime attachment state;
+- for component0 restores `CEm034+0x4020 = 1`, returning slot20 to attached-control mode.
+
+There is no render-enable/render-disable operation in this function.
+
+A bounded census over the CEm034 runtime code region `0x140168600..0x1401721D0` finds 33 direct references to the five core manager fields:
+
+```text
+slot20 +0x8E8 : 8 references
+slot21 +0x900 : 8 references
+slot22 +0x908 : 5 references
+slot23 +0x910 : 4 references
+slot24 +0x930 : 8 references
+```
+
+All 33 are loads/address derivations. No state-dependent write/nulling of those five persistent manager pointers is present in the bounded CEm034 code.
+
+The recovered state/script paths manipulate placement, transform ownership, slot20 independent-MOT control, and dynamic Shl actors. No separate per-slot CEm034 script visibility toggle was found.
+
+Canonical Reader conclusion:
+
+```text
+slots20..24 = persistent/resident core component domains
+state/script transition = placement/control-domain transition
+mode0/mode1 != hidden/visible
+```
+
+This does not claim that the generic renderer can never cull a model; it closes the CEm034-owned per-slot visibility question.
+
+Status: **EXE_CONFIRMED bounded negative closure**.
+
+### Exact state-entry component/control matrix
+
+The `0x14016A410` state setter dispatches through the byte selector table at
+`0x14016ACAC`. The full 0..143 selector table was decoded against the case
+jump table at `0x14016AC48`.
+
+The standard component reset helper `0x140168B00` materializes the
+`BodyStowed` records for components0..4 and restores component0 attached
+control (`+0x4020 = 1`).
+
+Only the following entry groups override that baseline for the core equipment domain:
+
+| state(s) | entry result |
+|---|---|
+| 0x2E, 0x30..0x52 | component1/slot21 = HandHeld; direct materialization of the same preset1 record |
+| 0x53..0x59, 0x5E, 0x61 | component0/slot20 = HandHeld attached |
+| 0x5A..0x5D, 0x64..0x73 | component0 remains BodyStowed; start independent em034_013 control; `+0x4020=0` |
+| 0x5F, 0x62 | component0 = HandHeld attached |
+| 0x60, 0x63 | component0 = HandHeld attached; component4/slot24 = HandHeld |
+| 0x7B | component0 remains BodyStowed; independent em034_013 control |
+| 0x7C, 0x7D | component0 initialized at the HandHeld transform, then independent em034_013 control |
+| 0x7F | component1/slot21 = HandHeld; component2/slot22 = HandHeld |
+| 0x81 | component3/slot23 = HandHeld |
+| 0x85 | no entry placement override; action50 performs runtime component4 transitions |
+| 0x8F | no core placement override; action60 drives dynamic Shl04 creation |
+
+All other entry cases that execute the normal reset path leave the five core
+components in their BodyStowed placement unless a later per-frame consumer
+changes them.
+
+Status: **EXE_CONFIRMED**.
+
+### Per-frame script-to-component transitions
+
+The canonical opcode-3 accessor remains `0x140059350`; channel bytes are
+independent five-byte lanes.
+
+Recovered placement/control consumers:
+
+| Lady state / action | controller lane/channel | value | result |
+|---|---|---:|---|
+| 0x5C / action9 | lane0 ch0 | 1 | component0 -> HandHeld attached; independent slot20 control stops |
+| 0x5D / action10 | lane0 ch0 | 1 | component0 -> HandHeld attached; independent slot20 control stops |
+| 0x59 / action6 | lane0 ch0 | 1 | component0 -> BodyStowed; start em034_013 action6; `+0x4020=0` |
+| 0x61 / action14 | lane0 ch0 | 1 | component0 -> BodyStowed; start em034_013 action14; `+0x4020=0` |
+| 0x81 / action46 | lane1 ch2 | 1 | component3 -> BodyStowed |
+| 0x85 / action50 | lane1 ch1 | 1 | component4 -> HandHeld |
+| 0x85 / action50 | lane1 ch0 | 2 | component4 -> BodyStowed |
+
+Important correction to the earlier shorthand: the delayed slot20 transitions in states
+0x59/0x61 consume **lane0 (`+0x5070`) channel0**, not lane1.
+
+Action50 lane1 channel0 value1 is not a placement rewrite. At frame25 it starts a
+separate flag/timer path, and after that timing gate the update calls
+`0x140171C70(this,1)`, creating a Shl00 actor from the slot24 firing domain.
+
+Status: **EXE_AND_CORPUS_CONFIRMED** where frame/opcode data is involved; otherwise **EXE_CONFIRMED**.
+
+### Common Shl retire/remove/destructor lifecycle is now closed end to end
+
+All six Lady Shl classes use the common actor lifecycle.
+
+Class-local phase termination writes:
+
+```text
+Shl +0x08 = 3
+```
+
+The class primary dispatcher then calls `0x1403261E0`.
+
+`0x1403261E0`:
+
+- lifecycle `actor+0x1C == 1 or 2`: invokes virtual slot +0x20,
+  then sets `+0x1C = 3` and `+0x20 = 3`;
+- lifecycle 3: remains in retire countdown;
+- lifecycle 4: calls `0x140326240`.
+
+Actor-manager traversal `0x1403265A0` decrements `actor+0x20` while
+lifecycle==3. When the three-tick countdown reaches zero at `0x140326644`,
+it writes lifecycle 4.
+
+`0x140326240` then:
+
+1. invokes virtual slot +0x10 for lifecycle 1/4;
+2. removes the actor from global actor manager `0x140CF2520` through
+   `0x140326800`;
+3. writes `actor+0x1C = 0`;
+4. calls primary vtable slot0 with deleting flag 0, entering the class
+   destructor path.
+
+This closes:
+
+```text
+class condition
+ -> phase3
+ -> common retire request
+ -> 3 manager ticks
+ -> lifecycle4
+ -> actor-manager remove
+ -> virtual class destructor
+```
+
+Status: **EXE_CONFIRMED**.
+
+### Complete direct phase3 trigger surface for CEm034Shl00..05
+
+Within the six Lady Shl class implementations there are exactly seven direct
+writes of `Shl+0x08 = 3`:
+
+| write site | class/path | condition |
+|---:|---|---|
+| 0x1401725F0 | Shl00 phase1 | hard lifetime expires |
+| 0x140172BCD | Shl01 phase2 | post-impact timer expires |
+| 0x1401738D4 | Shl02 phase2 | post-collision/query timer expires |
+| 0x14017459C | Shl03 helper 0x140174550 | owner Lady state leaves allowed set |
+| 0x1401753DB | Shl04 phase2 | post-primary-lifetime timer expires |
+| 0x140175C8B | shared Shl00/Shl05 phase2 | 1-second post-impact timer expires |
+| 0x140175F30 | Shl05 phase1 | hard lifetime expires |
+
+Per-class lifecycle:
+
+**Shl00**
+
+- phase1 hard timeout: 120.0 seconds;
+- collision object `+0x268` with nonzero hit field, or `+0x270 flags & 3`,
+  enters phase2;
+- phase2 starts a 1.0-second linger timer;
+- timer expiry -> phase3 -> common retire chain.
+
+**Shl01**
+
+- phase1 collision/query condition enters phase2;
+- phase2 starts a 1.0-second timer;
+- expiry -> phase3.
+
+**Shl02**
+
+- phase1 collision at `+0x278`, or successful world/query helper
+  `0x140244810`, enters phase2;
+- phase2 starts a 3.0-second timer;
+- expiry -> phase3.
+
+**Shl03**
+
+- owner CEm034 pointer is retained at `Shl03+0x1510`;
+- helper `0x140174550` reads the owner's current Lady state;
+- Shl03 remains active only for owner states:
+
+```text
+0x5E, 0x5F, 0x60, 0x62, 0x63, 0x90
+```
+
+- state0x61, all states0x64..0x8F, and states outside the bounded
+  0x5E..0x90 range drive phase3 retirement;
+- phase1 may first advance to phase2 when `Shl03+0x2A8 & 0x20000`;
+  phase2 continues applying the same owner-state guard.
+
+Thus Shl03 lifetime is owner-state-bound rather than fixed-duration.
+
+**Shl04**
+
+- factory `0x140175210` stores caller-supplied XMM2 directly to
+  `Shl04+0x530`; this is its primary phase1 lifetime;
+- action60/state143 creation uses `120.0 + 30.0 * i` seconds;
+- the Shl03 phase3 creation surface uses `90.0 + 30.0 * derived_index`;
+- phase1 expiry -> phase2;
+- phase2 always runs a 3.0-second timer;
+- expiry -> phase3.
+
+**Shl05**
+
+- phase1 hard timeout: 120.0 seconds;
+- collision/hit condition enters phase2;
+- shared phase2 timer = 1.0 second;
+- expiry -> phase3.
+
+Status: **EXE_CONFIRMED**.
+
+### Geometry-backed slot identity
+
+The corrected retail MODs were parsed using the canonical MOD topology algorithm recovered from
+`0x1402FE3B0`: the packed-control `0x8000` topology break bit was used to regenerate
+the triangle-strip command stream before visual classification.
+
+The resulting geometry plus runtime ownership establishes the following structural identities:
+
+| slot | structural identity | evidence |
+|---:|---|---|
+| 20 | large primary launcher body; host for independent em034_013 motion, rocket spawn domain and grappling-system source | EXE_AND_CORPUS_CONFIRMED |
+| 21 | handgun A | CORPUS_CONFIRMED geometry + EXE hand/stow behavior |
+| 22 | handgun B | CORPUS_CONFIRMED geometry + EXE hand/stow behavior |
+| 23 | compact crossbow/dagger-launcher form; thigh/body stow -> hand use; source domain for Shl05 projectile actor | EXE_AND_CORPUS_CONFIRMED structural |
+| 24 | compact submachine-gun form with front blade; source domain for repeated Shl00 projectile creation | EXE_AND_CORPUS_CONFIRMED structural |
+| 25 | long rocket/missile projectile owned by Shl02 | EXE_AND_CORPUS_CONFIRMED |
+| 26 | grappling blade/hook head owned by Shl03 | EXE_AND_CORPUS_CONFIRMED structural |
+| 30 | articulated chain/cable segment owned by Shl03 | EXE_AND_CORPUS_CONFIRMED structural |
+
+The higher-level human name `Kalina Ann` for slot20 is a
+**SEMANTIC_CANDIDATE** rather than a raw EXE string claim: the canonical
+resource is the unique large Lady launcher that produces the rocket and
+grappling domains. Keep the structural label as the machine authority.
+
+Likewise, `crossbow/dagger launcher` for slot23 is a human-facing description
+of the recovered geometry/action role, not a serialized name field.
+
+### Pass-2 closure status after live EXE pass
+
+Closed:
+
+- component0..4 persistent placement ownership;
+- exact BodyStowed vs HandHeld preset semantics;
+- all state-entry placement/control groups;
+- known script-channel placement/control transitions;
+- explicit CEm034 visibility question: no separate per-slot toggle found;
+- creation surface for Shl00..05;
+- common Shl actor retirement/removal/destruction chain;
+- per-class retire conditions for Shl00..05;
+- structural slot identities for the weapon/projectile/grapple resource family.
+
+Still deliberately not promoted:
+
+- left-hand/right-hand naming for slots21/22 until body coordinate handedness is explicitly named;
+- exact serialized/artistic name for slot23;
+- one-to-one semantic names for Shl00/Shl01/Shl04 beyond their recovered runtime roles;
+- Reader implementation / APK build.
+
+The reverse gate for the canonical Lady equipment-binding architecture is now substantially closed.
+The next phase may define the C++20 canonical binding model from this evidence without restoring
+the rejected joint9 shortcut.
