@@ -1898,21 +1898,56 @@ For each visual node, the update writes:
 
 This closes the geometry target and node-projection contract.
 
-### Remaining tether solver boundary
+### Per-frame callback closure — no Lady-specific temporal smoothing
 
-The chain container stores target/current/history fields and a current sample
-index. The temporal target-to-current/history evolution is a shared generic
-chain subsystem rather than Lady-specific code. Its allocation/init family is
-`0x1402C8F60..`; target projection is fully known, but the exact temporal
-smoothing/history update used by Shl03 has not yet been promoted.
+**EXE_CONFIRMED**
 
-Therefore:
+The earlier hypothesis that Shl03 might feed the five targets into a temporal
+chain smoother is rejected for the Lady tether path.
+
+The global actor update pass at `0x140326380` is called from the main game
+update at `0x14023D328`. It walks the registered actor lists and, for active
+actors whose common state `+0x1C == 2`, invokes primary virtual slot
+`+0x28`.
+
+The canonical `CEm034Shl03` primary vtable at `0x1404D8A98` contains:
+
+```text
+slot 0  0x140174010  deleting destructor
+slot 1  0x140174E40
+slot 2  0x140174740
+slot 3  0x140175010
+slot 4  0x14024EA30
+slot 5  0x140174780 -> 0x140174050
+```
+
+Thus `0x140174050` is the Shl03 per-frame `+0x28` actor callback.
+
+Inside that callback, every one of the five tether nodes is rebuilt from the
+current slot20-node2 anchor and current Shl03 actor position. For each node the
+function writes the target vec4 at node `+0x20` and immediately copies the
+same vec4 into both current/history buffers `+0x00` and `+0x10`.
+
+Consequently the generic chain/spring subsystem does exist in the executable,
+but its temporal smoothing state is deliberately bypassed/reset by this Lady
+callback each frame. For this path:
+
+```text
+current == previous == target
+```
+
+for all five tether points on every callback.
+
+Therefore the canonical Lady slot30 deformation is the straight five-point
+chain itself, not a lagged/smoothed approximation.
+
+Final status:
 
 - Shl03 actor transform: **EXE_CONFIRMED**
-- slot30 five-point target chain: **EXE_CONFIRMED**
-- slot30 node projection/orientation/segment scale: **EXE_CONFIRMED**
-- generic temporal tether smoothing/history: **PRESERVED_UNDECODED**
+- slot30 five-point chain positions: **EXE_CONFIRMED**
+- per-frame update authority: **EXE_CONFIRMED**
+- slot30 node orientation/segment scale: **EXE_CONFIRMED**
+- temporal Lady-tether smoothing: **REJECTED**
+- generic shared chain solver: real but **not authoritative for this Shl03 tether path**
 
-A Reader may show the exact actor-level slot30 transform and exact straight
-target chain, but must label temporal cable lag/smoothing as non-parity until
-the shared chain solver is closed.
+This closes the remaining Lady-specific slot30 tether reverse boundary.
