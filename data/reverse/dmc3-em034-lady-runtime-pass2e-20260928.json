@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v3",
+  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v4",
   "date": "2026-09-28",
   "branch": "reverse/em034-lady-runtime-20260927",
   "canonical_artifacts": {
@@ -64,11 +64,14 @@
           "effective_runtime_parent": "CEm034+0x43C0",
           "source_matrix": "[CEm034+0x850]+0x110",
           "source_copy_site": "0x140171240..0x140171255",
-          "uniform_scale_source": "CEm034+0x4400",
-          "scale_apply": "0x1403304F0 at 0x1401712E1",
+          "uniform_scale_source": "CEm034+0x4400 (secondary-this +0x41B0)",
+          "scale_apply": "0x1403304F0 at 0x1401712E1; scales matrix rows 0/1/2 and preserves translation row",
           "raw_serialized_node": 13,
           "raw_node_is_effective_parent": false,
-          "status": "EXE_CONFIRMED"
+          "status": "EXE_AND_CORPUS_CONFIRMED",
+          "baseline_write": "0x140169EC2 = 1.0f each state0x81 update",
+          "channel1_promote": "0x140169EE0 = 1.5f when lane1/channel1 == 1",
+          "body_root_equivalence": "em034 slot1 and slot32 both have 23 nodes and node0 local transform all-zero/identity; Reader can materialize as (localOffset * uniformScale) * bodyRootWorld"
         }
       },
       {
@@ -231,6 +234,15 @@
       "frame39": "lane1 channel0=2 -> runtime flag/timer off; NO placement change",
       "frame64": "lane1 channel1=2 -> component4 BodyStowed",
       "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "action46_scale": {
+      "state": "0x81",
+      "action": 46,
+      "before_first_channel1_signal": 1,
+      "channel1_value_1": 1.5,
+      "channel1_other_values": 1,
+      "interpretation": "runtime uniform scale of component3 ActiveDeployed parent, not visibility",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
     }
   },
   "visibility": {
@@ -383,7 +395,10 @@
       "cf368af9ceaa089366ae876ba9ba2b85db77a0eb",
       "8ed5598b9a34dbc76f97e127c7a3e1fca01393ec",
       "4a0021a875fdfb681897a60f117b9d7c6ef909f1",
-      "4666ed0c640971ce2daf31ff6eea060bb3ea3df9"
+      "4666ed0c640971ce2daf31ff6eea060bb3ea3df9",
+      "e8e1239a6e71cf4f6590d76b5a8576ae4c035854",
+      "069c1ffd9fbdace6f0427215dbe5600aebc37d3a",
+      "fd4c1433091fc28e80f1980643e53148222a8477"
     ],
     "implemented": [
       "five persistent CEm034 LadyComponentContract records with two presets",
@@ -393,7 +408,9 @@
       "CEm034 state-entry bridge",
       "CEm034 direct signal-consumer bridge",
       "action50 corrected channel regression",
-      "RuntimeBodyRootScaled represented without joint13 fallback"
+      "RuntimeBodyRootScaled represented without joint13 fallback",
+      "component3 RuntimeBodyRootScaled exact materialization using body root node0 and +0x4400 scale",
+      "action46 component3 uniform scale 1.0/1.5 bridge"
     ],
     "build_verification": "NOT_RUN: no automatic CI workflow is associated with the branch head in the connected repository",
     "apk_build_started": false,
