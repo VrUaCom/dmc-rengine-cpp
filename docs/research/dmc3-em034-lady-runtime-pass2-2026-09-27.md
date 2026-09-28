@@ -296,12 +296,11 @@ The minimum canonical em034 runtime model needs:
 
 ## Still unresolved
 
-- exact gameplay names for slots20..24 and Shl00..05;
-- exact human labels for placement preset0/preset1;
-- complete semantic mapping of all remaining MotionScript banks/actions;
-- final actor-manager unlink/free internals after shared Shl retire completion, if needed by authoring/runtime emulation;
+- proper-name promotion for the launcher (role is closed; exact franchise name is not);
+- negative-X versus positive-X hand -> human left/right labels;
+- exact gameplay names for Shl00/Shl01/Shl04/Shl05 beyond their proven runtime domains;
+- final actor-manager unlink/free internals after shared Shl retire completion, only if exact runtime-manager emulation requires them;
 - canonical Lady EquipmentBinding/WeaponBinding implementation in Native Reader.
-
 
 ## Pass 2D — Shl actor inheritance and destruction entrypoints
 
@@ -1402,3 +1401,145 @@ Still deliberately not promoted:
 The reverse gate for the canonical Lady equipment-binding architecture is now substantially closed.
 The next phase may define the C++20 canonical binding model from this evidence without restoring
 the rejected joint9 shortcut.
+
+
+## Pass 2H — equipment semantic identity and human placement labels
+
+### Scope and evidence rule
+
+This pass assigns human-readable *role* labels only where the live canonical
+EXE behavior and the extracted canonical MOD corpus converge.
+
+Proper-name promotion remains stricter. In particular, the boss resource does
+not expose a canonical `Kalina Ann` string, so the launcher role can be
+promoted while the exact proper-name binding remains unpromoted.
+
+### Canonical corpus identity
+
+The following MOD payloads were re-read from the supplied corrected em034
+extract. Their triangle strips were reconstructed from the canonical MOD
+control stream rather than inferred from filenames.
+
+| slot | size | nodes | vertices | SHA-256 |
+|---:|---:|---:|---:|---|
+| 20 | 38720 | 3 | 955 | `160fa4ac612ddf6c62bd00ca248ed612f7410488f406f4e4990cb5c10b6be74b` |
+| 21 | 22048 | 1 | 544 | `ee62e8b87b66d0b01609df40089fea11d308dc6b02238c7a07ac2acaec8a4218` |
+| 22 | 23648 | 1 | 584 | `8843fb42321896b5846ddb4faf93741dc1193a590fe31767ccf95ae96c699464` |
+| 23 | 23904 | 4 | 587 | `b1ca603658913e06e18468ee801deea2ac237bf8b0ea1ab50de7a8eab0591fec` |
+| 24 | 34000 | 1 | 842 | `e0a70ac54cf82ad69cb1c607554d22bf292048dae107738c7fa0dc989c975c97` |
+| 25 | 2800 | 1 | 62 | `f65eeb79ebdcc07e2091eed191929fcc97516901d4bd6af396deb5e056385169` |
+| 26 | 8800 | 2 | 212 | `002f5d83b49f6ee498c745f158fb524da2aaee91d42a4eb8ef0c23fe8d347833` |
+| 30 | 3744 | 5 | 82 | `3f2f749edfd3c52bb27c3d0013b4e0eeb2b31f71e9adcf70012b72de280a1dcc` |
+
+Axis-aligned geometry dimensions from decoded float3 position streams:
+
+| slot | dimensions |
+|---:|---|
+| 20 | 150.34 × 32.68 × 27.00 |
+| 21 | 21.89 × 2.54 × 13.65 |
+| 22 | 25.75 × 2.54 × 14.42 |
+| 23 | 30.90 × 4.69 × 18.55 |
+| 24 | 42.28 × 4.67 × 20.14 |
+| 25 | 6.81 × 6.81 × 111.78 |
+| 26 | 38.53 × 3.98 × 11.59 |
+| 30 | 28.00 × 1.67 × 1.67 |
+
+### Human role map
+
+**EXE_AND_CORPUS_CONFIRMED role semantics**
+
+| resource | canonical role | evidence |
+|---|---|---|
+| component0 / slot20 | launcher assembly | long launcher geometry; three-node articulated MOD; independent em034_013 motion controller; active placement during missile and grapple state families |
+| component1 / slot21 | handgun A | complete handgun silhouette; one-node rigid MOD; active hand-end placement; paired with component2 in action44 |
+| component2 / slot22 | handgun B | second complete handgun silhouette; one-node rigid MOD; opposite hand-end placement; paired with component1 in action44 |
+| component3 / slot23 | vertical bowgun / crossbow | reconstructed mesh has stock/body plus the characteristic transverse/vertical bow limb; four-node MOD; action46 active placement and repeated Shl05 projectile creation |
+| component4 / slot24 | machine gun / SMG-class automatic firearm | compact long-magazine automatic-firearm silhouette; action50 active placement; Shl00 creation path is sourced from its runtime transform |
+| slot25 / Shl02 | missile / rocket projectile | very long narrow projectile geometry; dynamically owned by Shl02; actions3/4/5 spawn Shl02 at frame4; Shl02 has a recovered three-second projectile lifetime |
+| slot26 / Shl03 | grappling blade / hook head | pointed/serrated hook/blade geometry; dynamic Shl03 ownership; paired with slot30 in the same actor |
+| slot30 / Shl03 | tether / cable / chain strip | thin five-node segmented strip geometry; dynamic Shl03 ownership; lifetime is coupled to the owner grapple state family |
+
+The previous semantic candidate `slot23 = hook` is **REJECTED**. The hook/tether
+domain is the dynamic Shl03 pair `slot26 + slot30`.
+
+The exact proper name of slot20 is not promoted from these bytes. Its role is
+canonically a launcher assembly; associating that boss weapon role with a
+franchise proper name is a separate semantic layer.
+
+### em034_001 body skeleton proves active versus stowed placement
+
+The supplied canonical body MOD `em034_001.mod` has 23 transform-domain
+nodes. Its bind-pose local rotations are zero to floating-point noise, so the
+relevant body chains can be classified directly from the parent/order arrays
+and accumulated translations.
+
+Relevant bind nodes:
+
+| node | parent | bind/world position | structural role |
+|---:|---:|---|---|
+| 3 | 2 | approximately (0, 117.52, -0.52) | central torso/back chain; parent of both arm chains |
+| 9 | 8 | approximately (-61.75, 136.84, -2.18) | negative-X arm endpoint / hand endpoint |
+| 13 | 12 | approximately (+61.75, 136.84, -2.18) | positive-X arm endpoint / hand endpoint |
+| 14 | 1 | approximately (0, 104.70, 0) | pelvis/root of the two leg chains |
+| 16 | 15 | approximately (-8.04, 51.83, 0.37) | negative-X lower-leg chain |
+| 19 | 14 | approximately (+8.04, 94.43, 0.37) | positive-X hip/upper-leg chain |
+
+The two arm chains are exact mirrors:
+
+```text
+3 -> 6  -> 7  -> 8  -> 9
+3 -> 10 -> 11 -> 12 -> 13
+```
+
+and the two leg chains branch from node14.
+
+This closes the human meaning of the two placement tables:
+
+```text
+preset1 = active / held placement
+preset0 = stowed / body-storage placement
+```
+
+**EXE_AND_CORPUS_CONFIRMED**
+
+The evidence does not yet assign the words `left` and `right` to the
+negative-X and positive-X hand endpoints; that requires a separate
+model-coordinate handedness/front-axis proof. The canonical model therefore
+uses `negative_x_hand` and `positive_x_hand` if a side-distinguishing
+identifier is required.
+
+### Per-component human placement meaning
+
+| component | preset0 | preset1 |
+|---:|---|---|
+| 0 / launcher | back/torso-stowed, body node3 | active/held on hand endpoint node9 |
+| 1 / handgun A | pelvis/holster-stowed, node14 | active/held on hand endpoint node9 |
+| 2 / handgun B | leg/holster-stowed, node16 | active/held on hand endpoint node13 |
+| 3 / bowgun | hip/body-stowed, node19 | active/held through the special runtime hand-domain transform `CEm034+0x43C0` |
+| 4 / SMG | pelvis/body-stowed, node14 | active/held on hand endpoint node13 |
+
+For component3, the serialized preset1 record contains node13 but the effective
+runtime parent remains the already-proven special transform
+`CEm034+0x43C0`; therefore a Reader must keep the special parent override and
+must not simplify this row to an ordinary node13 attachment.
+
+### Semantic promotion boundary
+
+Now closed for canonical Lady binding:
+
+- component0..4 resource roles;
+- dynamic slot25/26/30 roles;
+- preset0 = stowed;
+- preset1 = active/held;
+- back/torso versus pelvis/leg/hip stow domains;
+- exact hand-endpoint node indices without inventing left/right handedness.
+
+Still deliberately unresolved:
+
+- proper-name promotion of the launcher to a franchise weapon name;
+- negative-X hand versus positive-X hand -> human left/right labels;
+- exact gameplay names for Shl00, Shl01, Shl04 and Shl05 as actor classes
+  beyond their recovered source/attack domains.
+
+These remaining naming details do not block the canonical
+EquipmentBinding/WeaponBinding structural model.
