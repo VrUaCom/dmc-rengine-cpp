@@ -1951,3 +1951,38 @@ Final status:
 - generic shared chain solver: real but **not authoritative for this Shl03 tether path**
 
 This closes the remaining Lady-specific slot30 tether reverse boundary.
+
+
+## Pass 2L — Shl02 standalone trajectory boundary
+
+**EXE_CONFIRMED**
+
+The shared helper `0x140244870` used by Shl02 state1 is a shell
+steering/movement helper, not a collision solver.
+
+For flags `3` it:
+
+1. refreshes/normalizes the actor direction domain;
+2. scales direction `+0x140` by scalar `+0x160`;
+3. integrates actor position `+0x80 += actorDelta * direction`.
+
+Shl02 configures the scalar to `30.0` for its first shell phase.
+
+However, the state1 call at `0x140173D31..` obtains its steering source from
+the live global gameplay manager selected through `0x1401FAA50` and the
+runtime table rooted at `0x140C90E28`. This is external world/target state,
+not a value recoverable from `em034.pac`, MotionScript, or the Lady body
+skeleton alone.
+
+Therefore:
+
+- Shl02 spawn pose from slot20 node0: **EXE_CONFIRMED**
+- default actor-delta phase timing: **EXE_CONFIRMED**
+- shell movement formula: **EXE_CONFIRMED**
+- live steering target: **EXE_CONFIRMED external gameplay dependency**
+- standalone Reader trajectory after spawn without world/target context:
+  **not canonically derivable**
+
+The Reader must preserve this boundary. It may show the exact spawn pose and
+the recovered no-world phase/lifetime contract, but must not claim a guessed
+straight-line projectile trajectory as canonical gameplay motion.
