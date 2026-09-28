@@ -408,3 +408,180 @@ methods / CShell retire path. The retained RTTI atlas proves the class and
 destruction boundary, but it does not contain the required call-xref graph.
 
 Status: **EXE_CONFIRMED structural lifecycle boundary; retire trigger PRESERVED_UNDECODED**.
+
+
+## Pass 2E — live canonical EXE Shl retire conditions
+
+### Artifact re-verification
+
+**EXE_CONFIRMED**
+
+The live executable used for this pass was supplied again and hashed before
+analysis:
+
+```text
+SHA-256 e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082
+PE32+ x86-64
+.text VMA 0x140001000
+```
+
+This pass therefore no longer depends only on the retained RTTI atlas.
+
+### Shared Shl actor state machine
+
+**EXE_CONFIRMED**
+
+All six `CEm034Shl00..05` primary update dispatchers begin by calling
+`0x1403261B0` and dispatch on actor byte `+0x08`.
+
+The common state grammar is:
+
+```text
+state 0 -> secondary/interface initialization path
+state 1 -> class-specific phase/update
+state 2 -> class-specific phase/update
+state 3 -> completion/retire path through 0x1403261E0
+other   -> no class update
+```
+
+`0x1403261E0` operates on the common actor state at `+0x1C/+0x20`.
+For actor substate 1/2 it invokes virtual slot `+0x20` and promotes both
+fields to 3; state 4 routes through `0x140326240`. This is shared actor
+lifecycle machinery, not a Lady-only visibility helper.
+
+### Shl00 retire condition
+
+**EXE_CONFIRMED**
+
+`0x140172590` maintains a countdown at `Shl00+0x52C`:
+
+```text
+remaining = [Shl00+0x52C] - [Shl00+0x14]
+if remaining < 0:
+    Shl00+0x08 = 3
+```
+
+The same phase clears child pointer `+0x520` once that child's common actor
+state `+0x1C` is 0, 3, or 4. In Shl00 state 3 the dispatcher first sends
+the retained `+0x520` child through `0x1403261E0`, then sends Shl00
+itself through the same path.
+
+### Shl01 retire condition
+
+**EXE_CONFIRMED**
+
+`0x140172B20` initializes `Shl01+0x538 = 1.0f`, decrements it by the
+common actor delta `+0x14`, and writes `Shl01+0x08 = 3` when the
+countdown becomes negative.
+
+It independently tracks children at `+0x520` and `+0x528`. State 3
+routes both non-null children through `0x1403261E0` before retiring Shl01.
+
+### Shl02 retire condition
+
+**EXE_CONFIRMED**
+
+`0x140173800` initializes:
+
+```text
+Shl02+0xD68 = 3.0f
+```
+
+and decrements the timer by `Shl02+0x14`. A negative timer writes
+`Shl02+0x08 = 3`.
+
+The class retains a child at `+0xD60`; state 3 sends that child through
+`0x1403261E0` and then retires Shl02 through the same common path.
+
+### Shl03 owner-action lifetime gate
+
+**EXE_CONFIRMED**
+
+`0x140174550` is the decisive Shl03 lifetime gate.
+
+It reads owner pointer `Shl03+0x1510`, enters owner subobject `+0x250`,
+calls virtual slot `+0x08`, and treats the returned integer as the owner
+action/state selector.
+
+The jump table covers values 94..144 exactly.
+
+Shl03 is retained for:
+
+```text
+94, 95, 96, 98, 99, 144
+```
+
+Shl03 is moved to actor state 3 for:
+
+```text
+97
+100..143
+any value outside 94..144
+```
+
+Both class phase paths call this gate:
+
+```text
+0x140174D2C -> 0x140174550
+0x14017508F -> 0x140174550
+```
+
+Therefore Shl03 lifetime is explicitly coupled to a narrow set of owner
+actions rather than a generic fixed-duration timer.
+
+### Shl04 two-phase retire path
+
+**EXE_CONFIRMED**
+
+Shl04 uses two class phases:
+
+```text
+state 1 -> 0x1401756E0
+state 2 -> 0x1401753A0
+state 3 -> child cleanup + 0x1403261E0
+```
+
+The state-1 path decrements `Shl04+0x530`; expiry writes the word at
+`+0x08 = 0x0002`, simultaneously selecting actor state 2 and resetting
+the adjacent class phase byte `+0x09`.
+
+The state-2 path initializes `Shl04+0x530 = 3.0f`, decrements it by
+`+0x14`, and on expiry writes `Shl04+0x08 = 3`.
+
+Shl04 tracks children at `+0x520` and `+0x528`; state 3 sends both
+through `0x1403261E0` before retiring the parent actor.
+
+### Shl05 retire conditions
+
+**EXE_CONFIRMED**
+
+Shl05 has two recovered countdown surfaces.
+
+`0x140175C50` initializes `Shl05+0x528 = 1.0f`, decrements it by
+`+0x14`, and writes `+0x08 = 3` on expiry.
+
+`0x140175ED0` maintains the alternate phase countdown at `+0x52C` and
+also writes `+0x08 = 3` when that countdown becomes negative.
+
+The state-3 dispatcher retires the optional child at `+0x520` first and
+then Shl05 itself through `0x1403261E0`.
+
+### Promotion
+
+The previous open item:
+
+```text
+spawn/despawn conditions for CEm034Shl00..05
+```
+
+is now split more precisely:
+
+- spawn surfaces: **EXE_CONFIRMED** from Pass 2B/2C;
+- per-class transition into retire state 3: **EXE_CONFIRMED** in this pass;
+- shared actor completion path `0x1403261E0`: **EXE_CONFIRMED**;
+- final actor-manager unlink/free after common completion: still
+  **PRESERVED_UNDECODED** and not required for the Lady binding model unless
+  ownership implementation needs exact manager internals.
+
+For the canonical Lady equipment model, Shl lifecycle is now sufficiently
+separated from persistent component visibility.
