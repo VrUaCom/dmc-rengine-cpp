@@ -1455,7 +1455,7 @@ Axis-aligned geometry dimensions from decoded float3 position streams:
 | component2 / slot22 | handgun B | second complete handgun silhouette; one-node rigid MOD; opposite hand-end placement; paired with component1 in action44 |
 | component3 / slot23 | vertical bowgun / crossbow | reconstructed mesh has stock/body plus the characteristic transverse/vertical bow limb; four-node MOD; action46 active placement and repeated Shl05 projectile creation |
 | component4 / slot24 | machine gun / SMG-class automatic firearm | compact long-magazine automatic-firearm silhouette; action50 active placement; Shl00 creation path is sourced from its runtime transform |
-| slot25 / Shl02 | missile / rocket projectile | very long narrow projectile geometry; dynamically owned by Shl02; actions3/4/5 spawn Shl02 at frame4; Shl02 has a recovered three-second projectile lifetime |
+| slot25 / Shl02 | missile / rocket projectile | very long narrow projectile geometry; dynamically owned by Shl02; actions3/4/5 spawn Shl02 at frame4; Shl02 has a recovered raw lifetime countdown initialized to 3.0 (time unit not yet promoted) |
 | slot26 / Shl03 | grappling blade / hook head | pointed/serrated hook/blade geometry; dynamic Shl03 ownership; paired with slot30 in the same actor |
 | slot30 / Shl03 | tether / cable / chain strip | thin five-node segmented strip geometry; dynamic Shl03 ownership; lifetime is coupled to the owner grapple state family |
 
@@ -1659,3 +1659,136 @@ The Native Reader Script Play implementation now reconstructs both entry
 controllers separately and evaluates each lane's own opcode-3 timeline.
 
 Status: **EXE_CONFIRMED**.
+
+
+## Pass 2J — dynamic Shl02/Shl03 visual transform authority
+
+### Shl02 / slot25 spawn transform
+
+**EXE_CONFIRMED**
+
+The only recovered call to `CEm034Shl02::factory 0x140173620` is at
+`0x140169972`.
+
+At that site the caller operates through the `CEm034+0x250` secondary
+subobject. Resolving those offsets back to primary CEm034 proves:
+
+```text
+[rdi+0x698] == CEm034+0x8E8 == component0 / slot20 runtime manager
+```
+
+The caller reads that manager's current matrix at `manager+0x110` and passes
+its translation/current-origin row to the Shl02 factory. The factory copies:
+
+```text
+spawn vector -> Shl02+0x80
+direction     -> Shl02+0x140
+runtime arg   -> Shl02+0x530
+mode byte     -> Shl02+0xD6D
+```
+
+The Shl02 visual manager lives at `Shl02+0x540`. Its update path passes
+`Shl02+0x1A0` to the visual manager through vslot `+0x198`.
+
+Therefore the canonical visual rule is:
+
+```text
+slot25 visual
+  -> CEm034Shl02 actor transform +0x1A0
+  -> spawned from the live component0/slot20 world domain
+```
+
+It is **not** a body-joint attachment.
+
+The orientation path builds the actor basis from the direction vector through
+`0x14032FD90`; that helper normalizes/crosses basis vectors and writes the
+4x4 actor orientation domain.
+
+### Shl03 / slots26+30 transform
+
+**EXE_CONFIRMED**
+
+The CEm034 call at `0x14016CC41` creates `CEm034Shl03`.
+
+Before the call CEm034 constructs a spawn position from a live manager current
+matrix plus an EXE transform offset, supplies the scaled CEm034 direction
+domain, and passes the primary CEm034 owner as `r9`.
+
+The Shl03 factory stores:
+
+```text
+spawn position -> Shl03+0x80
+direction      -> Shl03+0x140
+runtime arg    -> Shl03+0x560
+CEm034 owner   -> Shl03+0x1510
+```
+
+Shl03 constructs two visual-manager domains at approximately:
+
+```text
+Shl03+0x580
+Shl03+0xD00
+```
+
+The recovered visual update path at `0x140175010` supplies the same actor
+transform `Shl03+0x1A0` to both manager domains through vslot `+0x198`.
+
+Combined with the resource ownership already closed earlier:
+
+```text
+Shl03 visual domain A -> PAC slot26
+Shl03 visual domain B -> PAC slot30
+```
+
+the canonical presentation boundary is now:
+
+```text
+slot26 + slot30
+  -> one independent CEm034Shl03 actor
+  -> common actor transform +0x1A0
+```
+
+The internal chain/tether point simulation maintained by the larger Shl03
+update path remains a separate deformation layer. A Reader may reproduce the
+actor transform immediately, but must not claim exact slot30 cable deformation
+until that point-array simulation is ported.
+
+### Dynamic texture companions
+
+**CORPUS_CONFIRMED**
+
+The retained canonical corpus pairing is:
+
+```text
+costume1:
+  slot25 -> PTX19
+  slot26 -> PTX19
+  slot30 -> PTX29
+
+costume2:
+  slot25 -> PTX33
+  slot26 -> PTX33
+  slot30 -> PTX29
+```
+
+These resources remain dynamic/latent and must not be restored to the
+persistent seven-part Lady composite.
+
+### Promotion
+
+The following are now closed for dynamic presentation:
+
+- slot25 visual owner = Shl02;
+- slots26+30 visual owner = Shl03;
+- visual transform authority = actor `+0x1A0`, not a guessed body joint;
+- spawn domains are recovered from live CEm034 runtime matrices;
+- texture companions are corpus-confirmed.
+
+Still open for pixel/runtime parity:
+
+- exact Shl02 actor travel/collision integration throughout its lifetime;
+- exact Shl03 cable point-array deformation;
+- full visual-resource identity for Shl00/Shl01/Shl04/Shl05 where no dedicated
+  top-level MOD slot is yet promoted.
+
+Status: **EXE_AND_CORPUS_CONFIRMED visual ownership/transform boundary**.
