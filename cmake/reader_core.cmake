@@ -29,6 +29,7 @@ set(DMC_RENGINE_READER_CORE_SOURCES
     "${DMC_RENGINE_READER_ROOT}/src/formats/mod_skin.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/formats/mod/transform_domain.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/formats/mod/world_transform.cpp"
+    "${DMC_RENGINE_READER_ROOT}/src/formats/mod/attachment.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/formats/mod.cpp"
 
     # Canonical SCM structural/read-side slice.
