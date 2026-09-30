@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-mission-result-pass36",
+  "title": "DMC3 Mission Result Policy Layout and Evidence Blocker — Wide Pass 36",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    },
+    {
+      "id": "pass35-canonical-report",
+      "role": "canonical-human-readable-report",
+      "drive_file_id": "1N28ouJgvDPej3KFUoYlmcqYvkFvutDI5F4ONYi9bWE0"
+    },
+    {
+      "id": "pass36-blocker-readback",
+      "role": "persistent-blocker-and-experiment",
+      "drive_file_id": "1QUmWF_rnjrdRmyB4Xm5r2NdGu_nC4vOGOfIVmAh72ww"
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-mission-result-pass36-policy-layout",
+      "claim_id": "claim-dmc3-mission-result-pass36-policy-layout",
+      "title": "MissionResultPolicyRecord physical layout",
+      "summary": "Carry-forward evidence supports a 0x84-byte policy record with a 0x50-byte 5x4 float threshold region at +0x00, four aggregate floats at +0x50, a 0x14-byte five-value raw region at +0x60, and a 0x10-byte unresolved tail at +0x74. The containing observed group stride is 0x298, leaving one raw dword after five records.",
+      "confidence": "high",
+      "locations": [
+        {
+          "artifact_id": "pass35-canonical-report",
+          "symbol": "MissionResultPolicyRecord",
+          "note": "Pass 35 canonical carry-forward layout; Pass 36 does not promote additional semantics."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "mission-result",
+        "wide-pass-36",
+        "layout",
+        "high"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-mission-result-pass36-direct-rank-binding-blocked",
+      "claim_id": "claim-dmc3-mission-result-pass36-direct-rank-binding-blocked",
+      "title": "Direct result-code to rank-label binding remains unproven",
+      "summary": "The rank-label vocabulary exposed around VA 0x14024FE90 and the serialized MissionResultMatrix code domain 0..5 must remain separate until a direct XREF/data-flow/table/switch edge independently corroborates a binding. The tempting C/B/A/S/SS/SSS mapping is therefore rejected as a canonical promotion at this stage.",
+      "confidence": "high",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5371133584,
+          "symbol": "rank_label_function",
+          "note": "VA 0x14024FE90; raw XREF/CFG evidence from the canonical executable is required before semantic binding."
+        },
+        {
+          "artifact_id": "pass36-blocker-readback",
+          "symbol": "PASS36-E01",
+          "note": "Persistent minimum discriminating experiment and blocker readback."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "mission-result",
+        "rank-label",
+        "wide-pass-36",
+        "blocker",
+        "high"
+      ],
+      "supersedes": []
+    }
+  ],
+  "open_hypotheses": [
+    {
+      "id": "hyp-pass36-result-code-rank-binding",
+      "status": "open",
+      "statement": "Serialized MissionResultMatrix result codes 0..5 may map directly to the rank-label domain exposed by 0x14024FE90.",
+      "required_experiment": "PASS36-E01"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B36-01",
+      "status": "active",
+      "description": "Canonical raw executable/disassembly/XREF evidence required for the mandatory XREF -> CFG -> DFG pipeline was unavailable to the Pass 36 execution.",
+      "resolution_gate": "Acquire the canonical executable matching e454272e...dd082 or an equivalent raw disassembly/XREF export from that exact build and execute PASS36-E01."
+    }
+  ],
+  "validation_debt": [
+    "XREF enumeration for 0x14024FE90",
+    "CFG and DFG recovery for relevant rank-label consumers",
+    "independent MissionResultMatrix 0..5 consumer enumeration",
+    "behavioral validation of any category/rank binding"
+  ]
+}
