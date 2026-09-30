@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass8-preservation-receipt-2026-08-14",
+  "date": "2026-08-14",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "branch": "docs/hits-pass8-wide-review",
+  "google_drive": {
+    "pass8_document_id": "1CzoPo3z1jSb_uyY0QsMr5CH7n59Q9UFTMP0vWPiqRsg",
+    "mega_synthesis_document_id": "1SZJTdabme_rumGCEHznXEMOoNMgX4e54IyqpW7GCivQ",
+    "registry_document_id": "1hIQ40_SXByc15pXj4Mq3cMQcgs8cFEx2RtuYRM8adnE"
+  },
+  "github_coordination_issue": 25,
+  "artifacts": [
+    "docs/research/hits-pass8-wide-runtime-integration-review.md",
+    "docs/research/hits-pass8-open-targets.md",
+    "docs/research/hits-pass8-preservation-receipt.md",
+    "evidence/hits/hits-pass8-wide-runtime-integration-review.evidence.json"
+  ],
+  "proprietary_bytes_committed": false
+}

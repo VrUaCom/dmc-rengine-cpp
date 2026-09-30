@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice9-primitive-descriptor-ownership-2026-08-15",
+  "date": "2026-08-15",
+  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATED",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "manager_source_initializer": {
+    "va": "0x14005C260",
+    "end_va": "0x14005C318",
+    "size_bytes": 184,
+    "sha256": "9f405b59574c4575813b9c15aa146aad62815ff01258e4fca8fa1e34338f93e7",
+    "entry_table_arg_index": 2,
+    "descriptor_table_arg_index": 3,
+    "manager_entry_table_pointer_offset": "0x108",
+    "manager_descriptor_table_pointer_offset": "0x110",
+    "entry_count_arg_index": 4
+  },
+  "entry_table": {
+    "stride_bytes": 4,
+    "flags_offset": "0x00",
+    "transform_selector_offset": "0x01",
+    "descriptor_index_offset": "0x02",
+    "descriptor_index_width_bytes": 2
+  },
+  "primitive_descriptor_table": {
+    "stride_bytes": 80,
+    "stride_hex": "0x50",
+    "resolution": "descriptor = manager+0x110 + u16(entry+0x02) * 0x50",
+    "type_field_offset": "0x00"
+  },
+  "runtime_object_initializer": {
+    "va": "0x14005C8D0",
+    "end_va": "0x14005C99D",
+    "size_bytes": 205,
+    "sha256": "f779db92f9fee9d1492ef7208eb9950784d782e51542dd65d551ecdf6b950bfe",
+    "entry_arg_index": 2,
+    "primitive_descriptor_arg_index": 3,
+    "runtime_object_arg_index": 4,
+    "transform_pointer_arg_index": 5,
+    "runtime_entry_pointer_offset": "0x110",
+    "runtime_primitive_descriptor_pointer_offset": "0x118",
+    "runtime_transform_pointer_offset": "0x20"
+  },
+  "builders": [
+    {
+      "va": "0x14005C630",
+      "end_va": "0x14005C731",
+      "size_bytes": 257,
+      "sha256": "97dbb8f5e6cace93530a30c936796a35fca80235467a3a0885f71c8593990d1a",
+      "transform_source": "indirect external source selected by entry+0x01"
+    },
+    {
+      "va": "0x14005C740",
+      "end_va": "0x14005C83D",
+      "size_bytes": 253,
+      "sha256": "0778fa7ecce7855712b1d0bd5cb8ef5b32998e1d4629ee0d5d35e951318e06b6",
+      "transform_source": "inline/external table selected by entry+0x01 with 0x40 stride"
+    }
+  ],
+  "constructor_dispatch": {
+    "va": "0x1402CC530",
+    "transform_pointer_runtime_offset": "0x20",
+    "primitive_descriptor_pointer_runtime_offset": "0x118",
+    "descriptor_type_offset": "0x00",
+    "handled_type_range": [0, 6]
+  },
+  "corrections": [
+    {
+      "id": "hits.pass10.runtime-object-primitive-descriptor-offset",
+      "status": "CORRECTED",
+      "rejected": "runtime_object+0x20 is primitive descriptor pointer",
+      "current": "runtime_object+0x20 is transform pointer; runtime_object+0x118 is primitive descriptor pointer"
+    },
+    {
+      "id": "hits.pass10.entry-transform-selector-is-primitive-type",
+      "status": "REJECTED",
+      "statement": "entry+0x01 selects transform source and must not be interpreted as primitive type"
+    }
+  ],
+  "bounded_static_descriptor_census": {
+    "method": "only C260 callsites with statically resolved entry table, descriptor table, and exact R9 entry count",
+    "static_callsites": 14,
+    "referenced_entries": 18,
+    "observed_primitive_types": [2],
+    "type5_found": false,
+    "interpretation": "type 5 was not found in the bounded statically resolved subset; unbounded 0x50 scans are rejected because they cross neighboring data"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_primitive_descriptor_ownership_evidence.hpp",
+    "test": "tests/hits_primitive_descriptor_ownership_evidence_tests.cpp",
+    "ctest": "hits_primitive_descriptor_ownership_evidence",
+    "code_head": "b919e89084d5583a940fc1fe8ecc8f90cb1968fd",
+    "ci_run_id": 31853246146,
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "next_boundary": "trace population/writers of manager+0x110 primitive descriptor tables, especially actually referenced descriptors whose first byte is 5",
+  "proprietary_bytes_committed": false
+}

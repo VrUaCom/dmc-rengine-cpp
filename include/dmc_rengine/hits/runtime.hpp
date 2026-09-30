@@ -80,15 +80,15 @@ private:
     return header.grid_count_x != 0U &&
         header.grid_count_y != 0U &&
         header.grid_count_z != 0U &&
+        header.cell_size.x != 0U &&
+        header.cell_size.y != 0U &&
+        header.cell_size.z != 0U &&
         std::isfinite(header.bounds_min.x) &&
         std::isfinite(header.bounds_min.y) &&
         std::isfinite(header.bounds_min.z) &&
-        std::isfinite(header.cell_size.x) &&
-        std::isfinite(header.cell_size.y) &&
-        std::isfinite(header.cell_size.z) &&
-        header.cell_size.x > 0.0F &&
-        header.cell_size.y > 0.0F &&
-        header.cell_size.z > 0.0F;
+        std::isfinite(header.bounds_max.x) &&
+        std::isfinite(header.bounds_max.y) &&
+        std::isfinite(header.bounds_max.z);
 }
 
 [[nodiscard]] inline std::optional<GridCoordinate> world_to_grid(
@@ -101,13 +101,26 @@ private:
         return std::nullopt;
     }
 
-    const auto axis = [](float value, float minimum, float cell_size,
+    // Canonical EXE 0x1402D2F50 truncates the float world delta to integer,
+    // performs integer division by the serialized DWORD cell extent, and then
+    // clamps to [0, count-1]. For positive in-grid deltas this is equivalent
+    // to floor(delta / extent); explicit boundary clamps avoid unsafe casts.
+    const auto axis = [](float value, float minimum, std::uint32_t cell_size,
                          std::uint32_t count) -> std::uint32_t {
-        const auto raw = static_cast<std::int64_t>(
-            (value - minimum) / cell_size);
-        const auto maximum = static_cast<std::int64_t>(count - 1U);
-        return static_cast<std::uint32_t>(std::clamp<std::int64_t>(
-            raw, 0, maximum));
+        if (value <= minimum) {
+            return 0U;
+        }
+        const auto delta = static_cast<double>(value) -
+            static_cast<double>(minimum);
+        const auto grid_extent = static_cast<double>(cell_size) *
+            static_cast<double>(count);
+        if (delta >= grid_extent) {
+            return count - 1U;
+        }
+        const auto raw = static_cast<std::uint64_t>(
+            std::floor(delta / static_cast<double>(cell_size)));
+        return static_cast<std::uint32_t>(std::min<std::uint64_t>(
+            raw, static_cast<std::uint64_t>(count - 1U)));
     };
 
     return GridCoordinate{

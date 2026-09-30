@@ -23,11 +23,22 @@ struct Vec3 final {
     friend bool operator==(const Vec3&, const Vec3&) = default;
 };
 
+// Serialized HITS +0x20/+0x24/+0x28 are DWORD integer cell extents.
+// The canonical DMC3 executable divides integer-truncated world deltas by
+// these fields and converts them to float only when building cell AABBs.
+struct CellExtent final {
+    std::uint32_t x{};
+    std::uint32_t y{};
+    std::uint32_t z{};
+
+    friend bool operator==(const CellExtent&, const CellExtent&) = default;
+};
+
 struct Header final {
     std::uint32_t end_offset{};
     Vec3 bounds_min;
     Vec3 bounds_max;
-    Vec3 cell_size;
+    CellExtent cell_size;
     std::uint32_t grid_count_x{};
     std::uint32_t grid_count_y{};
     std::uint32_t grid_count_z{};

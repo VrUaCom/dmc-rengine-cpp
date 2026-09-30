@@ -53,6 +53,34 @@ void add_diagnostic(
         std::isfinite(value.z);
 }
 
+[[nodiscard]] bool bounds_match_grid(const Header& header) noexcept {
+    constexpr double tolerance = 1.0e-3;
+    const auto axis = [tolerance](
+        float minimum,
+        float maximum,
+        std::uint32_t extent,
+        std::uint32_t count) noexcept {
+        const auto expected = static_cast<double>(minimum) +
+            static_cast<double>(extent) * static_cast<double>(count);
+        return std::fabs(static_cast<double>(maximum) - expected) <= tolerance;
+    };
+    return axis(
+               header.bounds_min.x,
+               header.bounds_max.x,
+               header.cell_size.x,
+               header.grid_count_x) &&
+        axis(
+               header.bounds_min.y,
+               header.bounds_max.y,
+               header.cell_size.y,
+               header.grid_count_y) &&
+        axis(
+               header.bounds_min.z,
+               header.bounds_max.z,
+               header.cell_size.z,
+               header.grid_count_z);
+}
+
 } // namespace
 
 std::uint64_t Header::cell_count() const noexcept {
@@ -99,23 +127,26 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
     }
 
     const auto end_offset = reader.u32_le(0x04U);
+    const auto cell_x = reader.u32_le(0x20U);
+    const auto cell_y = reader.u32_le(0x24U);
+    const auto cell_z = reader.u32_le(0x28U);
     const auto grid_x = reader.u32_le(0x2CU);
     const auto grid_y = reader.u32_le(0x30U);
     const auto grid_z = reader.u32_le(0x34U);
     const auto triangle_count = reader.u32_le(0x38U);
     const auto spatial_relative = reader.u32_le(0x3CU);
     const auto triangle_relative = reader.u32_le(0x40U);
-    if (!end_offset || !grid_x || !grid_y || !grid_z || !triangle_count ||
-        !spatial_relative || !triangle_relative ||
+    if (!end_offset || !cell_x || !cell_y || !cell_z || !grid_x || !grid_y ||
+        !grid_z || !triangle_count || !spatial_relative || !triangle_relative ||
         !read_vec3(reader, 0x08U, result.header.bounds_min) ||
-        !read_vec3(reader, 0x14U, result.header.bounds_max) ||
-        !read_vec3(reader, 0x20U, result.header.cell_size)) {
+        !read_vec3(reader, 0x14U, result.header.bounds_max)) {
         add_diagnostic(result, ParseSeverity::error,
             "hits.invalid_header", "The HITS header could not be decoded completely.", 0U);
         return result;
     }
 
     result.header.end_offset = *end_offset;
+    result.header.cell_size = CellExtent{*cell_x, *cell_y, *cell_z};
     result.header.grid_count_x = *grid_x;
     result.header.grid_count_y = *grid_y;
     result.header.grid_count_z = *grid_z;
@@ -124,12 +155,23 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
     result.header.triangle_array_relative_offset = *triangle_relative;
 
     if (*grid_x == 0U || *grid_y == 0U || *grid_z == 0U ||
+        *cell_x == 0U || *cell_y == 0U || *cell_z == 0U ||
         !finite(result.header.bounds_min) || !finite(result.header.bounds_max) ||
-        !finite(result.header.cell_size) || result.header.cell_size.x <= 0.0F ||
-        result.header.cell_size.y <= 0.0F || result.header.cell_size.z <= 0.0F) {
+        result.header.bounds_max.x < result.header.bounds_min.x ||
+        result.header.bounds_max.y < result.header.bounds_min.y ||
+        result.header.bounds_max.z < result.header.bounds_min.z) {
         add_diagnostic(result, ParseSeverity::error,
-            "hits.invalid_grid", "HITS grid dimensions and cell sizes must be finite and non-zero.", 0x20U);
+            "hits.invalid_grid",
+            "HITS grid dimensions, integer cell extents, and bounds must be finite, ordered, and non-zero.",
+            0x20U);
         return result;
+    }
+
+    if (!bounds_match_grid(result.header)) {
+        add_diagnostic(result, ParseSeverity::warning,
+            "hits.grid_bounds_mismatch",
+            "Bounds maximum does not equal bounds minimum + integer cell extent * grid count on every axis.",
+            0x14U);
     }
 
     const auto cell_count = result.header.cell_count();
@@ -138,6 +180,7 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
     const auto triangle_bytes = static_cast<std::uint64_t>(*triangle_count) * triangle_size;
     if (cell_count > std::numeric_limits<std::size_t>::max() ||
         spatial_offset > bytes.size() || triangle_offset > bytes.size() ||
+        triangle_offset < spatial_offset ||
         triangle_bytes > bytes.size() - triangle_offset ||
         *end_offset > bytes.size()) {
         add_diagnostic(result, ParseSeverity::error,
@@ -153,9 +196,10 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
 
     const auto pointer_table = spatial_offset;
     const auto pointer_bytes = cell_count * 4U;
-    if (pointer_table > bytes.size() || pointer_bytes > bytes.size() - pointer_table) {
+    if (pointer_table > bytes.size() || pointer_bytes > bytes.size() - pointer_table ||
+        pointer_bytes > triangle_offset - pointer_table) {
         add_diagnostic(result, ParseSeverity::error,
-            "hits.truncated_cell_table", "The spatial cell pointer table exceeds the resource.", spatial_offset);
+            "hits.truncated_cell_table", "The spatial cell pointer table exceeds the spatial section.", spatial_offset);
         return result;
     }
 

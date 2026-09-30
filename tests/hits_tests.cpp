@@ -65,7 +65,9 @@ void write_triangle(
     write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
     write_vec3(bytes, 0x08U, -10.0F, -2.0F, -10.0F);
     write_vec3(bytes, 0x14U, 10.0F, 2.0F, 10.0F);
-    write_vec3(bytes, 0x20U, 10.0F, 4.0F, 20.0F);
+    write_u32(bytes, 0x20U, 10U);
+    write_u32(bytes, 0x24U, 4U);
+    write_u32(bytes, 0x28U, 20U);
     write_u32(bytes, 0x2CU, 2U);
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
@@ -121,6 +123,9 @@ int main() {
     const auto scan = RecordScanner::scan(std::span<const std::byte>{bytes});
     assert(scan.recognized);
     assert(scan.ok());
+    assert(scan.header.cell_size.x == 10U);
+    assert(scan.header.cell_size.y == 4U);
+    assert(scan.header.cell_size.z == 20U);
     assert(scan.header.cell_count() == 2U);
     assert(scan.header.spatial_offset() == 0x44U);
     assert(scan.header.triangle_offset() == 0x64U);
