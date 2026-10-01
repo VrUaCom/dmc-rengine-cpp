@@ -108,6 +108,9 @@ void ptx_in_pac_to_every_format() {
     const auto ptx = canonical_ptx();
     assert(dmc3::TextureSlotFramingParser::parse(view(ptx)).ok());
     assert(dmc3::is_texture_bundle(view(ptx)));
+    assert(dmc3::list_textures(view(ptx)).size() == 2U);
+    assert(dmc3::holds_textures(view(pac({other, ptx}))) && !dmc3::holds_textures(view(pac({other}))));
+    assert(dmc3::is_wrapped_texture(view(ptx).subspan(0x800, 0x70 + bcn::parse(view(ptx).subspan(0x870)).document.total_size)));
     std::vector<std::byte> other(100);
     for (std::size_t i = 0; i < other.size(); ++i) other[i] = static_cast<std::byte>(i);
     const auto source = pac({other, ptx, other});
@@ -116,6 +119,8 @@ void ptx_in_pac_to_every_format() {
         const auto r = dmc3::reencode_textures(view(source), {.format = format});
         assert(r.ok && r.container == dmc3::ReencodeContainer::pac && r.textures.size() == 2U);
         assert(r.textures[0].pac_slot == 1 && r.textures[1].index == 1U);
+        const auto listed = dmc3::list_textures(view(r.bytes));
+        assert(listed.size() == 2U && listed[0].format == format && listed[1].format == format);
         const auto slots = dmc3::read_pac_slots(view(r.bytes));
         assert(slots && slots->size() == 3U);
         // Untouched slots byte for byte (slot 2 moved but kept its bytes).

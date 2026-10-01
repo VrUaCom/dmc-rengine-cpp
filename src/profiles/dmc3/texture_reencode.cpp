@@ -58,12 +58,6 @@ void put_u32(std::vector<std::byte>& b, std::size_t o, std::uint32_t v) noexcept
     return parsed.document;
 }
 
-[[nodiscard]] bool is_wrapped_texture(std::span<const std::byte> s) noexcept {
-    if (s.size() < k_descriptor + bcn::legacy_header_size) return false;
-    const auto doc = texture_at(s, 0U, s.size());
-    return doc.has_value() && k_descriptor + doc->total_size == s.size();
-}
-
 [[nodiscard]] double psnr(const bcn::RgbaImage& a, const bcn::RgbaImage& b) noexcept {
     if (a.rgba8.size() != b.rgba8.size() || a.rgba8.empty()) return 0.0;
     double mse = 0.0;
@@ -239,6 +233,12 @@ std::vector<std::byte> rewrite_descriptor(std::span<const std::byte> old_desc, c
 
 }  // namespace
 
+bool is_wrapped_texture(std::span<const std::byte> s) noexcept {
+    if (s.size() < k_descriptor + bcn::legacy_header_size) return false;
+    const auto doc = texture_at(s, 0U, s.size());
+    return doc.has_value() && k_descriptor + doc->total_size == s.size();
+}
+
 bool is_texture_bundle(std::span<const std::byte> s) noexcept {
     if (s.size() < k_sector * 2U || s.size() % k_sector != 0U) return false;
     const auto count = u32(s, 0U);
@@ -251,6 +251,25 @@ bool is_texture_bundle(std::span<const std::byte> s) noexcept {
         sector += span;
     }
     return sector * k_sector == s.size();
+}
+
+bool holds_textures(std::span<const std::byte> s) noexcept {
+    try {
+        if (!is_pac(s)) return is_dds(s) || is_wrapped_texture(s) || is_texture_bundle(s);
+        const auto slots = read_pac_slots(s);
+        if (!slots) return false;
+        for (const auto& e : *slots) {
+            if (e.offset == 0U) continue;
+            auto payload = s.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+            for (std::size_t trim = 0U; trim < 16U && trim < payload.size(); ++trim) {
+                const auto p = payload.first(payload.size() - trim);
+                if (is_texture_bundle(p) || is_wrapped_texture(p) || is_dds(p)) return true;
+                if (p.back() != std::byte{0}) break;
+            }
+        }
+    } catch (...) {
+    }
+    return false;
 }
 
 std::optional<std::vector<PacSlotExtent>> read_pac_slots(std::span<const std::byte> s) {
@@ -303,6 +322,45 @@ std::optional<std::vector<std::byte>> replace_pac_slots(std::span<const std::byt
     for (std::uint32_t i = 0U; i < slots->size(); ++i) {
         const auto o = (*slots)[i].offset;
         put_u32(out, 8U + std::size_t{i} * 4U, o == 0U ? 0U : static_cast<std::uint32_t>(moved[o]));
+    }
+    return out;
+}
+
+std::vector<bcn::Document> list_textures(std::span<const std::byte> s) {
+    std::vector<bcn::Document> out;
+    const auto payload_textures = [&](std::span<const std::byte> p) {
+        if (is_dds(p)) {
+            out.push_back(bcn::parse(p).document);
+            return true;
+        }
+        if (is_wrapped_texture(p)) {
+            out.push_back(*texture_at(p, 0U, p.size()));
+            return true;
+        }
+        if (is_texture_bundle(p)) {
+            std::uint64_t sector = 1U;
+            for (std::uint32_t k = 0U; k < u32(p, 0U); ++k) {
+                const auto span = u32(p, 4U + std::size_t{k} * 4U);
+                out.push_back(*texture_at(p, static_cast<std::size_t>(sector * k_sector), (sector + span) * k_sector));
+                sector += span;
+            }
+            return true;
+        }
+        return false;
+    };
+    if (!is_pac(s)) {
+        (void)payload_textures(s);
+        return out;
+    }
+    const auto slots = read_pac_slots(s);
+    if (!slots) return out;
+    for (const auto& e : *slots) {
+        if (e.offset == 0U) continue;
+        const auto payload = s.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+        for (std::size_t trim = 0U; trim < 16U && trim < payload.size(); ++trim) {
+            if (payload_textures(payload.first(payload.size() - trim))) break;
+            if (payload[payload.size() - trim - 1U] != std::byte{0}) break;
+        }
     }
     return out;
 }
