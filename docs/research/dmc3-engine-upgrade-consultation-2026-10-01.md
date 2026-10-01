@@ -127,6 +127,21 @@ reads, keeping the original behaviour as the fallback.
 A file with the costume count and, per costume: PAC, motion banks, coat /
 cloth manifest, SHW policy, menu name. Depends on R4.
 
+### 3.6 Old tables and code in the exe: keep them, do not delete
+Freeing space inside `dmc3.exe` is not needed and is the riskier path:
+- **New code** lives in the loader DLL (no size limit). If a patch must sit in
+  the exe, a new PE section is appended; the PE format allows it and nothing
+  existing moves.
+- **Old tables and code** are tiny (the resource name strings are a few KB of
+  the 2.1 MB `.rdata`; `.text` is 3.4 MB) and stay as the vanilla fallback
+  when an external file is absent.
+- **Hidden references:** a table can be read from places not mapped yet
+  (e.g. the grouping list at `0x1405B0970` points into the resource table).
+  Removing it would break those paths silently; redirecting a pointer or
+  hooking the reader does not.
+- **Rule:** hooks redirect, the original stays in place untouched. A function
+  is replaced by a jump at its entry, never by rewriting its body in place.
+
 ### 3.5 One loader, four files
 A single proxy DLL (`d3d11.dll` or `dinput8.dll`) reads the shading pack,
 the physics manifests, the resource map and the costume list. Each file is
