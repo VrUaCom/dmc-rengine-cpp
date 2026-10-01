@@ -17,7 +17,8 @@ addresses are quoted. Tools: `research/exe/fx/`.
 | Enemy event handler `0x1401C3130`, code -> spawn table | confirmed for the no-player path (emulated per code); player branch not run |
 | AI command layer, command tables per class | confirmed (disassembly); command 0x52 -> em000 bank 0 action 82 -> MOT 62 checked on data |
 | Death schedule 0 / 5 / 10 / 15 / 20 / 25 | confirmed (disassembly of `0x140095E85`) |
-| Binding of `obj+0x6D8` entries 2..22 | open |
+| `obj+0x6D8` entry k = body joint k (all 23 entries) | confirmed (model bind `0x14030F850`, see section 3) |
+| Death trigger: control code 0x3E7 on the killing hit | confirmed (disassembly of `0x1400675C0`, `0x1401C5CD8`) |
 | Nevan state -> motion pairing | open |
 | CEfcPub id arithmetic as the source of the remaining plwp ids | hypothesis |
 | Stage keywords `beff`, `SET LIGHT`, `DOOR` | confirmed (parsers located, corpus usage counted) |
@@ -87,11 +88,19 @@ Effects spawned by a code are placed in one of three ways:
   the parent translation, 2 copy without translation, 3 normalised rows (the
   same four modes as the `+0xC0/+0xD8` live parent of v73).
 
-Entries 0 and 1 are the two script objects of these enemies (the enemy
-motion scripts of em000, em006 and em007 use objects 0 and 1 only: body and
-weapon; the scythe of CEm000 plays the same MOT as the body). What entries
-2..22 are bound to is not traced; they are written by the death code (section
-4) and look like per-limb followers.
+**The array is the body skeleton.** The class init loads the body model
+(`obj+0x840`, slot 1 for CEm000) and calls its `vtbl+0x150` (`0x14008A000`)
+with `r8 = obj+0x6D8`; the bind `0x14030F850` walks the model's joints
+(count u16 `model+0xEA`, 23 for em000's body) and writes into entry k:
+`+0xFA = k`, `+0x110 = model+0x188 + 64 k` (the joint's world matrix),
+`+0x108 = entry+0x40`, `+0xF0` = the parent entry. The entries themselves
+are 0x260-byte joint objects that the factory (`0x140094790`) allocates
+(23 at `+0x6D8`, 6 at `+0x790` for the cloth model at `obj+0xFC0`, the rest
+at `+0x7C0`). So "object k" below is **body joint k**: the effect follows
+that joint's world matrix. (The earlier reading "entry 0 body, 1 weapon"
+took the script objects for this array; it is wrong. The weapon model,
+`obj+0x1EC0` from slot 26 or 29 with textures 25, hangs on joint 9, which is
+why codes 0x18, 0x27 and 0x69 use object 9.)
 
 Event table, from running `0x1401C3130` in the emulator for every code on a
 fabricated actor (actor position (1, 2, 3), yaw 90 degrees, `pos` = (100,
@@ -178,6 +187,13 @@ branch through the player object (not run).
     `0x140093E90`, CEm001 `0x140099100`, CEm002 `0x14009DD30`, CEm003
     `0x1400A2C60`, CEm004 `0x1400A7B80`, CEm005 `0x1400A9230`, CEm006
     `0x1400AE800`, CEm007 `0x1400B0F10`, CEm008 `0x1400B2F00` (constructors).
+* **Death trigger.** The damage command of `CComEm000` (command 4, update
+  `0x1400675C0`, vtable slot 9) restarts itself on the killing hit and sends
+  control codes 0x385 and 0x3E7 (sound 0x1C). The handler case 0x3E7
+  (`0x1401C5CD8`) resets the motion state, clears `+0x2DC0`, `+0x2DCC`,
+  `+0x2DD8`, and sets `obj+0x2EF4 = 1`, which runs the death state machine
+  `obj+0x2EF8` (`0x14009523A`) every update. The sand schedule therefore
+  starts with the killing hit, on top of the damage motion.
 * **Death** (`CEm000`..`CEm004`, `0x140095E85`; copies per class): on entry
   codes 0x69 and 0xC8, then a timer (`obj+0x2EFC += dt`) sends 0xCA + 0xCB at
   5, 0xC9 at 10, 0xCD at 15, 0xCC at 20, 0xCE at 25 ticks: V315..V319 and
@@ -245,12 +261,11 @@ id is in the em028 bank. The state -> motion mapping is not traced.
 
 ## Next steps, by value
 
-1. em000 family attack effects: per command, pair the state-0 action with
-   the frame gates (section 4), then emit code 3 (E42 + V42 on object 1, the
-   weapon) and the others in Script Play. The data path (script action ->
-   MOT, object 1 -> weapon part) already exists in the Reader.
-2. em000 family death: play codes 0x69 / 0xC8..0xCE on the 0 / 5 / 10 / 15 /
-   20 / 25 tick schedule; needs the binding of objects 2..22 to body joints.
+1. em000 family attack effects: done in the Reader (code 3 on body joint 1).
+2. em000 family death: done in the Reader as a class event "Death" that
+   starts the 0 / 5 / 10 / 15 / 20 / 25 schedule on the body joints. The
+   body's sand tint (light colours through `vtbl+0x118..+0x130`, `+0x2F24..`
+   flags) is not reproduced.
 3. Stage: `beff` / `bmodel` toggle; the `SET LIGHT` light if the renderer gets
    a point light.
 4. Nevan: trace the 39 states to script actions, as was done for CEm034.

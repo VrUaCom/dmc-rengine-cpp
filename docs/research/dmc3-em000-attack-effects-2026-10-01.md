@@ -109,7 +109,9 @@ frames; 66 -> MOT 60, 124; 68 -> MOT 46, 60; 82 -> MOT 62, 124; 84 -> MOT 64,
 | 87 | 30 | 237 (233's 170 is past the 142-frame MOT) |
 
 Code 3 spawns E42 and V42 (V42 = P93, E30, E37) scaled x2 at object 1 with
-`+0xD4 = 1` (position only). On the data it is a sand whirl around the enemy;
+`+0xD4 = 1` (position only). Object 1 is body joint 1, not the weapon: the
+array `obj+0x6D8` is the body model's joint list (`0x14030F850`, see
+`dmc3-effect-triggers-2026-10-01.md` section 3). On the data it is a sand whirl around the enemy;
 slot 191 teleports the enemy at frame 45 (`self +0xC8 / +0xD0`, random offset
 +-600 on x / z).
 
@@ -118,5 +120,7 @@ slot 191 teleports the enemy at frame 45 (`self +0xC8 / +0xD0`, random offset
 `modules/motion/enemy_effects.cpp` (branch `NR-Luna-v73`): profile "em000"
 for archive positions CEm000..CEm004, bindings E42 / V42 (slot 41), and a
 Script Play step that emits a spawn when the current script action (slot 38)
-passes a frame of the table, then follows the weapon part's node 0
-translation for 90 ticks. Test `enemy_effects_test`.
+passes a frame of the table, then follows body joint 1's translation for 90
+ticks. The same module plays the death schedule (codes 0x69, 0xC8..0xCE on
+body joints 1..21) from a class event "Death" (control code 0x3E7). Test
+`enemy_effects_test`.

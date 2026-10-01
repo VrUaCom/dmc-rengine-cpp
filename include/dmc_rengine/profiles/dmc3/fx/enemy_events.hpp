@@ -24,7 +24,7 @@ inline constexpr std::uint16_t kFirstControlCode = 0x384U;
 enum class Placement : std::uint8_t {
     GivenPosition,     // the vec3 argument (callers pass the actor position)
     ActorPositionYaw,  // actor position obj+0x80, s16 yaw obj+0xC0 (x 2pi/65536)
-    AttachedObject,    // effect +0xC8 = obj+0x6D8[object]->+0x110, +0xD4 = parent mode
+    AttachedObject,    // effect +0xC8 = obj+0x6D8[object]->+0x110 (body joint world), +0xD4 = mode
     ObjectTranslation, // spawn at the translation of obj+0x6D8[object], not attached
     ActorFields,       // reads actor fields not reproduced by the fabricated run
 };
@@ -33,7 +33,7 @@ struct EventSpawn final {
     runtime::Kind kind{};
     std::uint16_t id{};
     Placement placement{};
-    std::uint8_t object{};  // entry of obj+0x6D8 (0 body, 1 weapon; > 22: later arrays)
+    std::uint8_t object{};  // entry of obj+0x6D8 = body joint k (> 22: cloth / later arrays)
     runtime::MatrixMode parent_mode{};
     float scale{1.0F};      // uniform scale applied to the spawn matrix (0x1403304F0)
 };
@@ -51,7 +51,13 @@ struct EventCase final {
 [[nodiscard]] const EventCase* find_event(std::uint16_t code, std::uint8_t enemy_type = 0U) noexcept;
 
 // Death of CEm000..CEm004 (0x140095E85, one copy per class): codes 0x69 and
-// 0xC8 on entry, then an accumulating timer obj+0x2EFC.
+// 0xC8 on entry, then an accumulating timer obj+0x2EFC. Started by control
+// code 0x3E7 (handler 0x1401C5CD8 sets obj+0x2EF4), which the damage command
+// 0x1400675C0 sends with 0x385 on the killing hit.
+inline constexpr std::uint16_t kDeathControlCode = 0x3E7U;
+// Body model bind 0x14030F850: obj+0x6D8[k]+0x110 = model+0x188 + 64 * k.
+inline constexpr std::uint64_t kJointArrayBind = 0x14030F850U;
+inline constexpr std::size_t kBodyJointEntries = 23U;
 struct DeathStep final {
     float tick{};
     std::array<std::uint16_t, 2> codes{};
