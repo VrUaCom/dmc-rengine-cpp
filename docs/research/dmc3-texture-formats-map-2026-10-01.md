@@ -217,3 +217,36 @@ Status: static only. No BC7 texture has been run in game yet.
 Not covered by this: the game's shaders sample whatever the view returns,
 so format does not matter to them. sRGB variants (`*_SRGB`) would change
 the gamma, because the original textures are UNORM; use UNORM.
+
+## 10. Reader support for every format the loader accepts
+
+`codecs::dds_bcn` (`include/dmc_rengine/codecs/dds_bcn.hpp`) reads the DDS
+headers the game's loader takes: legacy FourCC (DXT1..DXT5, ATI1/ATI2,
+BC4U/BC4S/BC5U/BC5S) and `DX10` with DXGI BC1..BC7 (UNORM, SRGB, SNORM,
+UF16/SF16). It decodes BC1..BC7 to RGBA8 for previews:
+
+- BC4 is shown as grey; BC5 as R, G with B = 0;
+- SNORM maps [-1, 1] to [0, 255];
+- BC6H is clamped to [0, 1];
+- reserved BC6H / BC7 modes decode to zero, as the D3D spec requires.
+
+A preview never exceeds its pixel budget: it uses mip 0, else the first
+stored mip that fits, else mip 0 box-filtered one block row at a time.
+
+Verification (`tests/dds_bcn_tests.cpp` and a scratch differential run):
+
+- random blocks against Pillow 12.3 (CC0 BcnDecode):
+  - BC7: exact on all 16368 pixels;
+  - BC4 / BC5 UNORM: exact;
+  - BC1 / BC2 / BC3: within 1 (5:6:5 expansion rounding);
+  - BC6H UF16: within 1 in all 14 modes;
+- BC6H SF16: equal to Pillow in the non-delta modes (9, 10, 13). In the delta
+  modes Pillow skips the sign extension after the inverse transform, which
+  the Microsoft reference (DirectXTex `TransformInverse`) performs; this
+  codec follows the reference;
+- DXT1 / DXT5: bit-identical to `codecs::dds_bc`.
+
+Native Reader carries the same codec (its pinned Rengine predates it). It
+also reads PTX bundles whose DDS children use these formats, with only the
+checks the executable makes (section 9): `+0x00 == 0`, `+0x20 == 0x40`,
+`+0x68 == 8`, `+0x64` = DDS size, non-zero `+0x10/+0x12`.

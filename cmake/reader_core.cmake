@@ -19,6 +19,7 @@ set(DMC_RENGINE_READER_CORE_SOURCES
     # Portable texture reader primitives. DMC-specific descriptor/PTX framing
     # stays in Rengine; platform shells never parse +0x38/+0x64/0x70 offsets.
     "${DMC_RENGINE_READER_ROOT}/src/codecs/dds_bc.cpp"
+    "${DMC_RENGINE_READER_ROOT}/src/codecs/dds_bcn.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/profiles/dmc3/texture_slot_framing.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/profiles/dmc3/texture_slot_framing_compat.cpp"
 
