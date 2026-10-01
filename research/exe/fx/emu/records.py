@@ -16,7 +16,7 @@ def bank_from_bytes(s):
         k += 2 if kind == 'M' else 1; i += 2
     return recs
 def pac_slots(b):
-    assert b[:4] == b'PAC\0'
+    # Top-level archives start with 'PAC\0' or a 4-byte tag; the slot table follows.
     n = struct.unpack_from('<I', b, 4)[0]; offs = [struct.unpack_from('<I', b, 8 + 4 * i)[0] for i in range(n)]
     ends = sorted(set(offs + [len(b)]))
     return [b[o:min(x for x in ends if x > o)] for o in offs]

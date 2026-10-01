@@ -6,6 +6,7 @@ Tools behind the effect notes of 2026-10-01:
 * `docs/research/dmc3-particle-p-records-2026-10-01.md`
 * `docs/research/dmc3-generator-g-records-2026-10-01.md`
 * `docs/research/dmc3-effect-triggers-2026-10-01.md`
+* `docs/research/dmc3-em000-attack-effects-2026-10-01.md`
 
 Nothing of the game is committed here. Every tool reads a local copy of
 `dmc3.exe` (canonical SHA-256
@@ -55,6 +56,8 @@ w-mask at `0x1405D9F30` is zero and every particle matrix gets w = 2.
 | `realdump.py` | per real P record: spawn state + 12 updates (`$FX_RECORDS` -> `$FX_OUT`) |
 | `gen.py`, `gen_gt.py` | generator harness (`GSys`) and per real G record spawn events with an injected LCG |
 | `gen_synth.py OUT` | synthetic G truth (the Reader's `generator_truth.inc`, reproduced byte for byte) |
+| `comemu.py [VTABLE LO HI]` | runs AI command pairs (update / start) of a CCom vtable with a stub enemy interface; plays, frames and event codes (`FX_LENGTHS`, `FX_TABLES`) |
+| `action_lengths.py PAC SCRIPT_SLOT MOT_SLOT` | MOT and frame count of every script action (local PAC only) |
 | `clip_t.py` | C-clip B-spline samples |
 | `records.py`, `dump_bank_records.py PAC SLOT DIR` | FXBANK parsing; dump every record of a bank into DIR (local only) |
 
