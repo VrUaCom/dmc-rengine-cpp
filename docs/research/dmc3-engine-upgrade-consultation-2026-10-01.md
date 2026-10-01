@@ -123,6 +123,74 @@ reads, keeping the original behaviour as the fallback.
   replacement; whether the NBZ index accepts a member name the base volumes do
   not have is untested (R5).
 
+### 3.3a Costume groups: how a costume is picked (2026-10-01, later)
+- **Loader `0x1401B8F50(mgr, character dl, ?, costume r9b)`.** The group
+  table `0x1405B0970` (`.data`) holds one pointer per character:
+  - 0 -> `0x1405B08C0`;
+  - 1 -> `0x1405B0920`;
+  - 2 -> `0x1405B0930`;
+  - 3 -> `0x1405B0940`.
+
+  The record is `group[character] + costume * 16`: 16-byte records `{u64
+  loaded / state, const char* name}`. The manager slot is `mgr + (word
+  [0x140581A20] + character) * 72`; state 3 = already loaded. The record goes
+  to `0x1401B84E0`, which loads it.
+- **Groups.**
+  - Character 0 starts at `pl000`, followed by `pl011`, `pl013`, `pl015`,
+    `pl016`, `pl018` (the Dante costumes).
+  - Characters 1, 2 and 3 start at `pl001`, `pl002` and `pl021` (`pl021`,
+    `pl023`, `pl026` follow).
+  - Groups are contiguous runs of the same record array, so a group's length
+    is implied by where the next one starts.
+- **Second loader `0x1401B8FF0`** (costume `r8b` <= 5, index `character * 7
+  + costume`, manager base word `[0x140581A26]`), group table `0x1405B0A40`:
+  - 0 and 2 -> `pl005..`;
+  - 1 and 3 -> `pl010..`.
+
+  The `pl005`..`pl010`, `pl017`, `pl014`, `pl025` run is probably the devil
+  trigger forms.
+- **Adding costumes without replacing one.** The group pointers are writable
+  `.data`, so a loader DLL can point character 0 at a new, longer record
+  array (the original six records first, new names after it), with no exe
+  patch for the loading path. Still needed (R4):
+  - the manager slot count (`* 72` slots from `[0x140581A20]`) has to cover
+    the new indices;
+  - the costume menu / selection limit;
+  - the per-costume switches in the class code (e.g. costume bytes 5 / 7 at
+    `0x1402151F4`) need defaults for new indices;
+  - the NBZ lookup of new member names (R5).
+
+### 3.3b `.rdata` / `.data`: what is worth moving out
+- **`.rdata`** (2.1 MB, read-only): floats and constants used by code, jump
+  tables, vtables and RTTI, strings, and data tables (event / command tables
+  such as `0x1405A3300`, effect tables, shader blobs).
+- **`.data`** (8.5 MB virtual, 0.5 MB in the file): mutable globals and
+  writable tables (the resource and costume tables above).
+- **Worth moving out:** only content tables (resources, costumes, command /
+  event tables, character parameters, shaders), as data files read through
+  hooks.
+- **Not worth moving out:** constants and structure that the code itself
+  depends on (jump tables, vtables, immediate floats). Moving them gains
+  nothing and breaks code.
+
+## 6. Long-term goal: a full C++20 engine
+- **Target:** the whole of `dmc3.exe` reimplemented as C++20 in rengine, then a
+  standalone runtime that boots the game data without the exe (as OpenMW /
+  OpenRCT2 do), with a modern renderer, physics and fully data-driven
+  content.
+- **Scale.** `.pdata` lists about 12,200 functions (146,820 bytes / 12).
+  Reimplement by subsystem (formats, motion, effects, cloth, collision, AI,
+  stage, then gameplay), each with emulator-checked tests, as done for P / G
+  records and the enemy event table.
+- **Other games.**
+  - DMC1 and DMC2 share the PS2-era Capcom lineage of formats.
+  - DMC4 (MT Framework) and DMC5 (RE Engine) are different families.
+  - The engine therefore needs engine-neutral internal assets (skeleton,
+    mesh, material, animation, cloth, effects) with one importer per game.
+    That is what makes "every costume from every game" possible.
+- **Distribution rule:** the engine and tools are shareable; game data always
+  comes from the player's own copies.
+
 ### 3.4 Costume list file
 A file with the costume count and, per costume: PAC, motion banks, coat /
 cloth manifest, SHW policy, menu name. Depends on R4.
