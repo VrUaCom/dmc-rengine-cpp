@@ -230,6 +230,29 @@ reads, keeping the original behaviour as the fallback.
     part, so file names must be unique within `GData.afs/`;
   - **R5 is closed:** adding costume PACs needs no change to the file layer.
 
+### 3.3e R4: where the costume code is chosen (open)
+- **The config belongs to the mission-select scene.**
+  - `CSceneMisSelect` (vtable `0x1404E31D8`, constructor `0x14023F2B0`)
+    keeps the edited loadout at `+0x118`.
+  - Its slot 15 (`0x14023A200`) copies it into `+0x1C4` (`0x1402178B0`) and
+    loads the character through `0x1401DF320`. The costume code is
+    therefore `scene+0x14C` while it is being edited, `scene+0x1F8` once
+    applied.
+  - The scene embeds `CCustomizeData` objects (vtable `0x1404C8790`, at
+    `+0x368` and in the child at `+0x70`).
+- **Not found statically.**
+  - No direct byte write to `+0x14C` / `+0x34` exists in the scene or UI
+    ranges, so the menu writes through another base.
+  - The `bt` / `bts` unlock checks found belong to `CUIDCustomWeapon`
+    (`0x14028AF70`), not to costumes.
+  - The exe has no costume strings.
+- **Fastest next step (runtime).** With the game running, a write watch on
+  `CSceneMisSelect+0x14C` (debugger or memory scanner: "find what writes to
+  this address") while changing the costume gives the menu code and its limit
+  in one step. Statically, the remaining candidates are the `CCustomizeData`
+  methods `0x140084E00`..`0x140087BE9` and the `CUIDMisSelect` vtable
+  `0x1404E9E50`.
+
 ### 3.3b `.rdata` / `.data`: what is worth moving out
 - **`.rdata`** (2.1 MB, read-only): floats and constants used by code, jump
   tables, vtables and RTTI, strings, and data tables (event / command tables
