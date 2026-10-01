@@ -23,8 +23,14 @@ acquire [io]            read the file once (or take bytes in memory)
                         validated); --replace to overwrite
 ```
 
-The steps run as two Crusader plans on the native executor, because the
-transform fan-out depends on what `inspect` finds.
+The steps run as two Crusader plans built with `crusader::Builder`
+(`spider/plan_builder.hpp`), because the transform fan-out depends on what
+`inspect` finds.
+
+- **Operations:** typed (`bool fn(State&, operand) noexcept`) and bound
+  with `crusader::bind<State, &fn>`.
+- **Failures:** a failed run names its step through
+  `Builder::failed_label`.
 
 - **Plan 1:** acquire → inspect.
 - **Plan 2:**

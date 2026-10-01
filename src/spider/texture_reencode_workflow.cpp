@@ -50,8 +50,7 @@ void step(State& s, std::string name, bool ok, std::string detail = {}) {
     s.steps.push_back({std::move(name), ok, std::move(detail)});
 }
 
-bool acquire(void* raw, std::uint32_t) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool acquire(State& s, std::uint32_t) noexcept {
     try {
         if (s.input_path) {
             std::ifstream in(*s.input_path, std::ios::binary);
@@ -74,8 +73,7 @@ bool acquire(void* raw, std::uint32_t) noexcept {
     }
 }
 
-bool inspect(void* raw, std::uint32_t) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool inspect(State& s, std::uint32_t) noexcept {
     try {
         const auto pac_slots = dmc3::read_pac_slots(s.source);
         s.pac = pac_slots.has_value();
@@ -103,8 +101,7 @@ bool inspect(void* raw, std::uint32_t) noexcept {
     }
 }
 
-bool transform(void* raw, std::uint32_t operand) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool transform(State& s, std::uint32_t operand) noexcept {
     try {
         if (!s.pac) {
             s.single = dmc3::reencode_payload(s.source, s.request->options);
@@ -132,8 +129,7 @@ bool transform(void* raw, std::uint32_t operand) noexcept {
     }
 }
 
-bool assemble(void* raw, std::uint32_t) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool assemble(State& s, std::uint32_t) noexcept {
     try {
         if (!s.pac) {
             s.result.container = s.single.container;
@@ -156,8 +152,7 @@ bool assemble(void* raw, std::uint32_t) noexcept {
     }
 }
 
-bool validate(void* raw, std::uint32_t) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool validate(State& s, std::uint32_t) noexcept {
     try {
         const std::span<const std::byte> out{s.result.bytes.data(), s.result.bytes.size()};
         const auto formats = dmc3::list_textures(out);
@@ -197,8 +192,7 @@ bool validate(void* raw, std::uint32_t) noexcept {
     }
 }
 
-bool publish(void* raw, std::uint32_t) noexcept {
-    auto& s = *static_cast<State*>(raw);
+bool publish(State& s, std::uint32_t) noexcept {
     try {
         const auto& target = s.request->output;
         if (target.empty()) {
@@ -230,50 +224,38 @@ bool publish(void* raw, std::uint32_t) noexcept {
 }
 
 constexpr std::array k_bindings{
-    crusader::OperationBinding{.operation = k_acquire, .execute = &acquire},
-    crusader::OperationBinding{.operation = k_inspect, .execute = &inspect},
-    crusader::OperationBinding{.operation = k_transform, .execute = &transform},
-    crusader::OperationBinding{.operation = k_assemble, .execute = &assemble},
-    crusader::OperationBinding{.operation = k_validate, .execute = &validate},
-    crusader::OperationBinding{.operation = k_publish, .execute = &publish},
+    crusader::bind<State, &acquire>(k_acquire),
+    crusader::bind<State, &inspect>(k_inspect),
+    crusader::bind<State, &transform>(k_transform),
+    crusader::bind<State, &assemble>(k_assemble),
+    crusader::bind<State, &validate>(k_validate),
+    crusader::bind<State, &publish>(k_publish),
 };
-
-crusader::Instruction instruction(crusader::OperationId op, std::uint32_t operand, crusader::Domain domain,
-                                  std::uint32_t dependency_begin, std::uint16_t dependency_count) {
-    return {.operation = op, .operand = operand, .dependency_begin = dependency_begin,
-            .dependency_count = dependency_count, .domain = domain};
-}
 
 TextureReencodeWorkflowResult run(State& state) {
     TextureReencodeWorkflowResult out;
-    // Plan 1: acquire -> inspect (the transform fan-out depends on it).
-    crusader::Plan front;
-    front.dependencies = {0U};
-    front.instructions = {
-        instruction(k_acquire, 0U, crusader::Domain::io, 0U, 0U),
-        instruction(k_inspect, 0U, crusader::Domain::cpu, 0U, 1U),
-    };
-    out.report = crusader::execute(front, k_bindings, &state);
+    // Plan 1: acquire -> inspect. The transform fan-out depends on what
+    // inspect finds, so the rest is compiled after it (Tarantula: choose
+    // the operation, then run it).
+    crusader::Builder front;
+    const auto acquired = front.add(k_acquire, 0U, crusader::Domain::io, {}, "acquire");
+    front.add(k_inspect, 0U, crusader::Domain::cpu, {acquired}, "inspect");
+    out.report = crusader::execute(front.build(), k_bindings, state);
+    std::string failed{front.failed_label(out.report)};
     if (out.report.ok()) {
-        // Plan 2: transform[slot] x N -> assemble (needs all) -> validate -> publish.
-        crusader::Plan back;
+        // Plan 2: transform[slot] x N -> assemble -> validate -> publish.
+        crusader::Builder back;
+        std::vector<crusader::Node> transforms;
         const std::vector<std::uint32_t> transform_slots =
             state.pac ? state.texture_slots : std::vector<std::uint32_t>{0U};
         for (const auto slot : transform_slots) {
-            back.instructions.push_back(instruction(k_transform, slot, crusader::Domain::cpu, 0U, 0U));
+            transforms.push_back(back.add(k_transform, slot, crusader::Domain::cpu, {}, "transform"));
         }
-        const auto n = static_cast<std::uint32_t>(back.instructions.size());
-        const auto assemble_deps = static_cast<std::uint32_t>(back.dependencies.size());
-        for (std::uint32_t i = 0U; i < n; ++i) back.dependencies.push_back(i);
-        back.instructions.push_back(
-            instruction(k_assemble, 0U, crusader::Domain::cpu, assemble_deps, static_cast<std::uint16_t>(n)));
-        back.dependencies.push_back(n);
-        back.instructions.push_back(instruction(k_validate, 0U, crusader::Domain::cpu,
-                                                static_cast<std::uint32_t>(back.dependencies.size() - 1U), 1U));
-        back.dependencies.push_back(n + 1U);
-        back.instructions.push_back(instruction(k_publish, 0U, crusader::Domain::io,
-                                                static_cast<std::uint32_t>(back.dependencies.size() - 1U), 1U));
-        out.report = crusader::execute(back, k_bindings, &state);
+        const auto assembled = back.add_span(k_assemble, 0U, crusader::Domain::cpu, transforms, "assemble");
+        const auto validated = back.add(k_validate, 0U, crusader::Domain::cpu, {assembled}, "validate");
+        back.add(k_publish, 0U, crusader::Domain::io, {validated}, "publish");
+        out.report = crusader::execute(back.build(), k_bindings, state);
+        failed = back.failed_label(out.report);
     }
     out.steps = std::move(state.steps);
     out.result = std::move(state.result);
@@ -287,8 +269,9 @@ TextureReencodeWorkflowResult run(State& state) {
         out.detail = d.str();
         out.result.detail = out.detail;
     } else {
-        out.detail = out.steps.empty() ? std::string(crusader::to_string(out.report.status))
-                                       : out.steps.back().name + ": " + out.steps.back().detail;
+        // The step the executor stopped at, with that step's own receipt.
+        out.detail = failed.empty() ? std::string(crusader::to_string(out.report.status)) : failed;
+        if (!out.steps.empty() && !out.steps.back().ok) out.detail = out.steps.back().name + ": " + out.steps.back().detail;
         out.result.bytes.clear();
     }
     return out;
