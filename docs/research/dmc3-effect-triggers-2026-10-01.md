@@ -242,6 +242,25 @@ id is in the em028 bank. The state -> motion mapping is not traced.
   `material`, `lockon`, `special`. Corpus: st000 has seven `beff V 122`, st002
   three `beff V 104` with `bmodel 4`. Breaking needs an attack, so the Reader
   could only offer it as a toggle (show `bmodel` and play `beff` at `epos`).
+* **Break runtime** (`CStageSetBreak`, constructor `0x140249710`, update
+  `0x14024AE40`). The constructor copies the parsed block into the object:
+  `+0x6C8 / +0x6D0` eff kind / id, `+0x6CC / +0x6D2` beff kind / id,
+  `+0x6E0` eff position, `+0x6F0` beff position (each w = 1; the parser's
+  `epos` fills the slot of the last `eff` / `beff`), `+0x700` remain (0, 1
+  `on`, 2 `on2`), `+0x630` model, `+0x638` bmodel, `+0x770` the object
+  matrix (scale, rotation, `pos`). Update states `+0x628`:
+  0 spawns the eff through `0x1402E7CA0` (flags 0x40) at translate(eff
+  position) x object matrix, then 1; 1 animates the model until broken
+  (`+0x7B6`): sound, the eff is retired, the beff spawned the same way at
+  its own position, and the bmodel starts its motion (state 2), or the
+  object is removed when there is no bmodel; 2 waits for the bmodel motion,
+  then remain != 0 -> 3 (stays) or remain = 0 -> 4, a fade from alpha 64 by
+  2 per tick, after which the object goes.
+* Native Reader (v79): a break toggle draws every BREAK object of the room
+  or stage scene with its bmodel (rest pose; the break motion and the
+  remain-0 fade are not played) and plays its beff once from the toggle.
+  Corpus: st000 seven objects (bmodel, V122), st002 three drums (V98 fire
+  -> V104, bmodel 4, remain on).
 * `# SET n LIGHT` (`CStageSetLight`): an animated point light. `move loop0 /
   loop2`, `valid scr / obj`, `minus` (subtractive), `life` (ticks), `type`,
   start `spos` / `sforce` / `srange` / `srgb` to end `epos` / `eforce` /
@@ -266,7 +285,7 @@ id is in the em028 bank. The state -> motion mapping is not traced.
    starts the 0 / 5 / 10 / 15 / 20 / 25 schedule on the body joints. The
    body's sand tint (light colours through `vtbl+0x118..+0x130`, `+0x2F24..`
    flags) is not reproduced.
-3. Stage: `beff` / `bmodel` toggle; the `SET LIGHT` light if the renderer gets
-   a point light.
+3. Stage: `beff` / `bmodel` toggle done (v79); the `SET LIGHT` light if the
+   renderer gets a point light.
 4. Nevan: trace the 39 states to script actions, as was done for CEm034.
 5. CEfcPub id arithmetic and `CAfterImage` for the weapons.

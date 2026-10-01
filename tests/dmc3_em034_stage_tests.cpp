@@ -124,11 +124,23 @@ int main() {
             "  uv 0, 1, 0.5, -0.25\n"
             "  eff V 98\n"
             "  epos 1, 2, 3\n"
+            "# SET 3 BREAK ; drum\n"
+            "  model 3\n"
+            "  bmodel 4\n"
+            "  eff V 98\n"
+            "  epos 0.0, 130.0, 0.0\n"
+            "  beff V 104\n"
+            "  remain on ; stays\n"
+            "  pos 2100, 15, 3050\n"
+            "# SET 4 BREAK\n"
+            "  model 1\n"
+            "  beff V 122\n"
+            "  epos 1, 2, 3\n"
             "# GAME_END\n"
             "# SET 2 IGNORED\n";
         const auto game = layout::parse_game(text);
         assert(game.has_camera && near3(game.camera, {1.5F, 2.0F, -3.0F}));
-        assert(game.sets.size() == 2U);
+        assert(game.sets.size() == 4U);
         const auto& set = game.sets[1];
         assert(set.kind == "MODEL" && set.model == 4);
         assert(near3(set.pos, {100.0F, 0.0F, -50.0F}) && near3(set.rot, {0.0F, 90.0F, 0.0F}));
@@ -138,6 +150,17 @@ int main() {
         assert(near3(layout::place_point(set, {1.0F, 0.0F, 0.0F}), {100.0F, 0.0F, -52.0F}, 1.0e-3F));
         assert(near3(layout::place_normal(set, {0.0F, 0.0F, 1.0F}), {1.0F, 0.0F, 0.0F}, 1.0e-5F));
         assert(layout::numbers("1, 2 x ; 3").size() == 2U);
+        const auto& drum = game.sets[2];
+        assert(drum.kind == "BREAK" && drum.model == 3 && drum.broken_model == 4 && drum.remain == 1U);
+        assert(drum.effect_id == 98 && near3(drum.effect_pos, {0.0F, 130.0F, 0.0F}));
+        assert(drum.broken_effect_kind == 'V' && drum.broken_effect_id == 104 && near3(drum.broken_effect_pos, {}));
+        const auto intact = layout::object_state(drum, false), broken = layout::object_state(drum, true);
+        assert(intact.model == 3 && intact.effect_id == 98 && !intact.once);
+        assert(broken.model == 4 && broken.effect_id == 104 && broken.once);
+        const auto& crate = game.sets[3];
+        assert(crate.remain == 0U && crate.broken_model == -1 && near3(crate.broken_effect_pos, {1.0F, 2.0F, 3.0F}));
+        assert(near3(crate.effect_pos, {}) && layout::object_state(crate, true).model == -1);
+        assert(layout::object_state(set, true).model == 4);  // not a BREAK block
     }
 
     std::printf("dmc3 em034/stage ok\n");
