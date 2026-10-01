@@ -185,3 +185,35 @@ language)` maps ids 0..3999 to these records.
   `TextureSlotFramingReader::parse`. Native Reader keeps an equivalent strict
   reader in its compatibility layer until its pinned Rengine copy moves
   forward.
+
+## 9. DX10 DDS (BC7 and others): static evidence
+
+Device creation `0x1400429FC` asks for a single feature level, `0xB000`
+(D3D_FEATURE_LEVEL_11_0); the swap chain is `0x1C` (R8G8B8A8_UNORM). Feature
+level 11_0 guarantees BC6H / BC7 sampling.
+
+The DDS loader `0x1400499C0` is DirectXTK `CreateDDSTextureFromMemory`:
+
+- it accepts the `DX10` FourCC with the extended header (minimum size `0x94`
+  bytes = 4 + 124 + 20);
+- `0x140049BA0` reads `dxgiFormat` from the extended header, rejects
+  111..114 (AI44, IA44, P8, A8P8) and formats with
+  `BitsPerPixel == 0`;
+- `BitsPerPixel` (`0x140049390`, jump table) returns non-zero for BC1 (4),
+  BC3 (8), BC4 (4), BC5 (8), BC6H (8), BC7 / BC7_SRGB (8), R8G8B8A8 /
+  B8G8R8A8 (32), R16G16B16A16_FLOAT (64) and R32G32B32A32_FLOAT (128);
+- the resource dimension is checked (1D / 2D with the cubemap flag / 3D).
+
+Therefore a `gfxTexture` whose DDS carries a DX10 header with BC7 (or any
+format above) passes the executable's load path, provided the header fields
+match:
+
+- `+0x64` = full DDS size including the 20-byte DX10 header;
+- the PTX span covers it;
+- `+0x10/+0x12` keep the logical size.
+
+Status: static only. No BC7 texture has been run in game yet.
+
+Not covered by this: the game's shaders sample whatever the view returns,
+so format does not matter to them. sRGB variants (`*_SRGB`) would change
+the gamma, because the original textures are UNORM; use UNORM.
