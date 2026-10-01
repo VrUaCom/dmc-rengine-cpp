@@ -201,6 +201,35 @@ reads, keeping the original behaviour as the fallback.
   `CCustomizeData` `0x1404C8790`);
 - R5 decides whether new names load from an overlay volume.
 
+### 3.3d R5 answered: new file names load (2026-10-01)
+- **Mounts** (`0x14002E930`):
+  1. the directory `<exe dir>\data\dmc3\` (`0x140326D20`, type 0, flags
+     `0xC`);
+  2. `DMC3-0.nbz`, `DMC3-1.nbz`, ... in order until the next number is
+     missing (`0x140327720` / `0x140326DA0`, type 1, own member index built
+     by `0x140328320` / `0x140327CC0`).
+
+  Every mount is pushed on the head of the list `[0x140CF3180]`
+  (`new->next = head`). The search therefore goes: highest volume first,
+  lower volumes, and the loose directory last. A later volume overrides an
+  earlier one.
+- **Open by name** (`0x14002FCA0`): the requested path is cut to its file
+  name (everything after the last `\` or `/`). Then `prefix + name` is
+  tried for the prefixes `GDataX360.afs/`, `GData.afs/`, `Video/`,
+  `afs/sound/`, `SAVEDATA/` and the empty one, in two passes (table
+  `0x14055AEF8`, open `0x140327430`). For each mount:
+  - an archive looks the logical path up in its index (`0x140328160`, then
+    `0x140328290`);
+  - the directory joins it to its root (`0x140327160` drops leading
+    slashes).
+- **Consequence:**
+  - a new PAC is found when its logical path `GData.afs/<name>` exists in
+    any mounted volume, e.g. a new contiguous `DMC3-N.nbz`, or as a loose
+    file `data\dmc3\GData.afs\<name>`;
+  - the folder in the table name (`obj\`, `motion\pl000\`) does not take
+    part, so file names must be unique within `GData.afs/`;
+  - **R5 is closed:** adding costume PACs needs no change to the file layer.
+
 ### 3.3b `.rdata` / `.data`: what is worth moving out
 - **`.rdata`** (2.1 MB, read-only): floats and constants used by code, jump
   tables, vtables and RTTI, strings, and data tables (event / command tables
@@ -265,7 +294,7 @@ side (tools build and validate the files); Native Reader previews them.
 | R2 | Light point `[shw+0x60]` and extrusion length of SHW volumes | shadows on walls with data / constant changes only |
 | R3 | SHW generator in rengine + per-class SHW enable points (`0x14031FD30` callers) | shadows for enemies and objects |
 | R4 | Costume count, selection menu and per-costume class switches; decode the list at `0x1405B0970` | costume list file |
-| R5 | NBZ lookup of member names not in the base volumes | adding new PACs by name |
+| R5 | NBZ lookup of member names not in the base volumes (done, 3.3d: they load) | adding new PACs by name |
 | R6 | Cloth / attach setup per class (`0x1402CA1D0`, `0x1402CA2F0`, `+0xA0D0..+0xA300`) as one manifest schema | physics manifest |
 | R7 | Stage AO / light bake prototype for st000 / st002 in Native Reader | baked stage shadows |
 
