@@ -291,6 +291,34 @@ reads, keeping the original behaviour as the fallback.
   - It holds **no costume menu**. The costume choice is on the
     mission-select screen, whose pack is `id920.pac`.
 
+- **`id5000` group: Mission Select (found by the user, checked on the
+  data).**
+  - `id5000.pac` is the Mission Select screen. It has 24 slots: pairs of a
+    flat UI MOD and a single-level PTX.
+  - Textures in `id5000.pac`:
+    - the "MISSION SELECT" background (512²);
+    - the LB / RB arrows;
+    - the mode list: TOTAL RANKING, BLOODY ARENA, GALLERY, SAVE / LOAD,
+      difficulties, DANTE MUST DIE, HEAVEN OR HELL, BLOODY PALACE, DEMO
+      DIGEST;
+    - number sheets 1..20 (missions);
+    - the edition names Turbo / GOLD / YELLOW / INTERNATIONAL.
+  - `id5004.pac` has 2 slots (MOD + PTX). Its 512² texture is the Mission
+    Select background with Dante in one costume (red vest, black sleeves).
+  - So `id5001`..`id5009` are most likely one background per costume. The
+    executable lists them with the language suffixes F / G / I / S.
+  - Resource id N maps 1:1 to file `idN`: the switch in the id lookup at
+    `0x1402C28C0` handles `id - 0x1389` for ids 5001..5205. Each target is
+    a group of 8 language records {handle, path} of 16 bytes, starting at
+    `0x1405B7C60` (`id5000`).
+  - Not found yet: the code that turns the costume number into the id.
+    - No `lea/add id, 0x1389` exists.
+    - The constant requests of 5000 / 5001 / 5002 belong to `CComEm000/005`
+      and `CComEm006/008` (enemy vfuncs 40..42), not to the menu.
+    - Next step: a table of ids, or the `CUIDMisSelect` resource request.
+  - For new costumes this means a new costume also needs a new Mission
+    Select background, i.e. a new `id50xx` record and file.
+
 - **Not the costume: the language byte.** `[0x1405EA130 + 0x66C]` (getter
   `0x140036E90`) is the language: 0 Japanese, 1 English, 2 French, 3 German,
   4 Italian, 5 Spanish, 6 Chinese, 7 SChinese (setter `0x140036360`). The
