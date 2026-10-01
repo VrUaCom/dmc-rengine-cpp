@@ -102,6 +102,48 @@ existing spider::NativePlan / execute_native_plan()
 `crusader.hpp` is therefore a zero-overhead facade over the existing native
 executor. There must not be a second executor implementation.
 
+## Writing Crusader plans: PlanBuilder and typed bindings
+
+Hand-written plans keep `dependency_begin` / `dependency_count` offsets in
+step with a shared `dependencies` array. That gets error-prone once a
+workflow fans out (one transform per slot / window, then a join).
+
+`spider/plan_builder.hpp` builds the same `NativePlan` from named nodes:
+
+```cpp
+crusader::Builder b;
+const auto acquire = b.add(k_acquire, 0, crusader::Domain::io, {}, "acquire");
+std::vector<crusader::Node> parts;
+for (auto slot : slots) parts.push_back(b.add(k_transform, slot, crusader::Domain::cpu, {acquire}, "transform"));
+b.add_span(k_assemble, 0, crusader::Domain::cpu, parts, "assemble");
+const auto report = crusader::execute(b.build(), bindings, state);   // typed state
+if (!report.ok()) log(b.failed_label(report));                        // step name
+```
+
+- **Ordering:** a node can only depend on nodes added before it, so the plan
+  is topologically ordered by construction.
+- **Fail-closed:** a dependency on an unknown or later node marks the builder
+  failed. `build()` then returns a plan the executor rejects with
+  `invalid_plan` before any operation runs.
+- **Labels:** stored beside the plan, never executed. `failed_label()` turns
+  an `ExecutionReport` into the step that stopped.
+
+The builder adds no runtime machinery: the executor receives the same
+16-byte instructions as before.
+
+**Typed bindings** (`spider/crusader.hpp`):
+
+- `crusader::bind<State, &fn>(id)` adapts `bool fn(State&, std::uint32_t)
+  noexcept` to the executor ABI through one template function per
+  `(State, fn)`. Bindings stay plain function pointers: no `std::function`,
+  no allocation.
+- `crusader::execute(plan, bindings, state)` takes the state by reference.
+  The `void*` exists only inside the executor.
+- `StateObject` rejects pointers, so `execute(plan, bindings, &state)` still
+  selects the raw ABI overload.
+
+Covered by `tests/spider_plan_builder_tests.cpp`.
+
 ## Shared Spider law: modules own algorithms, Spider owns coordination
 
 The core rule for all three families is:
