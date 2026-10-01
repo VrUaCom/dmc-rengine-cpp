@@ -269,6 +269,22 @@ reads, keeping the original behaviour as the fallback.
   icons, if the menu shows them, would sit in these packs; new costumes then
   also need new UI entries there (to check on the files: `id900*.pac`,
   `id920.pac`).
+- **`id900.pac` checked on the data (English).**
+  - Layout: 20 slots, pairs of a texture bank and a flat UI MOD. Slots 10
+    and 13 are small PACs with one MOT each (menu animation).
+  - Texture bank: `u32 count`, `u32 size in 2 KB sectors` per texture, a
+    `0x1000` header, then per texture a `0x800` header and DXT5 (BC3) data,
+    1 byte per pixel, square 256 / 512.
+  - Content: the title screen.
+    - DMC3 Special Edition logo, both the 2005 and the 2018 copyright
+      versions;
+    - VERGIL / DANTE character select with their full-body art;
+    - NEW GAME / LOAD GAME / OPTIONS / TUTORIAL, ON / OFF;
+    - EASY / NORMAL / AUTOMATIC;
+    - INTERNATIONAL / GOLD / YELLOW.
+  - It holds **no costume menu**. The costume choice is on the
+    mission-select screen, whose pack is `id920.pac`.
+
 - **Not the costume: the language byte.** `[0x1405EA130 + 0x66C]` (getter
   `0x140036E90`) is the language: 0 Japanese, 1 English, 2 French, 3 German,
   4 Italian, 5 Spanish, 6 Chinese, 7 SChinese (setter `0x140036360`). The
