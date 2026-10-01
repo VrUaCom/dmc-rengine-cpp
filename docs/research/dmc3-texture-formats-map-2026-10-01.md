@@ -250,3 +250,50 @@ Native Reader carries the same codec (its pinned Rengine predates it). It
 also reads PTX bundles whose DDS children use these formats, with only the
 checks the executable makes (section 9): `+0x00 == 0`, `+0x20 == 0x40`,
 `+0x68 == 8`, `+0x64` = DDS size, non-zero `+0x10/+0x12`.
+
+## 11. Writing textures: `codecs/dds_bcn_encode` and `texture-reencode`
+
+**Encoders** (`include/dmc_rengine/codecs/dds_bcn_encode.hpp`) for every
+format the reader decodes:
+
+| Format | Method |
+|---|---|
+| BC1 | principal-axis fit + least-squares refinement; 3-colour mode with transparent texels when alpha < 128 |
+| BC2 | the same colour fit + 4-bit alpha |
+| BC3 / BC4 / BC5 | the same colour fit; 8- and 6-value ramps searched over small insets; BC4 stores luminance; SNORM variants included |
+| BC6H | mode 11 (one region, 10-bit endpoints), chosen in the decoder's half-float domain |
+| BC7 | mode 6 (RGBA line, p-bits) and mode 5 (colour line + separate alpha, all four rotations), best per block |
+
+`encode_dds` writes a legacy FourCC when one exists and DX10 otherwise or on
+request.
+
+Checked against Pillow 12.3 decoding our files on Dante's 512² DXT5 texture:
+
+- every format decodes the same within 1 / 255;
+- BC7 reaches 56.3 dB against the source (etcpak / bc7e at uber level 4:
+  53.6 dB).
+
+**Tool** (`include/dmc_rengine/profiles/dmc3/texture_reencode.hpp`, CLI
+`dmc-rengine texture-reencode <in> <out> --format <name> [--dx10]
+[--slot N]`):
+
+- **Input:** DDS, a single gfxTexture (`.tm2`), PTX, or the texture slots of
+  a PAC.
+- **Decoding:** every stored level is decoded and re-encoded, so the game's
+  own mips are kept.
+- **gfxTexture fields written:**
+  - `+0x08`: mip count in bits 8..15;
+  - `+0x18`, `+0x38`, `+0x60`, `+0x64`;
+  - everything else is copied.
+- **Layout:** a texture keeps its sector span when it still fits. Only PAC
+  slots after a grown slot move, 16-byte aligned.
+- **Retail compatibility:** DXT1 / DXT5 results pass the strict retail
+  parser (`TextureSlotFramingParser`).
+
+New field fact: `+0x08 = 0x20000 | mip_count << 8 | low`, where `low` is
+`0x86` (DXT1) or `0x88` (DXT5) in the model family. The interface
+(`0x201A5`) and legacy (`0x20185`) words are the same layout with one mip.
+
+New layout fact: `id5000.pac` slot 23 (33 008 bytes) is a single gfxTexture +
+DDS without a bundle header: a 256×128 DXT5 at 1× size, like `.tm2` files
+inside a PAC.

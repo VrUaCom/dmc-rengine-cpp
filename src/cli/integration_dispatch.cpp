@@ -1,5 +1,6 @@
 #include "integration_commands.hpp"
 #include "hits_commands.hpp"
+#include "texture_reencode_commands.hpp"
 #include "dmc3_build_authority_commands.hpp"
 #include "dmc3_l1_closure_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
@@ -35,6 +36,7 @@ void print_integration_help() {
     print_nbz_copy_help();
     print_relative_slot_help();
     print_hits_help();
+    print_texture_reencode_help();
     print_scm_reader_help();
     print_scm_authoring_help();
     print_scm_rotation_authoring_help();
@@ -75,6 +77,11 @@ int try_run_integration_command(int argc, char** argv) {
     const auto relative_slot_result = try_run_relative_slot_command(argc, argv);
     if (relative_slot_result != -1) {
         return relative_slot_result;
+    }
+
+    const auto texture_reencode_result = try_run_texture_reencode_command(argc, argv);
+    if (texture_reencode_result != -1) {
+        return texture_reencode_result;
     }
 
     const auto hits_result = try_run_hits_command(argc, argv);
