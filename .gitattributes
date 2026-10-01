@@ -1,0 +1,4 @@
+# Evidence and reverse-plan JSON files are byte-authoritative.
+# Keep checkout bytes identical across Windows/Linux so exact SHA-256 receipts
+# and Spider/Python parity are not affected by platform line-ending conversion.
+data/reverse/*.json text eol=lf

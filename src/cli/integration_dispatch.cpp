@@ -15,6 +15,7 @@
 #include "scm_corpus_commands.hpp"
 #include "scm_occurrence_census_commands.hpp"
 #include "scm_reader_commands.hpp"
+#include "spider_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -44,6 +45,7 @@ void print_integration_help() {
     print_scm_normal_authoring_help();
     print_scm_uv_authoring_help();
     print_scm_corpus_help();
+    print_spider_help();
 }
 
 int try_run_integration_command(int argc, char** argv) {
@@ -132,6 +134,11 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_scm_occurrence_census_command(argc, argv);
     if (scm_occurrence_result != -1) {
         return scm_occurrence_result;
+    }
+
+    const auto spider_result = try_run_spider_command(argc, argv);
+    if (spider_result != -1) {
+        return spider_result;
     }
 
     if (argc <= 1) {
