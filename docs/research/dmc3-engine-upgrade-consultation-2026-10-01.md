@@ -160,6 +160,47 @@ reads, keeping the original behaviour as the fallback.
     `0x1402151F4`) need defaults for new indices;
   - the NBZ lookup of new member names (R5).
 
+### 3.3c R4 progress: the costume path end to end (2026-10-01)
+1. **Character config.** `0x1401DF320(character, cfg)` loads a character from
+   a 0x84-byte config: bytes `+0..+4` are the five weapon ids, `+0x34` the
+   costume code, `+0x35` a flag. The config is copied by `0x1402178B0` from
+   `game+0x118` into `game+0x1C4` (mission start, `0x14023A26D`).
+2. **Dante's costume codes.** Codes 0..7 select 6 PAC records:
+   - codes 0..5 select records 0..5 directly;
+   - code 6 loads record 2 (`pl013`);
+   - code 7 loads record 5 (`pl018`).
+
+   The code itself still drives class switches:
+   - codes 3..5 and 7 load other second-loader banks (`0x1401B8FF0` with
+     `r8b = 2`) and style / weapon flags (`0x1401B9160`, `r9b = 2`);
+   - code 2, or flag `+0x35`, gives `r9b = 1`;
+   - codes 5 and 7 skip the coat shadow (`0x1402151F4`).
+3. **Character 3** (`pl021` group): code 1 -> record 1, codes 3..4 ->
+   record 2, others -> record 0.
+4. **One manager slot per character.** `0x1401B8F50` puts the record into
+   slot `word [0x140581A20] (= 0) + character`; the costume only picks which
+   record (name) loads into that slot. Manager slot bases (`0x140581A20`):
+   `0x0000`, `0x0004` (weapons, `0x1401B90B0`), `0x008C`, `0x00C8` (second
+   loader), `0x00E4`, `0x00E5`, `0x0165`, `0x016B`. **Adding costumes needs
+   no extra manager slots.**
+5. **Record and lookup.** A record is `{u16 kind, pad, const char* name}`;
+   `0x1401B84E0` stores it at slot `+0x18`. `0x1401B7B90` passes `name` to
+   `0x1402EF620`, which turns `/` into `\` and opens the path through
+   `0x1400333F0` -> `0x14002FCA0` (open) / `0x14002F9F0` (size, in 2 KB
+   sectors). Files are found by path string at load time. Whether that layer
+   indexes members that only a new `DMC3-N.nbz` adds is R5.
+
+**Plan for new costumes, from this:**
+- a longer record array for the character (originals first, new names
+  after), pointed to from the `.data` group table `0x1405B0970`;
+- costume codes beyond 7 need one remap hook in `0x1401DF320` (today the
+  6 -> 2 and 7 -> 5 mapping) plus default class switches for the new codes;
+- the menu that writes the costume code into `game+0x118+0x34` still has to
+  be found (UI classes: `CUIDMisSelect` vtable `0x1404E9E50`,
+  `CSceneMisSelect` `0x1404E31D8`, `CMisSelect` `0x1404DC508`,
+  `CCustomizeData` `0x1404C8790`);
+- R5 decides whether new names load from an overlay volume.
+
 ### 3.3b `.rdata` / `.data`: what is worth moving out
 - **`.rdata`** (2.1 MB, read-only): floats and constants used by code, jump
   tables, vtables and RTTI, strings, and data tables (event / command tables
