@@ -7,6 +7,7 @@ Tools behind the effect notes of 2026-10-01:
 * `docs/research/dmc3-generator-g-records-2026-10-01.md`
 * `docs/research/dmc3-effect-triggers-2026-10-01.md`
 * `docs/research/dmc3-em000-attack-effects-2026-10-01.md`
+* `docs/research/dmc3-reader-cpp20-port-2026-10-01.md` (C++20 code of these reverses)
 
 Nothing of the game is committed here. Every tool reads a local copy of
 `dmc3.exe` (canonical SHA-256

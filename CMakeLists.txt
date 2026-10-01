@@ -255,6 +255,11 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_resource_matcher
         stage_bundle_assembler
         container_foundation
+        dmc3_fx_particle
+        dmc3_fx_generator
+        dmc3_fx_enemy_events
+        dmc3_reader_ports
+        dmc3_em034_stage
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
