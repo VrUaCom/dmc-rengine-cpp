@@ -253,6 +253,29 @@ reads, keeping the original behaviour as the fallback.
   methods `0x140084E00`..`0x140087BE9` and the `CUIDMisSelect` vtable
   `0x1404E9E50`.
 
+- **UI resources by id** (`0x1402C07F0(id, language)`, emulated for ids
+  0..3999). Ids map to resource records:
+  - `900` -> `id\id900\id900<lang>.pac`, a language group at
+    `0x1405BD450` indexed by the language code;
+  - `901` -> `id900USEUJC.pac`;
+  - `919`, `920` -> `id919.pac`, `id920.pac`;
+  - `960` -> `id960ex.pac`;
+  - `990`..`994` -> `id990`..`id994.pac`;
+  - `529`..`558` -> `id\id500\id5xx.pac`.
+
+  `CSceneMisSelect` (`0x14023A31E`) requests `920`, so **`id920.pac` is the
+  mission-select screen**. `id900.pac` is the localized menu pack (text and
+  images per language: J, F, G, I, S, C, Z / USEUJC). Costume names and
+  icons, if the menu shows them, would sit in these packs; new costumes then
+  also need new UI entries there (to check on the files: `id900*.pac`,
+  `id920.pac`).
+- **Not the costume: the language byte.** `[0x1405EA130 + 0x66C]` (getter
+  `0x140036E90`) is the language: 0 Japanese, 1 English, 2 French, 3 German,
+  4 Italian, 5 Spanish, 6 Chinese, 7 SChinese (setter `0x140036360`). The
+  `cmp al, 6` / `cmp al, 7` tests in the `CUIDMisSelect` code
+  (`0x140298B3F`, `0x14029B5A2`) are Chinese-text layout cases, not costume
+  codes.
+
 ### 3.3b `.rdata` / `.data`: what is worth moving out
 - **`.rdata`** (2.1 MB, read-only): floats and constants used by code, jump
   tables, vtables and RTTI, strings, and data tables (event / command tables
