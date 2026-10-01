@@ -14,6 +14,9 @@ enum class TextureSlotReadVariant : std::uint8_t {
     canonical,
     legacy_single_mip_bundle_dxt5,
     legacy_single_mip_wrapped_dxt5,
+    // Bundle of 0x201A5-descriptor textures (the wrapped-variant descriptor
+    // of i001_90.tm2) with any texture count: the interface archives id*.pac.
+    legacy_single_mip_interface_bundle_dxt5,
 };
 
 struct TextureSlotFramingReadResult final {

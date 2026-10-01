@@ -293,6 +293,107 @@ struct SingleLevelDds final {
         dds.document.width, dds.document.height);
 }
 
+// Descriptor of the 0x201A5 single-level variant. `dds_scale` is the ratio
+// DDS dimensions / descriptor dimensions: 2 in the standalone i001_90.tm2, 1
+// in the interface bundles (id900.pac). Returns the descriptor dimensions.
+[[nodiscard]] bool check_interface_descriptor(
+    std::span<const std::byte> bytes,
+    std::size_t descriptor_offset,
+    const SingleLevelDds& dds,
+    std::uint32_t dds_scale,
+    std::uint32_t& descriptor_width,
+    std::uint32_t& descriptor_height) noexcept {
+    std::array<std::uint32_t, 14> fields{};
+    std::uint32_t constant68{};
+    if (!read_descriptor_fields(bytes, descriptor_offset, fields) ||
+        !read_u32_le(bytes, descriptor_offset + kDescriptorConstant68Offset, constant68) ||
+        !descriptor_zero_fields_are_zero(bytes, descriptor_offset)) {
+        return false;
+    }
+    descriptor_width = fields[2] & 0xFFFFU;
+    descriptor_height = fields[2] >> 16U;
+    if (descriptor_width == 0U || descriptor_height == 0U) return false;
+    const auto secondary_width = fields[9] & 0xFFFFU;
+    const auto secondary_height = fields[9] >> 16U;
+    const auto reciprocal_width = std::bit_cast<std::uint32_t>(
+        1.0F / static_cast<float>(descriptor_width));
+    const auto reciprocal_height = std::bit_cast<std::uint32_t>(
+        1.0F / static_cast<float>(descriptor_height));
+    return fields[0] == kLegacyWrappedEncoding && fields[1] == 0xAAE4U &&
+        fields[3] == 1U && fields[4] == descriptor_width * 4U &&
+        fields[5] == 0x40U && fields[6] == dds.document.payload_size &&
+        fields[7] == 0U && fields[8] == 0U &&
+        secondary_width == descriptor_width && secondary_height == descriptor_height &&
+        fields[10] == reciprocal_width && fields[11] == reciprocal_height &&
+        fields[12] == 5U && fields[13] == dds.document.total_size &&
+        constant68 == 8U &&
+        dds.document.width == descriptor_width * dds_scale &&
+        dds.document.height == descriptor_height * dds_scale;
+}
+
+// id*.pac interface textures: the usual bundle (count, sector spans, header
+// padded to 0x800) of N textures, each at its sector a 0x201A5 descriptor
+// and a single-level DXT5 DDS of the descriptor's size, then zero padding.
+[[nodiscard]] TextureSlotFramingResult parse_interface_bundle(
+    std::span<const std::byte> bytes,
+    TextureSlotFramingSafety safety) {
+    constexpr auto sector = TextureSlotFramingParser::k_sector_size;
+    constexpr auto header = TextureSlotFramingParser::k_bundle_header_size;
+    std::uint32_t texture_count{};
+    if (bytes.size() < header || !read_u32_le(bytes, 0U, texture_count) ||
+        texture_count == 0U || texture_count > safety.max_texture_count ||
+        4U + std::size_t{texture_count} * 4U > header ||
+        !all_zero(bytes, 4U + std::size_t{texture_count} * 4U, header)) {
+        return {};
+    }
+    TextureSlotFramingDocument document{
+        .kind = TextureSlotFramingKind::texture_bundle,
+        .slot_size = bytes.size(),
+        .textures = {},
+    };
+    std::size_t offset = header;
+    for (std::uint32_t index = 0U; index < texture_count; ++index) {
+        std::uint32_t span{};
+        if (!read_u32_le(bytes, 4U + std::size_t{index} * 4U, span) || span == 0U ||
+            span > (bytes.size() - offset) / sector) {
+            return {};
+        }
+        const auto end = offset + std::size_t{span} * sector;
+        const auto dds_offset = offset + TextureSlotFramingParser::k_descriptor_size;
+        SingleLevelDds dds;
+        std::uint32_t descriptor_width{};
+        std::uint32_t descriptor_height{};
+        if (!parse_single_level_dxt5(bytes, dds_offset, end, dds) ||
+            !check_interface_descriptor(bytes, offset, dds, 1U, descriptor_width, descriptor_height) ||
+            !all_zero(bytes, dds_offset + dds.document.total_size, end)) {
+            return {};
+        }
+        document.textures.push_back(TextureSlotEntry{
+            .texture_index = index,
+            .descriptor_offset = offset,
+            .dds_offset = dds_offset,
+            .dds_size = dds.document.total_size,
+            .dds_payload_size = dds.document.payload_size,
+            .width = dds.document.width,
+            .height = dds.document.height,
+            .mip_map_count = dds.document.mip_count,
+            .compression = TextureCompressionKind::dxt5,
+            .secondary_width = descriptor_width,
+            .secondary_height = descriptor_height,
+            .auxiliary_mode = 0U,
+            .auxiliary_value = 0U,
+            .sector_span = span,
+        });
+        offset = end;
+    }
+    if (offset != bytes.size() || !document.valid()) return {};
+    return TextureSlotFramingResult{
+        .status = TextureSlotFramingStatus::ok,
+        .document = std::move(document),
+        .detail = {},
+    };
+}
+
 [[nodiscard]] TextureSlotFramingResult parse_legacy_wrapped(
     std::span<const std::byte> bytes) {
     if (bytes.size() < TextureSlotFramingParser::k_descriptor_size + kDdsHeaderSize) {
@@ -307,38 +408,10 @@ struct SingleLevelDds final {
         return {};
     }
 
-    std::array<std::uint32_t, 14> fields{};
-    std::uint32_t constant68{};
-    if (!read_descriptor_fields(bytes, descriptor_offset, fields) ||
-        !read_u32_le(bytes, descriptor_offset + kDescriptorConstant68Offset, constant68) ||
-        !descriptor_zero_fields_are_zero(bytes, descriptor_offset)) {
-        return {};
-    }
-
-    const auto descriptor_width = fields[2] & 0xFFFFU;
-    const auto descriptor_height = fields[2] >> 16U;
-    if (descriptor_width == 0U || descriptor_height == 0U ||
-        descriptor_width > std::numeric_limits<std::uint32_t>::max() / 2U ||
-        descriptor_height > std::numeric_limits<std::uint32_t>::max() / 2U) {
-        return {};
-    }
-    const auto secondary_width = fields[9] & 0xFFFFU;
-    const auto secondary_height = fields[9] >> 16U;
-    const auto reciprocal_width = std::bit_cast<std::uint32_t>(
-        1.0F / static_cast<float>(descriptor_width));
-    const auto reciprocal_height = std::bit_cast<std::uint32_t>(
-        1.0F / static_cast<float>(descriptor_height));
-
-    if (fields[0] != kLegacyWrappedEncoding || fields[1] != 0xAAE4U ||
-        fields[3] != 1U || fields[4] != descriptor_width * 4U ||
-        fields[5] != 0x40U || fields[6] != dds.document.payload_size ||
-        fields[7] != 0U || fields[8] != 0U ||
-        secondary_width != descriptor_width || secondary_height != descriptor_height ||
-        fields[10] != reciprocal_width || fields[11] != reciprocal_height ||
-        fields[12] != 5U || fields[13] != dds.document.total_size ||
-        constant68 != 8U ||
-        dds.document.width != descriptor_width * 2U ||
-        dds.document.height != descriptor_height * 2U) {
+    std::uint32_t descriptor_width{};
+    std::uint32_t descriptor_height{};
+    if (!check_interface_descriptor(bytes, descriptor_offset, dds, 2U,
+                                    descriptor_width, descriptor_height)) {
         return {};
     }
 
@@ -366,6 +439,14 @@ TextureSlotFramingReadResult TextureSlotFramingReader::parse(
         return TextureSlotFramingReadResult{
             .framing = std::move(bundle),
             .variant = TextureSlotReadVariant::legacy_single_mip_bundle_dxt5,
+        };
+    }
+
+    auto interface_bundle = parse_interface_bundle(bytes, safety);
+    if (interface_bundle.ok()) {
+        return TextureSlotFramingReadResult{
+            .framing = std::move(interface_bundle),
+            .variant = TextureSlotReadVariant::legacy_single_mip_interface_bundle_dxt5,
         };
     }
 

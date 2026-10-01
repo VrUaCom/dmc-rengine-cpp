@@ -119,6 +119,43 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t offset, std::uint32_t va
     return out;
 }
 
+// id*.pac interface bundle: two 0x201A5 textures whose DDS has the
+// descriptor's own size (1x), each at its sector, zero padded.
+[[nodiscard]] std::vector<std::byte> interface_texture(std::uint32_t size) {
+    const auto dds = single_level_dxt5_dds(size, size);
+    std::vector<std::byte> descriptor(0x70U, std::byte{0});
+    const auto dimensions = (size << 16U) | size;
+    put_u32(descriptor, 0x08U, 0x000201A5U);
+    put_u32(descriptor, 0x0CU, 0xAAE4U);
+    put_u32(descriptor, 0x10U, dimensions);
+    put_u32(descriptor, 0x14U, 1U);
+    put_u32(descriptor, 0x18U, size * 4U);
+    put_u32(descriptor, 0x20U, 0x40U);
+    put_u32(descriptor, 0x38U, dxt5_base_payload(size, size));
+    put_u32(descriptor, 0x44U, dimensions);
+    put_u32(descriptor, 0x48U, std::bit_cast<std::uint32_t>(1.0F / static_cast<float>(size)));
+    put_u32(descriptor, 0x4CU, std::bit_cast<std::uint32_t>(1.0F / static_cast<float>(size)));
+    put_u32(descriptor, 0x60U, 5U);
+    put_u32(descriptor, 0x64U, static_cast<std::uint32_t>(dds.size()));
+    put_u32(descriptor, 0x68U, 8U);
+    std::vector<std::byte> out(descriptor);
+    out.insert(out.end(), dds.begin(), dds.end());
+    out.resize((out.size() + 0x7FFU) & ~std::size_t{0x7FFU}, std::byte{0});
+    return out;
+}
+
+[[nodiscard]] std::vector<std::byte> interface_bundle_fixture() {
+    const auto first = interface_texture(64U);   // 0x70 + 0x80 + 0x1000 -> 3 sectors
+    const auto second = interface_texture(32U);  // 0x70 + 0x80 + 0x400 -> 1 sector
+    std::vector<std::byte> out(0x800U, std::byte{0});
+    put_u32(out, 0U, 2U);
+    put_u32(out, 4U, static_cast<std::uint32_t>(first.size() / 0x800U));
+    put_u32(out, 8U, static_cast<std::uint32_t>(second.size() / 0x800U));
+    out.insert(out.end(), first.begin(), first.end());
+    out.insert(out.end(), second.begin(), second.end());
+    return out;
+}
+
 [[nodiscard]] std::vector<std::byte> evt_fixture() {
     std::vector<std::byte> out(0x60U, std::byte{0});
     out[0] = std::byte{'E'};
@@ -200,6 +237,26 @@ int main() {
     assert(tm2_read.framing.document.textures[0].height == 256U);
     assert(tm2_read.framing.document.textures[0].secondary_width == 128U);
     assert(tm2_read.framing.document.textures[0].secondary_height == 128U);
+    const auto ui = interface_bundle_fixture();
+    assert(!dmc3::TextureSlotFramingParser::parse(ui).ok());
+    const auto ui_read = dmc3::TextureSlotFramingReader::parse(ui);
+    assert(ui_read.ok());
+    assert(ui_read.variant == dmc3::TextureSlotReadVariant::legacy_single_mip_interface_bundle_dxt5);
+    assert(ui_read.framing.document.kind == dmc3::TextureSlotFramingKind::texture_bundle);
+    assert(ui_read.framing.document.textures.size() == 2U);
+    assert(ui_read.framing.document.textures[0].width == 64U);
+    assert(ui_read.framing.document.textures[0].dds_offset == 0x870U);
+    assert(ui_read.framing.document.textures[0].sector_span == 3U);
+    assert(ui_read.framing.document.textures[1].width == 32U);
+    assert(ui_read.framing.document.textures[1].descriptor_offset == 0x2000U);
+    assert(ui_read.framing.document.textures[1].secondary_width == 32U);
+    auto ui_dirty = ui;
+    ui_dirty[0x870U + 0x80U + 0x1000U + 4U] = std::byte{1};  // sector padding
+    assert(!dmc3::TextureSlotFramingReader::parse(ui_dirty).ok());
+    auto ui_scaled = ui;
+    put_u32(ui_scaled, 0x800U + 0x10U, (32U << 16U) | 32U);  // 2x relation is the standalone variant
+    assert(!dmc3::TextureSlotFramingReader::parse(ui_scaled).ok());
+
     const auto tm2_class = gdspaces::ResourceClassifier::classify("i001_90.tm2", tm2);
     assert(tm2_class.format == "wrapped-dds");
     assert(tm2_class.structural_confirmed);

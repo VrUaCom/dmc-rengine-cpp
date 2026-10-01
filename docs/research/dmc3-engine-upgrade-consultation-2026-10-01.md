@@ -272,9 +272,15 @@ reads, keeping the original behaviour as the fallback.
 - **`id900.pac` checked on the data (English).**
   - Layout: 20 slots, pairs of a texture bank and a flat UI MOD. Slots 10
     and 13 are small PACs with one MOT each (menu animation).
-  - Texture bank: `u32 count`, `u32 size in 2 KB sectors` per texture, a
-    `0x1000` header, then per texture a `0x800` header and DXT5 (BC3) data,
-    1 byte per pixel, square 256 / 512.
+  - Texture slots are **PTX** (the game's texture bundle, `.ptx`,
+    `CPtxManager`), not a separate format. Layout: `u32 count`, `u32` span in
+    2 KB sectors per texture, header padded to `0x800`; per texture at its
+    sector a `0x70` descriptor followed by a standard DDS (`DDS ` + 124-byte
+    header, DXT5 = BC3, base level only, no mip chain), square 256 / 512.
+    Pixel data therefore starts at descriptor `+0xF0`. Correction: an
+    earlier version of this note read it as a `0x800` header with data at
+    `+0x800`, which shifts the decode; see
+    `dmc3-texture-formats-map-2026-10-01.md`.
   - Content: the title screen.
     - DMC3 Special Edition logo, both the 2005 and the 2018 copyright
       versions;
