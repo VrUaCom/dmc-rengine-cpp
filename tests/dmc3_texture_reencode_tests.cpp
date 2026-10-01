@@ -109,11 +109,11 @@ void ptx_in_pac_to_every_format() {
     assert(dmc3::TextureSlotFramingParser::parse(view(ptx)).ok());
     assert(dmc3::is_texture_bundle(view(ptx)));
     assert(dmc3::list_textures(view(ptx)).size() == 2U);
-    assert(dmc3::holds_textures(view(pac({other, ptx}))) && !dmc3::holds_textures(view(pac({other}))));
     assert(dmc3::is_wrapped_texture(view(ptx).subspan(0x800, 0x70 + bcn::parse(view(ptx).subspan(0x870)).document.total_size)));
     std::vector<std::byte> other(100);
     for (std::size_t i = 0; i < other.size(); ++i) other[i] = static_cast<std::byte>(i);
     const auto source = pac({other, ptx, other});
+    assert(dmc3::holds_textures(view(source)) && !dmc3::holds_textures(view(pac({other}))));
 
     for (const auto format : bcn::writable_formats()) {
         const auto r = dmc3::reencode_textures(view(source), {.format = format});
