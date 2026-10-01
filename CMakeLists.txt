@@ -268,6 +268,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dds_bcn
         dds_bcn_encode
         dmc3_texture_reencode
+        spider_texture_reencode_workflow
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})

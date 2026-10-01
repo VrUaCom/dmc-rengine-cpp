@@ -1,6 +1,7 @@
 #include "texture_reencode_commands.hpp"
 
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -10,6 +11,7 @@
 
 #include "dmc_rengine/codecs/dds_bcn_encode.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_reencode.hpp"
+#include "dmc_rengine/spider/texture_reencode_workflow.hpp"
 
 namespace dmc::rengine::cli {
 namespace {
@@ -32,9 +34,10 @@ namespace dmc3 = profiles::dmc3;
 void print_texture_reencode_help() {
     std::cout
         << "  texture-reencode <in> <out> --format <bc1|bc2|bc3|bc4|bc4s|bc5|bc5s|bc6h|bc6h_sf16|bc7>\n"
-        << "                   [--dx10] [--slot N]\n"
-        << "                             Re-encode every texture of a DDS / PTX / .tm2 / PAC\n"
-        << "                             (game mips kept, layout kept when it fits)\n";
+        << "                   [--dx10] [--slot N] [--replace]\n"
+        << "                             Spider Tarantula workflow: re-encode every texture of a\n"
+        << "                             DDS / PTX / .tm2 / PAC (game mips kept, layout kept when\n"
+        << "                             it fits); <out> is never overwritten without --replace\n";
 }
 
 int try_run_texture_reencode_command(int argc, char** argv) {
@@ -45,6 +48,7 @@ int try_run_texture_reencode_command(int argc, char** argv) {
     }
     dmc3::TextureReencodeOptions options{};
     bool have_format = false;
+    bool replace = false;
     for (int i = 4; i < argc; ++i) {
         const std::string_view arg{argv[i]};
         if (arg == "--format" && i + 1 < argc) {
@@ -55,6 +59,8 @@ int try_run_texture_reencode_command(int argc, char** argv) {
             }
             options.format = *f;
             have_format = true;
+        } else if (arg == "--replace") {
+            replace = true;
         } else if (arg == "--dx10") {
             options.force_dx10 = true;
         } else if (arg == "--slot" && i + 1 < argc) {
@@ -68,24 +74,22 @@ int try_run_texture_reencode_command(int argc, char** argv) {
         std::cerr << "texture-reencode: --format is required\n";
         return 1;
     }
-    std::ifstream in(argv[2], std::ios::binary);
-    if (!in) {
-        std::cerr << "texture-reencode: cannot read " << argv[2] << "\n";
+    const spider::tarantula::TextureReencodeRequest request{
+        .options = options,
+        .output = std::filesystem::path{argv[3]},
+        .replace_existing = replace,
+    };
+    const auto workflow = spider::tarantula::run_texture_reencode(std::filesystem::path{argv[2]}, request);
+    for (const auto& step : workflow.steps) {
+        std::cout << (step.ok ? "[OK]   " : "[FAIL] ") << step.name;
+        if (!step.detail.empty()) std::cout << "  " << step.detail;
+        std::cout << "\n";
+    }
+    if (!workflow.ok) {
+        std::cerr << "texture-reencode: " << workflow.detail << "\n";
         return 1;
     }
-    const std::vector<char> raw((std::istreambuf_iterator<char>(in)), {});
-    const auto result = dmc3::reencode_textures(
-        std::span<const std::byte>{reinterpret_cast<const std::byte*>(raw.data()), raw.size()}, options);
-    if (!result.ok) {
-        std::cerr << "texture-reencode: " << result.detail << "\n";
-        return 1;
-    }
-    std::ofstream out(argv[3], std::ios::binary);
-    out.write(reinterpret_cast<const char*>(result.bytes.data()), static_cast<std::streamsize>(result.bytes.size()));
-    if (!out) {
-        std::cerr << "texture-reencode: cannot write " << argv[3] << "\n";
-        return 1;
-    }
+    const auto& result = workflow.result;
     std::cout << container_name(result.container) << ": " << result.detail << "\n";
     for (const auto& t : result.textures) {
         char line[256];

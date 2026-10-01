@@ -219,3 +219,8 @@ Use the family name whenever the role matters:
 - `Crusader` = C++ module orchestration.
 
 Avoid the ambiguous phrase "Spider does X" when the exact family is known.
+
+## Tarantula slices
+
+- EXE window packet: `spider-python-migration.md`.
+- Texture format change: `spider-tarantula-texture-reencode.md` (replaces a scratch Python + etcpak prototype).

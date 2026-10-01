@@ -76,6 +76,26 @@ struct TextureReencodeResult final {
 [[nodiscard]] TextureReencodeResult reencode_textures(
     std::span<const std::byte> source, const TextureReencodeOptions& options);
 
+// Building blocks of reencode_textures, for workflows that run the steps
+// separately (spider::tarantula texture re-encode).
+//
+// The texture payload of one PAC slot extent (trailing alignment zeros
+// dropped), or an empty span when the slot holds no texture.
+[[nodiscard]] std::span<const std::byte> texture_payload(std::span<const std::byte> slot_extent) noexcept;
+
+struct PayloadReencodeResult final {
+    bool ok{};
+    ReencodeContainer container{};
+    std::vector<std::byte> bytes;
+    std::vector<ReencodedTexture> textures;
+    std::string detail;
+};
+
+// Re-encodes one DDS, single gfxTexture or PTX payload; `pac_slot` only tags
+// the reports.
+[[nodiscard]] PayloadReencodeResult reencode_payload(
+    std::span<const std::byte> payload, const TextureReencodeOptions& options, int pac_slot = -1);
+
 // Formats of every texture reencode_textures would touch (same traversal,
 // nothing decoded): one entry per texture, PAC slots in order.
 [[nodiscard]] std::vector<codecs::dds_bcn::Document> list_textures(std::span<const std::byte> bytes);

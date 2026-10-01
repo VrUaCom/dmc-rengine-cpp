@@ -201,7 +201,7 @@ std::vector<std::byte> rewrite_descriptor(std::span<const std::byte> old_desc, c
 }
 
 // Re-encodes one non-container payload; false when it holds no texture.
-[[nodiscard]] bool reencode_payload(std::span<const std::byte> s, const TextureReencodeOptions& options,
+[[nodiscard]] bool reencode_payload_into(std::span<const std::byte> s, const TextureReencodeOptions& options,
                                     int pac_slot, std::vector<std::byte>* out,
                                     std::vector<ReencodedTexture>* reports, std::string* error,
                                     ReencodeContainer* kind) {
@@ -365,12 +365,36 @@ std::vector<bcn::Document> list_textures(std::span<const std::byte> s) {
     return out;
 }
 
+std::span<const std::byte> texture_payload(std::span<const std::byte> extent) noexcept {
+    // A slot's extent may end in zero alignment after its data (slots start
+    // 16-byte aligned): drop up to 15 trailing zeros for the detection.
+    for (std::size_t trim = 0U; trim < 16U && trim < extent.size(); ++trim) {
+        const auto p = extent.first(extent.size() - trim);
+        if (is_texture_bundle(p) || is_wrapped_texture(p) || is_dds(p)) return p;
+        if (p.back() != std::byte{0}) break;
+    }
+    return {};
+}
+
+PayloadReencodeResult reencode_payload(std::span<const std::byte> payload, const TextureReencodeOptions& options,
+                                       int pac_slot) {
+    PayloadReencodeResult out;
+    try {
+        out.ok = reencode_payload_into(payload, options, pac_slot, &out.bytes, &out.textures, &out.detail,
+                                       &out.container);
+    } catch (...) {
+        out = {};
+        out.detail = "texture re-encode allocation failed";
+    }
+    return out;
+}
+
 TextureReencodeResult reencode_textures(std::span<const std::byte> source, const TextureReencodeOptions& options) {
     TextureReencodeResult result;
     std::string error;
     try {
         if (!is_pac(source)) {
-            if (!reencode_payload(source, options, -1, &result.bytes, &result.textures, &error, &result.container)) {
+            if (!reencode_payload_into(source, options, -1, &result.bytes, &result.textures, &error, &result.container)) {
                 result.detail = error;
                 return result;
             }
@@ -387,25 +411,15 @@ TextureReencodeResult reencode_textures(std::span<const std::byte> source, const
                 if (e.offset == 0U || (options.pac_slot >= 0 && static_cast<std::uint32_t>(options.pac_slot) != i)) {
                     continue;
                 }
-                auto payload = source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
-                // A slot's extent may end in zero alignment after its data
-                // (slots start 16-byte aligned): drop it for the detection.
-                if (!is_dds(payload) && !is_wrapped_texture(payload) && !is_texture_bundle(payload)) {
-                    auto trimmed = payload;
-                    while (!trimmed.empty() && trimmed.back() == std::byte{0} &&
-                           payload.size() - trimmed.size() < 16U) {
-                        trimmed = trimmed.first(trimmed.size() - 1U);
-                        if (is_texture_bundle(trimmed) || is_wrapped_texture(trimmed) || is_dds(trimmed)) {
-                            payload = trimmed;
-                            break;
-                        }
-                    }
-                }
+                auto payload = texture_payload(
+                    source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size)));
                 std::vector<std::byte> encoded;
                 ReencodeContainer kind{};
                 std::string slot_error;
-                if (!reencode_payload(payload, options, static_cast<int>(i), &encoded, &result.textures,
-                                      &slot_error, &kind)) {
+                if (payload.empty() ||
+                    !reencode_payload_into(payload, options, static_cast<int>(i), &encoded, &result.textures,
+                                           &slot_error, &kind)) {
+                    if (payload.empty()) slot_error = "no DDS, gfxTexture or PTX texture";
                     if (options.pac_slot >= 0) {
                         result.detail = "PAC slot " + std::to_string(i) + ": " + slot_error;
                         return result;
