@@ -270,3 +270,9 @@ MOD slots parse with no diagnostics.
 | --- | --- |
 | Patched executable | `bfa4f84d9b6879aef48a95e57a9bc8c38f706e186f5af379564bb494549311bd` |
 | Costume PAC | `f4fcaa75334541bb93ff85cebf0de7d4b16a92d77e109afef5e99c1fd95755cb` |
+
+## Tools (2026-10-01)
+
+The self-contained costume tool set used for this note (PAC / MOD / PTX /
+SHW / CLT readers and writers, `coat_patch.py` with `coat_constraints.s`,
+`verify_patch.py`, EXE readers) is kept in `tools/dmc3-costume-tools/`.

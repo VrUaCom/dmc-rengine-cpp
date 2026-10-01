@@ -101,3 +101,11 @@ addresses. That is a proximity hint, not a read.
   effects can be played in the scene).
 - Which archive holds the textures that A records name but their bank does
   not.
+
+## See also (2026-10-01)
+
+The consumers of the registered records: `dmc3-effect-runtime-2026-10-01.md`
+(spawn API, parents, clocks, E records), `dmc3-particle-p-records-2026-10-01.md`
+(P), `dmc3-generator-g-records-2026-10-01.md` (G, C clips) and
+`dmc3-effect-triggers-2026-10-01.md` (who requests effects). Tools:
+`research/exe/fx/`.
