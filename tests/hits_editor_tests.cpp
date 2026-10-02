@@ -113,7 +113,10 @@ void write_triangle(
 int main() {
     using dmc::rengine::formats::hits::RecordScanner;
     using dmc::rengine::formats::hits::Vec3;
+    using dmc::rengine::hits::editor::CollisionPreset;
     using dmc::rengine::hits::editor::Session;
+    using dmc::rengine::hits::editor::collision_preset_from_flags;
+    using dmc::rengine::hits::editor::collision_preset_info;
 
     const auto source = make_fixture();
     auto opened = Session::open(source);
@@ -127,8 +130,23 @@ int main() {
     assert(session.surfaces().size() == 2U);
     assert(session.surfaces()[0].stable_id == 1U);
     assert(session.surfaces()[1].stable_id == 2U);
+    assert(session.meshes().empty());
 
-    assert(session.set_flags(1U, 0x0000000AU));
+    assert(collision_preset_info(
+        CollisionPreset::blue_raw_00000001).raw_flags == 0x00000001U);
+    assert(collision_preset_info(
+        CollisionPreset::orange_raw_00000009).raw_flags == 0x00000009U);
+    assert(collision_preset_info(
+        CollisionPreset::green_raw_0000000a).raw_flags == 0x0000000AU);
+    assert(collision_preset_info(
+        CollisionPreset::red_raw_18060001).raw_flags == 0x18060001U);
+    assert(collision_preset_from_flags(0x00000001U) ==
+           CollisionPreset::blue_raw_00000001);
+    assert(!collision_preset_from_flags(0x12345678U).has_value());
+
+    assert(session.set_collision_preset(
+        1U,
+        CollisionPreset::green_raw_0000000a));
     assert(session.dirty());
     assert(session.can_undo());
     assert(session.surfaces()[0].flags == 0x0000000AU);
@@ -142,11 +160,51 @@ int main() {
     assert(session.dirty());
     assert(session.surfaces()[0].flags == 0x0000000AU);
 
+    const std::array<dmc::rengine::hits::editor::StableSurfaceId, 2U>
+        initial_pair{1U, 2U};
+    assert(session.set_collision_preset(
+        initial_pair,
+        CollisionPreset::orange_raw_00000009));
+    assert(session.surfaces()[0].flags == 0x00000009U);
+    assert(session.surfaces()[1].flags == 0x00000009U);
+
+    const std::array<dmc::rengine::hits::editor::StableSurfaceId, 1U>
+        first_only{1U};
+    const std::array<dmc::rengine::hits::editor::StableSurfaceId, 1U>
+        second_only{2U};
+    const auto mesh_a = session.create_mesh(first_only);
+    const auto mesh_b = session.create_mesh(second_only);
+    assert(mesh_a.has_value());
+    assert(mesh_b.has_value());
+    assert(*mesh_a != *mesh_b);
+    assert(session.meshes().size() == 2U);
+
+    const std::array<dmc::rengine::hits::editor::StableMeshId, 2U>
+        mesh_pair{*mesh_a, *mesh_b};
+    const auto merged_mesh = session.merge_meshes(mesh_pair);
+    assert(merged_mesh.has_value());
+    assert(session.meshes().size() == 1U);
+    assert(session.meshes()[0].surface_ids.size() == 2U);
+
+    assert(session.set_mesh_collision_preset(
+        *merged_mesh,
+        CollisionPreset::blue_raw_00000001));
+    assert(session.surfaces()[0].flags == 0x00000001U);
+    assert(session.surfaces()[1].flags == 0x00000001U);
+
+    assert(session.translate_mesh(
+        *merged_mesh,
+        Vec3{0.0F, 0.5F, 0.0F}));
+    assert(session.surfaces()[0].point_a.y == 0.5F);
+    assert(session.surfaces()[1].point_a.y == 0.5F);
+
     const auto duplicate = session.duplicate_surface(1U);
     assert(duplicate.has_value());
     assert(*duplicate == 3U);
     assert(session.surfaces().size() == 3U);
-    assert(session.surfaces()[2].flags == 0x0000000AU);
+    assert(session.surfaces()[2].flags == 0x00000001U);
+    assert(session.meshes().size() == 1U);
+    assert(session.meshes()[0].surface_ids.size() == 3U);
 
     const auto added = session.add_surface(
         0x00000009U,
@@ -196,7 +254,7 @@ int main() {
     const auto reparsed = RecordScanner::scan(rebuilt.bytes);
     assert(reparsed.ok());
     assert(reparsed.triangles.size() == 3U);
-    assert(reparsed.triangles[0].flags == 0x0000000AU);
+    assert(reparsed.triangles[0].flags == 0x00000001U);
     assert(reparsed.triangles[1].flags == 0x00000001U);
     assert(reparsed.triangles[2].flags == 0x00000009U);
     assert(reparsed.header.bounds_max.x >= 30.0F);
@@ -205,6 +263,7 @@ int main() {
     assert(!session.dirty());
     assert(session.surfaces().size() == 2U);
     assert(session.surfaces()[0].flags == 0x18060001U);
+    assert(session.meshes().empty());
     assert(session.can_undo());
 
     assert(session.undo());
