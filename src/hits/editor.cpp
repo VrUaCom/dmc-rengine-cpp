@@ -4,7 +4,9 @@
 #include "dmc_rengine/hits/scm_import.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <limits>
+#include <unordered_map>
 #include <utility>
 
 namespace dmc::rengine::hits::editor {
@@ -29,6 +31,61 @@ using formats::hits::Vec3;
         [code](const auto& diagnostic) {
             return diagnostic.code == code;
         });
+}
+
+using PointKey = std::array<std::uint32_t, 3U>;
+
+struct EdgeKey final {
+    PointKey first;
+    PointKey second;
+
+    friend bool operator==(const EdgeKey&, const EdgeKey&) = default;
+};
+
+struct EdgeKeyHash final {
+    [[nodiscard]] std::size_t operator()(
+        const EdgeKey& edge) const noexcept {
+        std::size_t value = 0xcbf29ce484222325ULL;
+        const auto mix = [&value](std::uint32_t part) {
+            value ^= static_cast<std::size_t>(part);
+            value *= 0x100000001b3ULL;
+        };
+        for (const auto part : edge.first) {
+            mix(part);
+        }
+        for (const auto part : edge.second) {
+            mix(part);
+        }
+        return value;
+    }
+};
+
+[[nodiscard]] PointKey point_key(const Vec3& point) noexcept {
+    const auto canonical_bits = [](float value) noexcept {
+        if (value == 0.0F) {
+            value = 0.0F;
+        }
+        return std::bit_cast<std::uint32_t>(value);
+    };
+    return PointKey{
+        canonical_bits(point.x),
+        canonical_bits(point.y),
+        canonical_bits(point.z),
+    };
+}
+
+[[nodiscard]] EdgeKey edge_key(
+    const Vec3& point_a,
+    const Vec3& point_b) noexcept {
+    auto first = point_key(point_a);
+    auto second = point_key(point_b);
+    if (second < first) {
+        std::swap(first, second);
+    }
+    return EdgeKey{
+        .first = first,
+        .second = second,
+    };
 }
 
 } // namespace
@@ -130,6 +187,77 @@ std::optional<std::size_t> Session::mesh_index_of(
     }
     return static_cast<std::size_t>(
         std::distance(meshes_.begin(), found));
+}
+
+std::vector<StableSurfaceId> Session::connected_surface(
+    StableSurfaceId seed,
+    bool require_same_flags) const {
+    const auto seed_index = index_of(seed);
+    if (!seed_index) {
+        return {};
+    }
+
+    std::unordered_map<
+        EdgeKey,
+        std::vector<std::size_t>,
+        EdgeKeyHash> adjacency;
+    adjacency.reserve(surfaces_.size() * 3U);
+
+    const auto add_edge = [&adjacency](
+                              const Vec3& point_a,
+                              const Vec3& point_b,
+                              std::size_t surface_index) {
+        adjacency[edge_key(point_a, point_b)].push_back(surface_index);
+    };
+
+    for (std::size_t index = 0U; index < surfaces_.size(); ++index) {
+        const auto& surface = surfaces_[index];
+        add_edge(surface.point_a, surface.point_b, index);
+        add_edge(surface.point_b, surface.point_c, index);
+        add_edge(surface.point_c, surface.point_a, index);
+    }
+
+    const auto seed_flags = surfaces_[*seed_index].flags;
+    std::vector<bool> visited(surfaces_.size(), false);
+    std::vector<std::size_t> pending{*seed_index};
+    std::vector<StableSurfaceId> result;
+
+    while (!pending.empty()) {
+        const auto current = pending.back();
+        pending.pop_back();
+        if (visited[current]) {
+            continue;
+        }
+        visited[current] = true;
+
+        const auto& surface = surfaces_[current];
+        if (require_same_flags && surface.flags != seed_flags) {
+            continue;
+        }
+        result.push_back(surface.stable_id);
+
+        const std::array<EdgeKey, 3U> edges{
+            edge_key(surface.point_a, surface.point_b),
+            edge_key(surface.point_b, surface.point_c),
+            edge_key(surface.point_c, surface.point_a),
+        };
+        for (const auto& edge : edges) {
+            const auto found = adjacency.find(edge);
+            if (found == adjacency.end()) {
+                continue;
+            }
+            for (const auto neighbor : found->second) {
+                if (!visited[neighbor] &&
+                    (!require_same_flags ||
+                     surfaces_[neighbor].flags == seed_flags)) {
+                    pending.push_back(neighbor);
+                }
+            }
+        }
+    }
+
+    std::sort(result.begin(), result.end());
+    return result;
 }
 
 std::optional<std::vector<std::size_t>>
@@ -537,6 +665,17 @@ std::optional<StableMeshId> Session::create_mesh(
         .surface_ids = std::move(members),
     });
     return mesh_id;
+}
+
+std::optional<StableMeshId> Session::create_connected_mesh(
+    StableSurfaceId seed,
+    bool require_same_flags) {
+    const auto members =
+        connected_surface(seed, require_same_flags);
+    if (members.empty()) {
+        return std::nullopt;
+    }
+    return create_mesh(members);
 }
 
 std::optional<StableMeshId> Session::merge_meshes(
