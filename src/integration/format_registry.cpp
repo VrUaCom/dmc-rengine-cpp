@@ -303,15 +303,16 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "efm",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.efm-mod-layout-v1",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::effects,
             .evidence_claim_ids = {},
             .limitations = {
-                "Declared by the recovered runtime type contract (profiles::dmc3::ResourceTypeContract); no structural parser exists yet.",
+                "Declared by the recovered runtime type contract (profiles::dmc3::ResourceTypeContract).",
                 "Recognized at registry probe 0x1402DB1F0, container dispatch 0x1401B9FA0 and family mask 0x1402FD650.",
+                "Read as the MOD document layout behind an `EFM ` tag: the post-load handler 0x1402F7A90 and the ordinary model loader (vtbl +0x50, 0x1400AD77A) treat it as a model, so the canonical MOD reader reads a copy with the tag swapped. Vertex colour and blend come from the same streams as MOD; effect-specific runtime use stays open.",
             },
         },
         FormatIntegrationDescriptor{
@@ -443,16 +444,29 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "tsc",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "profiles.dmc3.tsc-uv-scroll-v1",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
             .limitations = {
-                "Declared by the second recovered type registry (profiles::dmc3::AnimationTypeContract at 0x1402E01A0); no structural parser exists yet.",
+                "Declared by the second recovered type registry (profiles::dmc3::AnimationTypeContract at 0x1402E01A0).",
                 "Serialized as text and identified by the `.TSC` tag line its own payload opens with (profiles::dmc3::TextResourceDialects), which is how a nameless slot is typed; the runtime itself types it by name only.",
-                "Record semantics are unrecovered; the dialect probe establishes identity, not content.",
+                "Records are read by profiles::dmc3::motion::parse_tsc up to the `$` terminator (ScrlNo, ScrlType 0..5 and 10, TexNo, JntNo, DirUV, RateUV, TimeUV, InterUV, TurnTimeUV, MinimumUV, RndUV), as the runtime parser 0x14030C1C0 advances them; sections after `$` are never read by the game and are not reported.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "evt",
+            .parser_id = "formats.evt-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Identified by the `EVT\\0` tag and structurally checked by formats::evt::Parser: header, command list closed by the terminal 0x20 command and the stream offset table after it.",
+                "Command semantics beyond the stream layout are not claimed; the reader is read-only.",
             },
         },
         FormatIntegrationDescriptor{
@@ -472,8 +486,8 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "clt",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "profiles.dmc3.clt-cloth-chain-v1",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::textures,
@@ -482,7 +496,7 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
                 "Declared by both recovered type registries — code 5 in ResourceTypeContract and code 4 in AnimationTypeContract — so a stored type code is only meaningful together with the registry that issued it.",
                 "Selected by registrar extension match (strstr against the 0x140507070 literal table), not by a content tag.",
                 "Serialized as text; a nameless slot is typed by the `;<name>.clt` comment the payload opens with (profiles::dmc3::TextResourceDialects), which also carries the original filename. In the em000 corpus that name disagrees with the enclosing container for seven of eight payloads, so the container must not be used to name it.",
-                "Cloth/deformation record semantics are unrecovered; no structural parser exists yet.",
+                "ClothNo blocks are read by profiles::dmc3::motion::parse_clt with the defaults and keys of the runtime parser 0x1402CA345 / 0x1402CA42A (gravity, spring force, max speed, stiffness, wind, damping, floor level, bone chain with axes); the solver is ported in step_cloth_node (0x1402C9450). Authoring stays read-only.",
             },
         },
         FormatIntegrationDescriptor{

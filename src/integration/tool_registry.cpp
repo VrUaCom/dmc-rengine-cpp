@@ -54,7 +54,7 @@ void add_route(
 }
 
 [[nodiscard]] bool is_scene_format(std::string_view format) noexcept {
-    return format == "scm" || format == "mod" || format == "shw" ||
+    return format == "scm" || format == "mod" || format == "efm" || format == "shw" ||
            format == "dds" || format == "ptx" || format == "cam" ||
            format == "dca" || format == "lig" || format == "lig2" ||
            format == "hits" || format == "mot" ||

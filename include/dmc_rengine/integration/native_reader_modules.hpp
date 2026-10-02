@@ -18,5 +18,9 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule so_link();
 [[nodiscard]] NativeReaderModule shw();
 [[nodiscard]] NativeReaderModule pe();
+[[nodiscard]] NativeReaderModule efm();
+[[nodiscard]] NativeReaderModule clt();
+[[nodiscard]] NativeReaderModule tsc();
+[[nodiscard]] NativeReaderModule evt();
 
 } // namespace dmc::rengine::integration::native_reader_modules

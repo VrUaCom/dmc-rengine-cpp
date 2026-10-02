@@ -132,6 +132,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dds_profile
         gdata_legacy
         native_reader_texture
+        native_reader_reader_ports
         texture_slot_framing
         texture_slot_packed_reflow_writer
         texture_slot_runtime_materialization
