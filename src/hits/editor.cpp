@@ -1,6 +1,7 @@
 #include "dmc_rengine/hits/editor.hpp"
 
 #include "dmc_rengine/hits/edit.hpp"
+#include "dmc_rengine/hits/scm_import.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -575,6 +576,67 @@ bool Session::translate_mesh(
     }
     const auto members = meshes_[*index].surface_ids;
     return translate_surfaces(members, delta);
+}
+
+std::optional<ScmImportResult> Session::import_scm_mesh(
+    const formats::scm::Document& document,
+    std::size_t object_index,
+    std::size_t mesh_index,
+    CollisionPreset preset) {
+    const auto extracted =
+        scm_import::extract_mesh(document, object_index, mesh_index);
+    if (!extracted || extracted->triangles.empty() ||
+        next_stable_id_ == 0U || next_mesh_id_ == 0U) {
+        return std::nullopt;
+    }
+
+    const auto maximum_id =
+        std::numeric_limits<StableSurfaceId>::max();
+    const auto available_ids =
+        maximum_id - next_stable_id_ + StableSurfaceId{1U};
+    if (extracted->triangles.size() >
+        static_cast<std::size_t>(available_ids)) {
+        return std::nullopt;
+    }
+
+    begin_mutation();
+
+    const auto mesh_id = allocate_mesh_id();
+    if (!mesh_id) {
+        return std::nullopt;
+    }
+
+    const auto raw_flags = collision_preset_info(preset).raw_flags;
+    std::vector<StableSurfaceId> imported_ids;
+    imported_ids.reserve(extracted->triangles.size());
+
+    for (const auto& triangle : extracted->triangles) {
+        const auto surface_id = allocate_stable_id();
+        if (!surface_id) {
+            return std::nullopt;
+        }
+        imported_ids.push_back(*surface_id);
+        surfaces_.push_back(Surface{
+            .stable_id = *surface_id,
+            .flags = raw_flags,
+            .point_a = triangle.point_a,
+            .point_b = triangle.point_b,
+            .point_c = triangle.point_c,
+        });
+    }
+
+    meshes_.push_back(Mesh{
+        .stable_id = *mesh_id,
+        .surface_ids = imported_ids,
+    });
+
+    return ScmImportResult{
+        .mesh_id = *mesh_id,
+        .surface_ids = std::move(imported_ids),
+        .source_object_index = extracted->object_index,
+        .source_mesh_index = extracted->mesh_index,
+        .source_node_index = extracted->node_index,
+    };
 }
 
 bool Session::undo() {
