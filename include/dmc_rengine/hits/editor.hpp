@@ -97,6 +97,15 @@ struct Mesh final {
     std::vector<StableSurfaceId> surface_ids;
 };
 
+struct SurfaceView final {
+    StableSurfaceId stable_id{};
+    std::uint32_t raw_flags{};
+    std::uint16_t upper_query_mask{};
+    std::uint16_t lower_surface_value{};
+    std::optional<CollisionPreset> preset;
+    std::optional<StableMeshId> mesh_id;
+};
+
 struct ScmImportResult final {
     StableMeshId mesh_id{};
     std::vector<StableSurfaceId> surface_ids;
@@ -137,6 +146,9 @@ public:
     [[nodiscard]] std::vector<StableSurfaceId> connected_surface(
         StableSurfaceId seed,
         bool require_same_flags = true) const;
+
+    [[nodiscard]] std::optional<SurfaceView> inspect_surface(
+        StableSurfaceId stable_id) const noexcept;
 
     [[nodiscard]] std::optional<StableSurfaceId> add_surface(
         std::uint32_t flags,
