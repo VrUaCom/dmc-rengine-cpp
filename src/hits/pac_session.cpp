@@ -77,7 +77,7 @@ std::optional<PacSession> PacSession::open(
 
     const auto expansion =
         gdspaces::ContainerExpander::expand(parent_pac, parsed);
-    if (!expansion.usable() || expansion.parser_format != "pac") {
+    if (!expansion.usable() || expansion.parser_format != "PAC") {
         return std::nullopt;
     }
 
