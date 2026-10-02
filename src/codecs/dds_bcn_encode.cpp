@@ -848,7 +848,30 @@ void encode_block(Format format, const std::uint8_t* px, std::byte* out) noexcep
     }
 }
 
+namespace {
+std::atomic<LevelEncoder*> g_level_encoder{nullptr};
+}  // namespace
+
+void set_level_encoder(LevelEncoder* encoder) noexcept {
+    g_level_encoder.store(encoder);
+}
+
+LevelEncoder* level_encoder() noexcept {
+    return g_level_encoder.load();
+}
+
 bool encode_level(Format format, const RgbaImage& image, std::vector<std::byte>* out) {
+    if (out == nullptr || !image.available()) return false;
+    if (auto* accelerator = g_level_encoder.load(); accelerator != nullptr) {
+        try {
+            if (accelerator->encode(format, image, out)) return true;
+        } catch (...) {
+        }
+    }
+    return encode_level_cpu(format, image, out);
+}
+
+bool encode_level_cpu(Format format, const RgbaImage& image, std::vector<std::byte>* out) {
     if (out == nullptr || !image.available()) return false;
     const auto bw = (image.width + 3U) / 4U;
     const auto bh = (image.height + 3U) / 4U;

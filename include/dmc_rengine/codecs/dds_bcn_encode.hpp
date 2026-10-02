@@ -32,6 +32,24 @@ void encode_block(Format format, const std::uint8_t* rgba64, std::byte* out) noe
 // row / column. Returns false on a size mismatch or allocation failure.
 [[nodiscard]] bool encode_level(Format format, const RgbaImage& image, std::vector<std::byte>* out);
 
+// A process-wide accelerator for whole levels (a GPU compute encoder on a
+// phone). encode_level offers it every level first; returning false — format
+// not supported, level too small, device lost — leaves the level to the CPU
+// encoder. The accelerator must be thread-safe: re-encode workflows encode
+// several textures at once.
+class LevelEncoder {
+public:
+    virtual ~LevelEncoder() = default;
+    [[nodiscard]] virtual bool encode(Format format, const RgbaImage& image, std::vector<std::byte>* out) = 0;
+};
+
+// nullptr removes it. The caller keeps ownership and must outlive its use.
+void set_level_encoder(LevelEncoder* encoder) noexcept;
+[[nodiscard]] LevelEncoder* level_encoder() noexcept;
+
+// The CPU encoder only (what encode_level falls back to).
+[[nodiscard]] bool encode_level_cpu(Format format, const RgbaImage& image, std::vector<std::byte>* out);
+
 // Next mip level: 2x2 box filter (odd edges average what exists).
 [[nodiscard]] RgbaImage downsample(const RgbaImage& image);
 
