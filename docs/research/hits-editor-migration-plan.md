@@ -26,17 +26,31 @@ Migrate the existing module in place. Do not create a competing parser or a seco
 
 ## Editor boundary after parser merge
 
-The future editor will consume the same parsed model and provide:
+The editor consumes the same parsed model and must not introduce a private HITS parser.
+
+The first implemented native authoring slice lives on `feature/hits-editor-mvp` and adds a reusable `hits::editor::Session` over the canonical parser and spatial writer. The session currently provides:
+
+- stable surface IDs derived from the parsed triangle order
+- raw flag editing
+- triangle vertex replacement
+- single- and multi-surface translation
+- add / duplicate / delete topology operations
+- undo / redo and reset-to-source state
+- deterministic writer handoff with automatic fit-bounds fallback when an edit leaves the source grid
+- parser round-trip through the existing `hits::writer::SpatialWriter`
+
+The product/UI layer still needs to provide:
 
 - source-aware member 3/source 0 and member 6/source 1 views
-- triangle selection and 3D preview
-- raw flag bit view
-- vertex editing
-- normal and plane-D recomputation
-- winding and degenerate-triangle validation
-- byte-preserving save-copy mode
+- triangle / connected-surface / SCM-mesh selection
+- 3D HITS + SCM overlay
+- collision-color and raw-flag inspector
+- draw-triangle / draw-quad tools
+- boundary authoring
+- SCM-to-HITS geometry copy
+- PAC member replacement and export workflow
 
-Topology changes, arbitrary cross-cell moves and spatial-index rebuild remain blocked until the exact deterministic builder is implemented and runtime-validated.
+Topology-changing output is now structurally supported by the corpus-verified spatial writer. Original-game acceptance of arbitrary authored topology remains a separate validation gate and must not be described as proven.
 
 ## Coordination with PR #26
 
