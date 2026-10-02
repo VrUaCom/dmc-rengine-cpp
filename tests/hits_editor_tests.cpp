@@ -160,6 +160,26 @@ int main() {
     assert(session.dirty());
     assert(session.surfaces()[0].flags == 0x0000000AU);
 
+    const auto quad_mesh = session.add_quad(
+        Vec3{-2.0F, 0.0F, -2.0F},
+        Vec3{-1.0F, 0.0F, -2.0F},
+        Vec3{-1.0F, 0.0F, -1.0F},
+        Vec3{-2.0F, 0.0F, -1.0F},
+        CollisionPreset::orange_raw_00000009);
+    assert(quad_mesh.has_value());
+    const auto quad_index = session.mesh_index_of(*quad_mesh);
+    assert(quad_index.has_value());
+    assert(session.meshes()[*quad_index].surface_ids.size() == 2U);
+
+    const auto boundary_mesh = session.create_rectangular_boundary(
+        Vec3{-4.0F, -1.0F, -4.0F},
+        Vec3{4.0F, 3.0F, 4.0F},
+        CollisionPreset::red_raw_18060001);
+    assert(boundary_mesh.has_value());
+    const auto boundary_index = session.mesh_index_of(*boundary_mesh);
+    assert(boundary_index.has_value());
+    assert(session.meshes()[*boundary_index].surface_ids.size() == 8U);
+
     const std::array<dmc::rengine::hits::editor::StableSurfaceId, 2U>
         initial_pair{1U, 2U};
     assert(session.set_collision_preset(
