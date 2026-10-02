@@ -1,6 +1,9 @@
 #include "dmc_rengine/codecs/dds_bcn_encode.hpp"
 
 #include <algorithm>
+#include <vector>
+#include <thread>
+#include <atomic>
 #include <array>
 #include <bit>
 #include <cctype>
@@ -855,21 +858,50 @@ bool encode_level(Format format, const RgbaImage& image, std::vector<std::byte>*
     } catch (...) {
         return false;
     }
-    std::array<std::uint8_t, 64> block{};
-    for (std::uint32_t by = 0U; by < bh; ++by) {
-        for (std::uint32_t bx = 0U; bx < bw; ++bx) {
-            for (std::uint32_t py = 0U; py < 4U; ++py) {
-                const auto y = std::min(by * 4U + py, image.height - 1U);
-                for (std::uint32_t pxi = 0U; pxi < 4U; ++pxi) {
-                    const auto x = std::min(bx * 4U + pxi, image.width - 1U);
-                    std::memcpy(block.data() + (py * 4U + pxi) * 4U,
-                                image.rgba8.data() + (static_cast<std::size_t>(y) * image.width + x) * 4U, 4U);
+    // Blocks are independent: rows of blocks are shared out across cores
+    // (the output is identical to the serial order). Small levels stay on
+    // the calling thread.
+    const auto encode_rows = [&](std::uint32_t row_begin, std::uint32_t row_end) {
+        std::array<std::uint8_t, 64> block{};
+        for (std::uint32_t by = row_begin; by < row_end; ++by) {
+            for (std::uint32_t bx = 0U; bx < bw; ++bx) {
+                for (std::uint32_t py = 0U; py < 4U; ++py) {
+                    const auto y = std::min(by * 4U + py, image.height - 1U);
+                    for (std::uint32_t pxi = 0U; pxi < 4U; ++pxi) {
+                        const auto x = std::min(bx * 4U + pxi, image.width - 1U);
+                        std::memcpy(block.data() + (py * 4U + pxi) * 4U,
+                                    image.rgba8.data() + (static_cast<std::size_t>(y) * image.width + x) * 4U, 4U);
+                    }
                 }
+                encode_block(format, block.data(),
+                             out->data() + (static_cast<std::size_t>(by) * bw + bx) * bsize);
             }
-            encode_block(format, block.data(),
-                         out->data() + (static_cast<std::size_t>(by) * bw + bx) * bsize);
         }
+    };
+    const auto blocks = static_cast<std::uint64_t>(bw) * bh;
+    const auto cores = std::max(1U, std::thread::hardware_concurrency());
+    const auto threads = std::min<std::uint32_t>(cores, bh);
+    if (blocks < 1024U || threads <= 1U) {
+        encode_rows(0U, bh);
+        return true;
     }
+    std::atomic<std::uint32_t> next_row{0U};
+    const auto worker = [&] {
+        constexpr std::uint32_t chunk = 4U;
+        for (auto row = next_row.fetch_add(chunk); row < bh; row = next_row.fetch_add(chunk)) {
+            encode_rows(row, std::min(bh, row + chunk));
+        }
+    };
+    std::vector<std::thread> pool;
+    try {
+        pool.reserve(threads - 1U);
+        for (std::uint32_t t = 1U; t < threads; ++t) pool.emplace_back(worker);
+    } catch (...) {
+        // Fewer threads than asked: the rows are claimed, not assigned, so
+        // the ones already running and this thread finish them all.
+    }
+    worker();
+    for (auto& thread : pool) thread.join();
     return true;
 }
 
