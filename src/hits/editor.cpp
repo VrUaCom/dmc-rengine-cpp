@@ -676,6 +676,47 @@ std::optional<ScmImportResult> Session::import_scm_mesh(
     };
 }
 
+std::optional<ScmObjectImportResult> Session::import_scm_object(
+    const formats::scm::Document& document,
+    std::size_t object_index,
+    CollisionPreset preset) {
+    const auto extracted =
+        scm_import::extract_object(document, object_index);
+    if (!extracted || extracted->triangles.empty()) {
+        return std::nullopt;
+    }
+
+    std::vector<std::array<Vec3, 3U>> triangles;
+    triangles.reserve(extracted->triangles.size());
+    for (const auto& triangle : extracted->triangles) {
+        triangles.push_back({
+            triangle.point_a,
+            triangle.point_b,
+            triangle.point_c,
+        });
+    }
+
+    const auto mesh_id = append_triangle_mesh(
+        triangles,
+        collision_preset_info(preset).raw_flags);
+    if (!mesh_id) {
+        return std::nullopt;
+    }
+
+    const auto editor_mesh_index = mesh_index_of(*mesh_id);
+    if (!editor_mesh_index) {
+        return std::nullopt;
+    }
+
+    return ScmObjectImportResult{
+        .mesh_id = *mesh_id,
+        .surface_ids = meshes_[*editor_mesh_index].surface_ids,
+        .source_object_index = extracted->object_index,
+        .source_node_index = extracted->node_index,
+        .source_mesh_count = extracted->source_mesh_count,
+    };
+}
+
 std::optional<StableMeshId> Session::add_quad(
     const Vec3& point_a,
     const Vec3& point_b,
