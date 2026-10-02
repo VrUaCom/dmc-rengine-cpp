@@ -22,5 +22,7 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule clt();
 [[nodiscard]] NativeReaderModule tsc();
 [[nodiscard]] NativeReaderModule evt();
+[[nodiscard]] NativeReaderModule collision_shapes();
+[[nodiscard]] NativeReaderModule motion_script();
 
 } // namespace dmc::rengine::integration::native_reader_modules

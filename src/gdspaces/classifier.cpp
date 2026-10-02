@@ -5,6 +5,8 @@
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/so.hpp"
+#include "dmc_rengine/profiles/dmc3/collision_shapes.hpp"
+#include "dmc_rengine/profiles/dmc3/motion_script.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
@@ -172,7 +174,24 @@ ResourceClassification ResourceClassifier::classify(
             result.structural_confirmed = true;
         } else {
             const auto extension = extension_from_path(logical_path);
-            result.format = extension.empty() ? "unknown" : extension;
+            const bool nameless = extension.empty() || extension == "bin";
+            const auto raw = std::span<const std::uint8_t>{
+                reinterpret_cast<const std::uint8_t*>(bytes.data()), bytes.size()};
+            if (nameless && profiles::dmc3::collision::looks_like_shape_table(raw)) {
+                // Character collision shapes (ICollisionHandle 0x1404C65A0)
+                // and motion scripts (bind 0x1400594B0) are fetched by slot
+                // index, never by name or tag. Only a slot that has no name
+                // of its own is read for them: whole 80-byte shape records,
+                // or u16 bank tables whose first action plays a motion.
+                result.format = "collision-shapes";
+                result.structural_confirmed = true;
+            } else if (nameless &&
+                       profiles::dmc3::motion::MotionScriptFile::looks_like(raw)) {
+                result.format = "motion-script";
+                result.structural_confirmed = true;
+            } else {
+                result.format = extension.empty() ? "unknown" : extension;
+            }
         }
     }
 

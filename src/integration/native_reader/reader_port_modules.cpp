@@ -1,12 +1,15 @@
 // Native Reader modules for the formats whose readers came over from the DMC
 // Native Reader reverses: EFM effect models (the MOD document layout behind
 // an "EFM " tag), CLT cloth definitions, TSC UV-scroll tables and EVT event
-// scripts. Each module only reads; identity stays with the classifier.
+// scripts, and the nameless character tables (collision shapes, motion
+// scripts) read through resource_structure. Each module only reads; identity
+// stays with the classifier.
 #include "dmc_rengine/integration/native_reader_modules.hpp"
 
 #include "dmc_rengine/formats/evt.hpp"
 #include "dmc_rengine/formats/mod.hpp"
 #include "dmc_rengine/integration/native_reader_support.hpp"
+#include "dmc_rengine/integration/resource_structure.hpp"
 #include "dmc_rengine/profiles/dmc3/cloth_chain.hpp"
 #include "dmc_rengine/profiles/dmc3/uv_scroll.hpp"
 
@@ -116,6 +119,32 @@ void analyze_evt(
     }
 }
 
+// Formats whose only reader is the structure view: the module reports what
+// the view reads and declines what it declines.
+void analyze_structure(std::string_view format, std::string_view code,
+                       const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    std::string detail;
+    const auto view = read_structure(format, std::span<const std::byte>{session.source_payload().bytes},
+                                     session.resource().id.logical_path, detail);
+    report.recognized = view.has_value();
+    if (!view) {
+        native_reader_support::add_report_diagnostic(
+            report, gdspaces::DiagnosticSeverity::error, std::string{code}, std::move(detail));
+        return;
+    }
+    info(report, std::string{code}, view->summary);
+}
+
+void analyze_collision_shapes(ProjectWorkspace&, const ResourceWorkspaceSession& session,
+                              ResourceAnalysisReport& report) {
+    analyze_structure("collision-shapes", "collision-shapes", session, report);
+}
+
+void analyze_motion_script(ProjectWorkspace&, const ResourceWorkspaceSession& session,
+                           ResourceAnalysisReport& report) {
+    analyze_structure("motion-script", "motion-script-banks", session, report);
+}
+
 } // namespace
 
 NativeReaderModule efm() {
@@ -151,6 +180,24 @@ NativeReaderModule evt() {
         .consumer = gdspaces::ToolTarget::binary_inspector,
         .link_format_evidence = true,
         .analyze = &analyze_evt,
+    };
+}
+
+NativeReaderModule collision_shapes() {
+    return NativeReaderModule{
+        .parser_id = "profiles.dmc3.collision-shapes-v1",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_collision_shapes,
+    };
+}
+
+NativeReaderModule motion_script() {
+    return NativeReaderModule{
+        .parser_id = "profiles.dmc3.motion-script-v1",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_motion_script,
     };
 }
 

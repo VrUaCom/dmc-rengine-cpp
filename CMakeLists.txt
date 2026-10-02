@@ -82,6 +82,7 @@ if(DMC_RENGINE_BUILD_CLI)
         src/cli/dmc3_retail_acquisition_commands.cpp
         src/cli/nbz_copy_commands.cpp
         src/cli/texture_reencode_commands.cpp
+        src/cli/structure_commands.cpp
         src/cli/archive_key_census_commands.cpp
         src/cli/container_inspect_commands.cpp
         src/cli/mod_writer_corpus_commands.cpp
@@ -266,6 +267,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc3_fx_generator
         dmc3_fx_enemy_events
         dmc3_reader_ports
+        resource_structure
         dmc3_em034_stage
         dds_bcn
         dds_bcn_encode

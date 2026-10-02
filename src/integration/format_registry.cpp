@@ -470,6 +470,33 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "collision-shapes",
+            .parser_id = "profiles.dmc3.collision-shapes-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "A character's shape table (player slot 7, em028 slot 12, em000 slot 40): 80-byte records with a type byte (2 sphere, 3 box, 4 capsule) read by ICollisionHandle 0x1404C65A0 after the setup 0x14005C260.",
+                "The runtime fetches it by slot index; only a nameless slot (no extension, or .bin) whose every record is whole, typed 0..6 and finite is typed this way.",
+                "A table of spheres and segments only is the same payload the classifier already types as so-volume (em000 slot 40); this row covers the tables with a box record, and the structure view reads both.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "motion-script",
+            .parser_id = "profiles.dmc3.motion-script-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "A character's motion script (player slot 5, em028 slot 10, em000 slot 38): u16 bank tables bound by 0x1400594B0 and run by the interpreter 0x140058FE0.",
+                "The runtime fetches it by slot index; only a nameless slot whose bank tables close with 0xFFFF and whose first action plays a motion is typed this way.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "effect-manifest",
             .parser_id = {},
             .maturity = IntegrationMaturity::recognized,

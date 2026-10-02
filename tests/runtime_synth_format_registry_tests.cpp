@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 18U);
+    assert(readers.size() == 20U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
