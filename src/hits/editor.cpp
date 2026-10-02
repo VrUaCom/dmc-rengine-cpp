@@ -260,6 +260,37 @@ std::vector<StableSurfaceId> Session::connected_surface(
     return result;
 }
 
+std::optional<SurfaceView> Session::inspect_surface(
+    StableSurfaceId stable_id) const noexcept {
+    const auto index = index_of(stable_id);
+    if (!index) {
+        return std::nullopt;
+    }
+
+    std::optional<StableMeshId> mesh_id;
+    for (const auto& mesh : meshes_) {
+        if (std::find(
+                mesh.surface_ids.begin(),
+                mesh.surface_ids.end(),
+                stable_id) != mesh.surface_ids.end()) {
+            mesh_id = mesh.stable_id;
+            break;
+        }
+    }
+
+    const auto& surface = surfaces_[*index];
+    return SurfaceView{
+        .stable_id = surface.stable_id,
+        .raw_flags = surface.flags,
+        .upper_query_mask =
+            formats::hits::upper_flag_mask(surface.flags),
+        .lower_surface_value =
+            formats::hits::lower_flag_value(surface.flags),
+        .preset = collision_preset_from_flags(surface.flags),
+        .mesh_id = mesh_id,
+    };
+}
+
 std::optional<std::vector<std::size_t>>
 Session::resolve_surface_indices(
     std::span<const StableSurfaceId> stable_ids) const {
