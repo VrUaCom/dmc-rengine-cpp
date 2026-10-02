@@ -32,9 +32,12 @@ The first implemented native authoring slice lives on `feature/hits-editor-mvp` 
 
 - stable surface IDs derived from the parsed triangle order
 - raw flag editing
+- evidence-gated collision preset switching for the four project-observed viewer variants: blue `0x00000001`, orange `0x00000009`, green `0x0000000A`, red `0x18060001`
 - triangle vertex replacement
 - single- and multi-surface translation
 - add / duplicate / delete topology operations
+- editor-side logical mesh groups built from stable surface IDs
+- merge-mesh, translate-mesh and whole-mesh collision-preset operations
 - undo / redo and reset-to-source state
 - deterministic writer handoff with automatic fit-bounds fallback when an edit leaves the source grid
 - parser round-trip through the existing `hits::writer::SpatialWriter`
@@ -51,6 +54,14 @@ The product/UI layer still needs to provide:
 - PAC member replacement and export workflow
 
 Topology-changing output is now structurally supported by the corpus-verified spatial writer. Original-game acceptance of arbitrary authored topology remains a separate validation gate and must not be described as proven.
+
+### Collision-type naming rule
+
+The editor exposes the four currently project-observed color/raw-flag presets as convenience controls, but it does not promote the colors into invented gameplay semantics. The UI should always keep the raw value visible and retain the evidence boundary.
+
+### Mesh-merge naming rule
+
+HITS has no serialized mesh table. An editor `Mesh` is therefore a logical authoring group of stable HITS surface IDs. `merge_meshes()` unions those groups so they can be moved or retyped together; it deliberately does not collapse triangles or claim a runtime mesh object. Triangle reduction/welding/simplification is a separate future operation.
 
 ## Coordination with PR #26
 
