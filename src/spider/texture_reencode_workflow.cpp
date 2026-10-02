@@ -97,7 +97,10 @@ bool inspect(State& s, std::uint32_t) noexcept {
             if (s.slots[i].offset == 0U || (only >= 0 && static_cast<std::uint32_t>(only) != i)) continue;
             const auto extent = s.source.subspan(static_cast<std::size_t>(s.slots[i].offset),
                                                  static_cast<std::size_t>(s.slots[i].size));
-            if (!dmc3::texture_payload(extent).empty()) s.texture_slots.push_back(i);
+            if (!dmc3::texture_payload(extent).empty() ||
+                (s.request->options.nested && dmc3::holds_textures(extent, true))) {
+                s.texture_slots.push_back(i);
+            }
         }
         std::ostringstream d;
         d << "PAC, " << s.slots.size() << " slots, texture slots:";
@@ -121,8 +124,23 @@ bool transform(State& s, std::uint32_t operand) noexcept {
         const auto slot = operand;
         const auto& e = s.slots.at(slot);
         auto& outcome = s.outcomes.at(slot);
-        const auto payload = dmc3::texture_payload(
-            s.source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size)));
+        const auto extent = s.source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+        const auto payload = dmc3::texture_payload(extent);
+        if (payload.empty() && s.request->options.nested) {
+            // A nested PAC: the re-encoder rebuilds it level by level.
+            auto options = s.request->options;
+            options.pac_slot = -1;
+            auto inner = dmc3::reencode_textures(extent, options);
+            outcome.done = true;
+            outcome.step = {"transform[" + std::to_string(slot) + "]", inner.ok,
+                            inner.ok ? std::to_string(inner.textures.size()) + " texture(s) in a nested PAC"
+                                     : inner.detail};
+            if (!inner.ok) return false;
+            for (auto& t : inner.textures) t.pac_path.insert(t.pac_path.begin(), slot);
+            outcome.textures = std::move(inner.textures);
+            outcome.replacement = dmc3::PacSlotReplacement{slot, std::move(inner.bytes)};
+            return true;
+        }
         auto encoded = dmc3::reencode_payload(payload, s.request->options, static_cast<int>(slot));
         outcome.done = true;
         outcome.step = {"transform[" + std::to_string(slot) + "]", encoded.ok,
@@ -168,7 +186,7 @@ bool assemble(State& s, std::uint32_t) noexcept {
 bool validate(State& s, std::uint32_t) noexcept {
     try {
         const std::span<const std::byte> out{s.result.bytes.data(), s.result.bytes.size()};
-        const auto formats = dmc3::list_textures(out);
+        const auto formats = dmc3::list_textures(out, s.request->options.nested);
         std::size_t matching = 0U;
         for (const auto& d : formats) matching += d.format == s.request->options.format ? 1U : 0U;
         if (matching < s.result.textures.size()) {

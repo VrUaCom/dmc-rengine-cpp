@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <functional>
 #include <map>
 #include <sstream>
 
@@ -253,6 +254,29 @@ bool is_texture_bundle(std::span<const std::byte> s) noexcept {
     return sector * k_sector == s.size();
 }
 
+namespace {
+constexpr int k_max_nesting = 8;
+
+[[nodiscard]] bool holds_textures_at(std::span<const std::byte> s, int depth) noexcept {
+    if (!holds_textures(s) && depth < k_max_nesting && s.size() >= 8U && s[0] == std::byte{'P'} &&
+        s[1] == std::byte{'A'} && s[2] == std::byte{'C'} && s[3] == std::byte{0}) {
+        const auto slots = read_pac_slots(s);
+        if (!slots) return false;
+        for (const auto& e : *slots) {
+            if (e.offset == 0U) continue;
+            const auto payload = s.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+            if (holds_textures_at(payload, depth + 1)) return true;
+        }
+        return false;
+    }
+    return holds_textures(s);
+}
+}  // namespace
+
+bool holds_textures(std::span<const std::byte> s, bool nested) noexcept {
+    return nested ? holds_textures_at(s, 0) : holds_textures(s);
+}
+
 bool holds_textures(std::span<const std::byte> s) noexcept {
     try {
         if (!is_pac(s)) return is_dds(s) || is_wrapped_texture(s) || is_texture_bundle(s);
@@ -326,6 +350,26 @@ std::optional<std::vector<std::byte>> replace_pac_slots(std::span<const std::byt
     return out;
 }
 
+std::vector<bcn::Document> list_textures(std::span<const std::byte> s, bool nested) {
+    if (!nested) return list_textures(s);
+    std::vector<bcn::Document> out = list_textures(s);
+    const std::function<void(std::span<const std::byte>, int)> descend = [&](std::span<const std::byte> p, int depth) {
+        if (depth >= k_max_nesting) return;
+        const auto slots = read_pac_slots(p);
+        if (!slots) return;
+        for (const auto& e : *slots) {
+            if (e.offset == 0U) continue;
+            const auto payload = p.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+            if (!is_pac(payload)) continue;
+            const auto inner = list_textures(payload);
+            out.insert(out.end(), inner.begin(), inner.end());
+            descend(payload, depth + 1);
+        }
+    };
+    descend(s, 0);
+    return out;
+}
+
 std::vector<bcn::Document> list_textures(std::span<const std::byte> s) {
     std::vector<bcn::Document> out;
     const auto payload_textures = [&](std::span<const std::byte> p) {
@@ -389,7 +433,18 @@ PayloadReencodeResult reencode_payload(std::span<const std::byte> payload, const
     return out;
 }
 
+namespace {
+[[nodiscard]] TextureReencodeResult reencode_textures_at(std::span<const std::byte> source,
+                                                         const TextureReencodeOptions& options, int depth);
+}  // namespace
+
 TextureReencodeResult reencode_textures(std::span<const std::byte> source, const TextureReencodeOptions& options) {
+    return reencode_textures_at(source, options, 0);
+}
+
+namespace {
+TextureReencodeResult reencode_textures_at(std::span<const std::byte> source, const TextureReencodeOptions& options,
+                                           int depth) {
     TextureReencodeResult result;
     std::string error;
     try {
@@ -416,6 +471,20 @@ TextureReencodeResult reencode_textures(std::span<const std::byte> source, const
                 std::vector<std::byte> encoded;
                 ReencodeContainer kind{};
                 std::string slot_error;
+                const auto extent =
+                    source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size));
+                if (payload.empty() && options.nested && depth < k_max_nesting && is_pac(extent)) {
+                    // A PAC inside the PAC: rebuild it with its own textures re-encoded.
+                    auto inner_options = options;
+                    inner_options.pac_slot = -1;
+                    auto inner = reencode_textures_at(extent, inner_options, depth + 1);
+                    if (inner.ok) {
+                        for (auto& t : inner.textures) t.pac_path.insert(t.pac_path.begin(), i);
+                        result.textures.insert(result.textures.end(), inner.textures.begin(), inner.textures.end());
+                        replacements.push_back({i, std::move(inner.bytes)});
+                    }
+                    continue;
+                }
                 if (payload.empty() ||
                     !reencode_payload_into(payload, options, static_cast<int>(i), &encoded, &result.textures,
                                            &slot_error, &kind)) {
@@ -453,5 +522,6 @@ TextureReencodeResult reencode_textures(std::span<const std::byte> source, const
     result.ok = !result.textures.empty();
     return result;
 }
+}  // namespace
 
 }  // namespace dmc::rengine::profiles::dmc3

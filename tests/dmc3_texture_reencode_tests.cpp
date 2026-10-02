@@ -3,6 +3,7 @@
 #include "dmc_rengine/codecs/dds_bcn.hpp"
 #include "dmc_rengine/codecs/dds_bcn_encode.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_reencode.hpp"
+#include "dmc_rengine/spider/texture_reencode_workflow.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <bit>
@@ -174,7 +175,41 @@ void wrapped_texture_and_bare_dds() {
 
 }  // namespace
 
+void nested_pacs() {
+    // GData-like: an outer PAC of a text slot and two character PACs, each
+    // holding a PTX; only `nested` reaches them.
+    const auto text = std::vector<std::byte>(40, std::byte{'a'});
+    const auto inner_a = pac({canonical_ptx(), text});
+    const auto inner_b = pac({text, canonical_ptx()});
+    const auto outer = pac({text, inner_a, inner_b});
+    dmc3::TextureReencodeOptions options{};
+    options.format = bcn::Format::bc7;
+    assert(!dmc3::holds_textures(view(outer)));
+    assert(dmc3::holds_textures(view(outer), true));
+    assert(!dmc3::reencode_textures(view(outer), options).ok);
+    options.nested = true;
+    const auto r = dmc3::reencode_textures(view(outer), options);
+    assert(r.ok && r.textures.size() == 4U);
+    assert(r.textures[0].pac_path == std::vector<std::uint32_t>{1U} && r.textures[0].pac_slot == 0);
+    assert(r.textures[3].pac_path == std::vector<std::uint32_t>{2U} && r.textures[3].pac_slot == 1);
+    const auto listed = dmc3::list_textures(view(r.bytes), true);
+    assert(listed.size() == 4U);
+    for (const auto& d : listed) assert(d.format == bcn::Format::bc7);
+    // Untouched outer slot 0 survives.
+    const auto slots = dmc3::read_pac_slots(view(r.bytes));
+    assert(slots && slots->size() == 3U);
+    assert(std::memcmp(r.bytes.data() + (*slots)[0].offset, text.data(), text.size()) == 0);
+
+    namespace tarantula = dmc::rengine::spider::tarantula;
+    tarantula::TextureReencodeRequest request{};
+    request.options = options;
+    const auto workflow = tarantula::run_texture_reencode(view(outer), request);
+    assert(workflow.ok && workflow.result.textures.size() == 4U);
+    assert(workflow.result.bytes == r.bytes);
+}
+
 int main() {
+    nested_pacs();
     ptx_in_pac_to_every_format();
     single_slot_and_dx10_option();
     wrapped_texture_and_bare_dds();

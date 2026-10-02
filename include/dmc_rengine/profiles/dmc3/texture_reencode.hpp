@@ -46,10 +46,16 @@ struct TextureReencodeOptions final {
     bool force_dx10{};
     // PAC only: re-encode this slot; -1 = every PTX / DDS / wrapped slot.
     int pac_slot{-1};
+    // PAC only: also descend into PAC slots that are PACs themselves (a
+    // retail GData.afs holds character PACs, which hold the PTX), rebuilding
+    // every level on the way out. Depth is bounded.
+    bool nested{false};
 };
 
 struct ReencodedTexture final {
     int pac_slot{-1};
+    // Enclosing PAC slots, outermost first, when found through `nested`.
+    std::vector<std::uint32_t> pac_path;
     std::uint32_t index{};
     codecs::dds_bcn::Format from{};
     codecs::dds_bcn::Format to{};
@@ -99,6 +105,8 @@ struct PayloadReencodeResult final {
 // Formats of every texture reencode_textures would touch (same traversal,
 // nothing decoded): one entry per texture, PAC slots in order.
 [[nodiscard]] std::vector<codecs::dds_bcn::Document> list_textures(std::span<const std::byte> bytes);
+// The same, descending into nested PAC slots.
+[[nodiscard]] std::vector<codecs::dds_bcn::Document> list_textures(std::span<const std::byte> bytes, bool nested);
 
 // PTX walk with the checks dmc3.exe makes on load (0x140336BB0,
 // 0x140046510): count, sector spans, gfxTexture +0x00 = 0, +0x20 = 0x40,
@@ -120,6 +128,8 @@ struct PacSlotExtent final {
 // True when the bytes hold something reencode_textures accepts: a DDS, a
 // single gfxTexture, a PTX, or a PAC with at least one such slot.
 [[nodiscard]] bool holds_textures(std::span<const std::byte> bytes) noexcept;
+// The same, descending into nested PAC slots.
+[[nodiscard]] bool holds_textures(std::span<const std::byte> bytes, bool nested) noexcept;
 
 // Rebuilds a PAC with some slots replaced; untouched slots are copied
 // verbatim, every slot start stays 16-byte aligned.

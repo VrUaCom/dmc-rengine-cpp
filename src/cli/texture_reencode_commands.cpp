@@ -34,10 +34,11 @@ namespace dmc3 = profiles::dmc3;
 void print_texture_reencode_help() {
     std::cout
         << "  texture-reencode <in> <out> --format <bc1|bc2|bc3|bc4|bc4s|bc5|bc5s|bc6h|bc6h_sf16|bc7>\n"
-        << "                   [--dx10] [--slot N] [--replace]\n"
+        << "                   [--dx10] [--slot N] [--nested] [--replace]\n"
         << "                             Spider Tarantula workflow: re-encode every texture of a\n"
         << "                             DDS / PTX / .tm2 / PAC (game mips kept, layout kept when\n"
-        << "                             it fits); <out> is never overwritten without --replace\n";
+        << "                             it fits); --nested also rebuilds PACs inside PACs (a\n"
+        << "                             whole GData.afs); <out> is never overwritten without --replace\n";
 }
 
 int try_run_texture_reencode_command(int argc, char** argv) {
@@ -63,6 +64,8 @@ int try_run_texture_reencode_command(int argc, char** argv) {
             replace = true;
         } else if (arg == "--dx10") {
             options.force_dx10 = true;
+        } else if (arg == "--nested") {
+            options.nested = true;
         } else if (arg == "--slot" && i + 1 < argc) {
             options.pac_slot = std::stoi(argv[++i]);
         } else {
