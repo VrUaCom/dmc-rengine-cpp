@@ -66,7 +66,7 @@ using HitVec3 = formats::hits::Vec3;
 std::optional<MeshExtraction> extract_mesh(
     const formats::scm::Document& document,
     std::size_t object_index,
-    std::size_t mesh_index) noexcept {
+    std::size_t mesh_index) {
     if (object_index >= document.objects.size()) {
         return std::nullopt;
     }
