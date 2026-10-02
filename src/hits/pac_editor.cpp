@@ -85,7 +85,7 @@ ReplaceResult PacHitsWriter::replace_slot(
 
     const auto expansion =
         gdspaces::ContainerExpander::expand(parent_pac, parsed);
-    if (!expansion.usable() || expansion.parser_format != "pac") {
+    if (!expansion.usable() || expansion.parser_format != "PAC") {
         return failure(
             ReplaceStatus::invalid_parent,
             slot_index,
