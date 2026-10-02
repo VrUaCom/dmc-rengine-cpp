@@ -505,19 +505,24 @@ std::optional<StableMeshId> Session::merge_meshes(
     }
 
     const auto destination_id = meshes_[indices.front()].stable_id;
+    std::vector<StableMeshId> remove_ids;
     std::vector<StableSurfaceId> merged;
     for (const auto index : indices) {
+        const auto& mesh = meshes_[index];
+        if (mesh.stable_id != destination_id) {
+            remove_ids.push_back(mesh.stable_id);
+        }
         merged.insert(
             merged.end(),
-            meshes_[index].surface_ids.begin(),
-            meshes_[index].surface_ids.end());
+            mesh.surface_ids.begin(),
+            mesh.surface_ids.end());
     }
     std::sort(merged.begin(), merged.end());
     merged.erase(std::unique(merged.begin(), merged.end()), merged.end());
 
     begin_mutation();
 
-    auto destination = mesh_index_of(destination_id);
+    const auto destination = mesh_index_of(destination_id);
     if (!destination) {
         return std::nullopt;
     }
@@ -527,16 +532,11 @@ std::optional<StableMeshId> Session::merge_meshes(
         std::remove_if(
             meshes_.begin(),
             meshes_.end(),
-            [destination_id, &indices, this](const Mesh& mesh) {
-                if (mesh.stable_id == destination_id) {
-                    return false;
-                }
-                const auto index = mesh_index_of(mesh.stable_id);
-                return index &&
-                    std::binary_search(
-                        indices.begin(),
-                        indices.end(),
-                        *index);
+            [&remove_ids](const Mesh& mesh) {
+                return std::find(
+                    remove_ids.begin(),
+                    remove_ids.end(),
+                    mesh.stable_id) != remove_ids.end();
             }),
         meshes_.end());
 
