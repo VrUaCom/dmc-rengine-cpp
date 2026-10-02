@@ -128,6 +128,7 @@ int main() {
     using dmc::rengine::hits::editor::CollisionPreset;
     using dmc::rengine::hits::editor::Session;
     using dmc::rengine::hits::scm_import::extract_mesh;
+    using dmc::rengine::hits::scm_import::extract_object;
 
     const auto scm = make_scm_document();
     const auto extracted = extract_mesh(scm, 0U, 0U);
@@ -160,6 +161,27 @@ int main() {
 
     assert(!extract_mesh(scm, 1U, 0U).has_value());
     assert(!extract_mesh(scm, 0U, 1U).has_value());
+
+    auto multi_mesh_scm = scm;
+    dmc::rengine::formats::scm::Mesh second_mesh{};
+    second_mesh.vertex_count = 3U;
+    second_mesh.positions = {
+        dmc::rengine::formats::scm::Vec3f{0.0F, 1.0F, 0.0F},
+        dmc::rengine::formats::scm::Vec3f{1.0F, 1.0F, 0.0F},
+        dmc::rengine::formats::scm::Vec3f{0.0F, 1.0F, 1.0F},
+    };
+    second_mesh.colors_topology = {
+        dmc::rengine::formats::scm::ColorTopology{255U, 255U, 255U, 0U},
+        dmc::rengine::formats::scm::ColorTopology{255U, 255U, 255U, 0U},
+        dmc::rengine::formats::scm::ColorTopology{255U, 255U, 255U, 0U},
+    };
+    multi_mesh_scm.objects[0].mesh_count = 2U;
+    multi_mesh_scm.objects[0].meshes.push_back(std::move(second_mesh));
+
+    const auto extracted_object = extract_object(multi_mesh_scm, 0U);
+    assert(extracted_object.has_value());
+    assert(extracted_object->source_mesh_count == 2U);
+    assert(extracted_object->triangles.size() == 3U);
 
     const auto hits = make_hits_fixture();
     auto opened = Session::open(hits);
@@ -204,6 +226,34 @@ int main() {
     assert(session.redo());
     assert(session.surfaces().size() == 3U);
     assert(session.meshes().size() == 1U);
+
+    {
+        auto object_opened = Session::open(hits);
+        assert(object_opened.has_value());
+        auto object_session = std::move(*object_opened);
+
+        const auto imported_object = object_session.import_scm_object(
+            multi_mesh_scm,
+            0U,
+            CollisionPreset::orange_raw_00000009);
+        assert(imported_object.has_value());
+        assert(imported_object->source_mesh_count == 2U);
+        assert(imported_object->surface_ids.size() == 3U);
+        assert(object_session.meshes().size() == 1U);
+        assert(object_session.surfaces().size() == 4U);
+
+        for (const auto id : imported_object->surface_ids) {
+            const auto index = object_session.index_of(id);
+            assert(index.has_value());
+            assert(
+                object_session.surfaces()[*index].flags ==
+                0x00000009U);
+        }
+
+        const auto object_rebuilt = object_session.rebuild();
+        assert(object_rebuilt.ok());
+        assert(object_rebuilt.header.triangle_count == 4U);
+    }
 
     return 0;
 }
