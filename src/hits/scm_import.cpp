@@ -160,4 +160,42 @@ std::optional<MeshExtraction> extract_mesh(
     return result;
 }
 
+std::optional<ObjectExtraction> extract_object(
+    const formats::scm::Document& document,
+    std::size_t object_index) {
+    if (object_index >= document.objects.size()) {
+        return std::nullopt;
+    }
+
+    const auto& object = document.objects[object_index];
+    const auto node_index =
+        bound_node_for_object(document.scene_nodes, object_index);
+    if (!node_index) {
+        return std::nullopt;
+    }
+
+    ObjectExtraction result{
+        .object_index = object_index,
+        .node_index = *node_index,
+        .source_mesh_count = object.meshes.size(),
+        .triangles = {},
+    };
+
+    for (std::size_t mesh_index = 0U;
+         mesh_index < object.meshes.size();
+         ++mesh_index) {
+        const auto extracted =
+            extract_mesh(document, object_index, mesh_index);
+        if (!extracted || extracted->node_index != *node_index) {
+            return std::nullopt;
+        }
+        result.triangles.insert(
+            result.triangles.end(),
+            extracted->triangles.begin(),
+            extracted->triangles.end());
+    }
+
+    return result;
+}
+
 } // namespace dmc::rengine::hits::scm_import
