@@ -38,7 +38,15 @@ struct State final {
     bool pac{};
     std::vector<dmc3::PacSlotExtent> slots;
     std::vector<std::uint32_t> texture_slots;  // PAC slots to transform
-    // transform
+    // transform: one cell per PAC slot, written only by that slot's step,
+    // so the transforms run concurrently; assemble gathers them in order.
+    struct SlotOutcome final {
+        bool done{};
+        TextureReencodeStep step;
+        std::optional<dmc3::PacSlotReplacement> replacement;
+        std::vector<dmc3::ReencodedTexture> textures;
+    };
+    std::vector<SlotOutcome> outcomes;
     std::vector<dmc3::PacSlotReplacement> replacements;
     dmc3::PayloadReencodeResult single;
     // assemble / validate
@@ -83,6 +91,7 @@ bool inspect(State& s, std::uint32_t) noexcept {
             return texture;
         }
         s.slots = *pac_slots;
+        s.outcomes.resize(s.slots.size());
         const int only = s.request->options.pac_slot;
         for (std::uint32_t i = 0U; i < s.slots.size(); ++i) {
             if (s.slots[i].offset == 0U || (only >= 0 && static_cast<std::uint32_t>(only) != i)) continue;
@@ -111,17 +120,16 @@ bool transform(State& s, std::uint32_t operand) noexcept {
         }
         const auto slot = operand;
         const auto& e = s.slots.at(slot);
+        auto& outcome = s.outcomes.at(slot);
         const auto payload = dmc3::texture_payload(
             s.source.subspan(static_cast<std::size_t>(e.offset), static_cast<std::size_t>(e.size)));
         auto encoded = dmc3::reencode_payload(payload, s.request->options, static_cast<int>(slot));
-        const auto name = "transform[" + std::to_string(slot) + "]";
-        if (!encoded.ok) {
-            step(s, name, false, encoded.detail);
-            return false;
-        }
-        step(s, name, true, std::to_string(encoded.textures.size()) + " texture(s)");
-        s.result.textures.insert(s.result.textures.end(), encoded.textures.begin(), encoded.textures.end());
-        s.replacements.push_back({slot, std::move(encoded.bytes)});
+        outcome.done = true;
+        outcome.step = {"transform[" + std::to_string(slot) + "]", encoded.ok,
+                        encoded.ok ? std::to_string(encoded.textures.size()) + " texture(s)" : encoded.detail};
+        if (!encoded.ok) return false;
+        outcome.textures = std::move(encoded.textures);
+        outcome.replacement = dmc3::PacSlotReplacement{slot, std::move(encoded.bytes)};
         return true;
     } catch (...) {
         step(s, "transform", false, "transform failed");
@@ -137,6 +145,11 @@ bool assemble(State& s, std::uint32_t) noexcept {
             s.result.textures = std::move(s.single.textures);
         } else {
             s.result.container = dmc3::ReencodeContainer::pac;
+            for (auto& outcome : s.outcomes) {
+                if (!outcome.done) continue;
+                s.result.textures.insert(s.result.textures.end(), outcome.textures.begin(), outcome.textures.end());
+                if (outcome.replacement) s.replacements.push_back(std::move(*outcome.replacement));
+            }
             auto rebuilt = dmc3::replace_pac_slots(s.source, s.replacements);
             if (!rebuilt) {
                 step(s, "assemble", false, "PAC rebuild failed");
@@ -226,7 +239,7 @@ bool publish(State& s, std::uint32_t) noexcept {
 constexpr std::array k_bindings{
     crusader::bind<State, &acquire>(k_acquire),
     crusader::bind<State, &inspect>(k_inspect),
-    crusader::bind<State, &transform>(k_transform),
+    crusader::bind_concurrent<State, &transform>(k_transform),
     crusader::bind<State, &assemble>(k_assemble),
     crusader::bind<State, &validate>(k_validate),
     crusader::bind<State, &publish>(k_publish),
@@ -254,8 +267,24 @@ TextureReencodeWorkflowResult run(State& state) {
         const auto assembled = back.add_span(k_assemble, 0U, crusader::Domain::cpu, transforms, "assemble");
         const auto validated = back.add(k_validate, 0U, crusader::Domain::cpu, {assembled}, "validate");
         back.add(k_publish, 0U, crusader::Domain::io, {validated}, "publish");
-        out.report = crusader::execute(back.build(), k_bindings, state);
+        // The transforms are independent (one PAC slot each) and run on all
+        // cores; the other steps run alone, in order.
+        out.report = crusader::execute_parallel(back.build(), k_bindings, state);
         failed = back.failed_label(out.report);
+    }
+    // Transform receipts in slot order, between inspect and assemble.
+    {
+        std::vector<TextureReencodeStep> ordered;
+        for (auto& st : state.steps) {
+            if (st.name == "assemble" || st.name == "validate" || st.name == "publish") break;
+            ordered.push_back(std::move(st));
+        }
+        const auto head = ordered.size();
+        for (auto& outcome : state.outcomes) {
+            if (outcome.done) ordered.push_back(std::move(outcome.step));
+        }
+        for (std::size_t i = head; i < state.steps.size(); ++i) ordered.push_back(std::move(state.steps[i]));
+        state.steps = std::move(ordered);
     }
     out.steps = std::move(state.steps);
     out.result = std::move(state.result);

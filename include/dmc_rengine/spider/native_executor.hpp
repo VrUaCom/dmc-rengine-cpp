@@ -35,6 +35,10 @@ struct NativePlan final {
 struct NativeOperationBinding final {
     NativeOperationId operation{};
     NativeOperationFn execute{};
+    // The operation may run at the same time as other concurrent operations
+    // of the same plan (it touches only state its operand owns). Only the
+    // parallel executor reads this; the serial one ignores it.
+    bool concurrent{false};
 };
 
 enum class NativeExecutionStatus : std::uint8_t {
@@ -81,5 +85,17 @@ struct NativeExecutionReport final {
     const NativePlan& plan,
     std::span<const NativeOperationBinding> bindings,
     void* state) noexcept;
+
+// The same plan and the same report, with independent work run at once:
+// consecutive cpu-domain instructions whose binding is `concurrent` and whose
+// dependencies all completed before them run as one wave on up to
+// `max_threads` threads (0 = one per core). Everything else runs alone, in
+// plan order. A failing wave reports its lowest failing instruction, exactly
+// as the serial kernel would have stopped there.
+[[nodiscard]] NativeExecutionReport execute_native_plan_parallel(
+    const NativePlan& plan,
+    std::span<const NativeOperationBinding> bindings,
+    void* state,
+    std::size_t max_threads = 0U) noexcept;
 
 } // namespace dmc::rengine::spider

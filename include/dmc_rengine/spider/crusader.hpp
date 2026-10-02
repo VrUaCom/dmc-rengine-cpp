@@ -63,6 +63,23 @@ template <StateObject State, TypedOperationFn<State> Fn>
     return {.operation = operation, .execute = &typed_operation<State, Fn>};
 }
 
+// A binding the parallel executor may run alongside other concurrent ones:
+// `Fn` must touch only the part of the state its operand owns.
+template <StateObject State, TypedOperationFn<State> Fn>
+[[nodiscard]] constexpr OperationBinding bind_concurrent(OperationId operation) noexcept {
+    return {.operation = operation, .execute = &typed_operation<State, Fn>, .concurrent = true};
+}
+
+// Parallel execution of the same plan (see execute_native_plan_parallel).
+template <StateObject State>
+[[nodiscard]] inline ExecutionReport execute_parallel(
+    const Plan& plan,
+    std::span<const OperationBinding> bindings,
+    State& state,
+    std::size_t max_threads = 0U) noexcept {
+    return execute_native_plan_parallel(plan, bindings, &state, max_threads);
+}
+
 [[nodiscard]] constexpr const char* to_string(
     ExecutionStatus status) noexcept {
     return dmc::rengine::spider::to_string(status);

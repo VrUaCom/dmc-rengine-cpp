@@ -1,6 +1,9 @@
 #include "dmc_rengine/spider/native_executor.hpp"
 
 #include <array>
+#include <atomic>
+#include <chrono>
+#include <thread>
 #include <cassert>
 #include <cstdint>
 
@@ -33,9 +36,74 @@ bool record_offset(void* raw, std::uint32_t operand) noexcept {
     return true;
 }
 
+struct WaveState final {
+    std::array<std::atomic<int>, 16U> done{};
+    std::atomic<int> running{0};
+    std::atomic<int> peak{0};
+    std::atomic<int> order{0};
+    std::array<int, 16U> sequence{};
+    std::uint32_t fail_operand{0xFFFFFFFFU};
+};
+
+bool wave_step(void* raw, std::uint32_t operand) noexcept {
+    auto* state = static_cast<WaveState*>(raw);
+    const int now = ++state->running;
+    int seen = state->peak.load();
+    while (now > seen && !state->peak.compare_exchange_weak(seen, now)) {
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    --state->running;
+    state->sequence[operand] = state->order++;
+    state->done[operand] = 1;
+    return operand != state->fail_operand;
+}
+
 } // namespace
 
+void parallel_waves() {
+    namespace spider = dmc::rengine::spider;
+    constexpr spider::NativeOperationId kSerial = 1U;
+    constexpr spider::NativeOperationId kWave = 2U;
+    // 0 serial -> 1..6 concurrent (each on 0) -> 7 serial (on 1..6)
+    spider::NativePlan plan;
+    plan.instructions.push_back({.operation = kSerial, .operand = 0U});
+    for (std::uint32_t k = 1U; k <= 6U; ++k) {
+        plan.instructions.push_back({.operation = kWave, .operand = k,
+                                     .dependency_begin = 0U, .dependency_count = 1U});
+    }
+    plan.dependencies = {0U, 1U, 2U, 3U, 4U, 5U, 6U};
+    plan.instructions.push_back({.operation = kSerial, .operand = 7U,
+                                 .dependency_begin = 1U, .dependency_count = 6U});
+    const std::array bindings{
+        spider::NativeOperationBinding{.operation = kSerial, .execute = &wave_step},
+        spider::NativeOperationBinding{.operation = kWave, .execute = &wave_step, .concurrent = true},
+    };
+    {
+        WaveState state;
+        const auto report = spider::execute_native_plan_parallel(plan, bindings, &state, 4U);
+        assert(report.ok() && report.completed_instructions == 8U);
+        assert(state.peak.load() >= 2);                 // the wave ran at once
+        assert(state.sequence[0] == 0 && state.sequence[7] == 7);  // serial ends stay in order
+    }
+    {
+        WaveState state;
+        state.fail_operand = 4U;
+        const auto report = spider::execute_native_plan_parallel(plan, bindings, &state, 4U);
+        assert(report.status == spider::NativeExecutionStatus::operation_failed);
+        assert(report.failed_instruction == 4U && report.completed_instructions == 4U);
+        assert(state.done[7] == 0);                      // nothing after the failing wave
+    }
+    {
+        // One thread: the same results in plan order.
+        WaveState state;
+        const auto report = spider::execute_native_plan_parallel(plan, bindings, &state, 1U);
+        assert(report.ok() && state.peak.load() == 1);
+        for (int k = 0; k < 8; ++k) assert(state.sequence[static_cast<std::size_t>(k)] == k);
+    }
+}
+
 int main() {
+    parallel_waves();
     namespace spider = dmc::rengine::spider;
 
     constexpr spider::NativeOperationId kProbe = 1U;
