@@ -105,6 +105,14 @@ struct ScmImportResult final {
     std::size_t source_node_index{};
 };
 
+struct ScmObjectImportResult final {
+    StableMeshId mesh_id{};
+    std::vector<StableSurfaceId> surface_ids;
+    std::size_t source_object_index{};
+    std::size_t source_node_index{};
+    std::size_t source_mesh_count{};
+};
+
 class Session final {
 public:
     [[nodiscard]] static std::optional<Session> open(
@@ -190,6 +198,11 @@ public:
         const formats::scm::Document& document,
         std::size_t object_index,
         std::size_t mesh_index,
+        CollisionPreset preset);
+
+    [[nodiscard]] std::optional<ScmObjectImportResult> import_scm_object(
+        const formats::scm::Document& document,
+        std::size_t object_index,
         CollisionPreset preset);
 
     [[nodiscard]] std::optional<StableMeshId> add_quad(
