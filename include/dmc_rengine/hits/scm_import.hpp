@@ -27,6 +27,6 @@ struct MeshExtraction final {
 [[nodiscard]] std::optional<MeshExtraction> extract_mesh(
     const formats::scm::Document& document,
     std::size_t object_index,
-    std::size_t mesh_index) noexcept;
+    std::size_t mesh_index);
 
 } // namespace dmc::rengine::hits::scm_import
