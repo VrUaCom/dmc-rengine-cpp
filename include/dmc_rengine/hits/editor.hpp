@@ -4,6 +4,7 @@
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/hits/writer.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -191,6 +192,20 @@ public:
         std::size_t mesh_index,
         CollisionPreset preset);
 
+    [[nodiscard]] std::optional<StableMeshId> add_quad(
+        const formats::hits::Vec3& point_a,
+        const formats::hits::Vec3& point_b,
+        const formats::hits::Vec3& point_c,
+        const formats::hits::Vec3& point_d,
+        CollisionPreset preset);
+
+    // Creates four vertical walls (8 triangles) around an axis-aligned box.
+    // Floor and ceiling are intentionally not synthesized by this operation.
+    [[nodiscard]] std::optional<StableMeshId> create_rectangular_boundary(
+        const formats::hits::Vec3& minimum,
+        const formats::hits::Vec3& maximum,
+        CollisionPreset preset);
+
     [[nodiscard]] bool undo();
     [[nodiscard]] bool redo();
     [[nodiscard]] bool reset_to_source();
@@ -220,6 +235,10 @@ private:
 
     [[nodiscard]] std::optional<StableSurfaceId> allocate_stable_id() noexcept;
     [[nodiscard]] std::optional<StableMeshId> allocate_mesh_id() noexcept;
+
+    [[nodiscard]] std::optional<StableMeshId> append_triangle_mesh(
+        std::span<const std::array<formats::hits::Vec3, 3U>> triangles,
+        std::uint32_t flags);
 
     [[nodiscard]] std::optional<std::vector<std::size_t>>
     resolve_surface_indices(
