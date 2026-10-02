@@ -189,6 +189,17 @@ ToolRegistry::ToolRegistry() {
             },
         },
         ToolDescriptor{
+            .target = gdspaces::ToolTarget::hits_editor,
+            .product_name = "HITS Editor",
+            .lore_name = "HITS Editor",
+            .capabilities = {
+                ToolCapability::inspect_evidence,
+                ToolCapability::hits_editing,
+                ToolCapability::create_working_copy,
+                ToolCapability::export_manifest,
+            },
+        },
+        ToolDescriptor{
             .target = gdspaces::ToolTarget::build_test_lab,
             .product_name = "Build & Test Lab",
             .lore_name = "The Trial Chamber",
