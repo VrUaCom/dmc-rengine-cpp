@@ -19,6 +19,7 @@ enum class ToolTarget {
     modviz_scene,
     modviz_menu,
     item_editor,
+    hits_editor,
     build_test_lab,
 };
 
@@ -33,6 +34,7 @@ enum class ToolTarget {
     case ToolTarget::modviz_scene: return "modviz-scene";
     case ToolTarget::modviz_menu: return "modviz-menu";
     case ToolTarget::item_editor: return "item-editor";
+    case ToolTarget::hits_editor: return "hits-editor";
     case ToolTarget::build_test_lab: return "build-test-lab";
     }
     return "binary-inspector";
