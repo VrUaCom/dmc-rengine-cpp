@@ -301,6 +301,10 @@ int main() {
         assert(quad_index.has_value());
         assert(drawing.meshes()[*quad_index].surface_ids.size() == 2U);
 
+        const auto quad_connected = drawing.connected_surface(
+            drawing.meshes()[*quad_index].surface_ids.front());
+        assert(quad_connected.size() == 2U);
+
         const auto boundary_mesh = drawing.create_rectangular_boundary(
             Vec3{-4.0F, -1.0F, -4.0F},
             Vec3{4.0F, 3.0F, 4.0F},
@@ -311,6 +315,10 @@ int main() {
         assert(boundary_index.has_value());
         assert(
             drawing.meshes()[*boundary_index].surface_ids.size() == 8U);
+
+        const auto boundary_connected = drawing.connected_surface(
+            drawing.meshes()[*boundary_index].surface_ids.front());
+        assert(boundary_connected.size() == 8U);
 
         const auto invalid_boundary =
             drawing.create_rectangular_boundary(
