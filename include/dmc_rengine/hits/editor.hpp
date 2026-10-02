@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/hits/writer.hpp"
 
 #include <cstddef>
@@ -95,6 +96,14 @@ struct Mesh final {
     std::vector<StableSurfaceId> surface_ids;
 };
 
+struct ScmImportResult final {
+    StableMeshId mesh_id{};
+    std::vector<StableSurfaceId> surface_ids;
+    std::size_t source_object_index{};
+    std::size_t source_mesh_index{};
+    std::size_t source_node_index{};
+};
+
 class Session final {
 public:
     [[nodiscard]] static std::optional<Session> open(
@@ -175,6 +184,12 @@ public:
     [[nodiscard]] bool translate_mesh(
         StableMeshId mesh_id,
         const formats::hits::Vec3& delta);
+
+    [[nodiscard]] std::optional<ScmImportResult> import_scm_mesh(
+        const formats::scm::Document& document,
+        std::size_t object_index,
+        std::size_t mesh_index,
+        CollisionPreset preset);
 
     [[nodiscard]] bool undo();
     [[nodiscard]] bool redo();
