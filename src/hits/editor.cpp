@@ -203,6 +203,62 @@ std::optional<StableMeshId> Session::allocate_mesh_id() noexcept {
     return allocated;
 }
 
+std::optional<StableMeshId> Session::append_triangle_mesh(
+    std::span<const std::array<Vec3, 3U>> triangles,
+    std::uint32_t flags) {
+    if (triangles.empty() ||
+        next_stable_id_ == 0U ||
+        next_mesh_id_ == 0U) {
+        return std::nullopt;
+    }
+
+    for (const auto& triangle : triangles) {
+        if (!edit::recompute_geometry(
+                triangle[0],
+                triangle[1],
+                triangle[2])) {
+            return std::nullopt;
+        }
+    }
+
+    const auto available_ids =
+        std::numeric_limits<StableSurfaceId>::max() -
+        next_stable_id_ +
+        StableSurfaceId{1U};
+    if (static_cast<std::uint64_t>(triangles.size()) > available_ids) {
+        return std::nullopt;
+    }
+
+    begin_mutation();
+    const auto mesh_id = allocate_mesh_id();
+    if (!mesh_id) {
+        return std::nullopt;
+    }
+
+    std::vector<StableSurfaceId> members;
+    members.reserve(triangles.size());
+    for (const auto& triangle : triangles) {
+        const auto stable_id = allocate_stable_id();
+        if (!stable_id) {
+            return std::nullopt;
+        }
+        members.push_back(*stable_id);
+        surfaces_.push_back(Surface{
+            .stable_id = *stable_id,
+            .flags = flags,
+            .point_a = triangle[0],
+            .point_b = triangle[1],
+            .point_c = triangle[2],
+        });
+    }
+
+    meshes_.push_back(Mesh{
+        .stable_id = *mesh_id,
+        .surface_ids = std::move(members),
+    });
+    return mesh_id;
+}
+
 std::optional<StableSurfaceId> Session::add_surface(
     std::uint32_t flags,
     const Vec3& point_a,
@@ -585,58 +641,93 @@ std::optional<ScmImportResult> Session::import_scm_mesh(
     CollisionPreset preset) {
     const auto extracted =
         scm_import::extract_mesh(document, object_index, mesh_index);
-    if (!extracted || extracted->triangles.empty() ||
-        next_stable_id_ == 0U || next_mesh_id_ == 0U) {
+    if (!extracted || extracted->triangles.empty()) {
         return std::nullopt;
     }
 
-    const auto maximum_id =
-        std::numeric_limits<StableSurfaceId>::max();
-    const auto available_ids =
-        maximum_id - next_stable_id_ + StableSurfaceId{1U};
-    if (extracted->triangles.size() >
-        static_cast<std::size_t>(available_ids)) {
-        return std::nullopt;
+    std::vector<std::array<Vec3, 3U>> triangles;
+    triangles.reserve(extracted->triangles.size());
+    for (const auto& triangle : extracted->triangles) {
+        triangles.push_back({
+            triangle.point_a,
+            triangle.point_b,
+            triangle.point_c,
+        });
     }
 
-    begin_mutation();
-
-    const auto mesh_id = allocate_mesh_id();
+    const auto mesh_id = append_triangle_mesh(
+        triangles,
+        collision_preset_info(preset).raw_flags);
     if (!mesh_id) {
         return std::nullopt;
     }
 
-    const auto raw_flags = collision_preset_info(preset).raw_flags;
-    std::vector<StableSurfaceId> imported_ids;
-    imported_ids.reserve(extracted->triangles.size());
-
-    for (const auto& triangle : extracted->triangles) {
-        const auto surface_id = allocate_stable_id();
-        if (!surface_id) {
-            return std::nullopt;
-        }
-        imported_ids.push_back(*surface_id);
-        surfaces_.push_back(Surface{
-            .stable_id = *surface_id,
-            .flags = raw_flags,
-            .point_a = triangle.point_a,
-            .point_b = triangle.point_b,
-            .point_c = triangle.point_c,
-        });
+    const auto mesh_index_in_editor = mesh_index_of(*mesh_id);
+    if (!mesh_index_in_editor) {
+        return std::nullopt;
     }
-
-    meshes_.push_back(Mesh{
-        .stable_id = *mesh_id,
-        .surface_ids = imported_ids,
-    });
 
     return ScmImportResult{
         .mesh_id = *mesh_id,
-        .surface_ids = std::move(imported_ids),
+        .surface_ids = meshes_[*mesh_index_in_editor].surface_ids,
         .source_object_index = extracted->object_index,
         .source_mesh_index = extracted->mesh_index,
         .source_node_index = extracted->node_index,
     };
+}
+
+std::optional<StableMeshId> Session::add_quad(
+    const Vec3& point_a,
+    const Vec3& point_b,
+    const Vec3& point_c,
+    const Vec3& point_d,
+    CollisionPreset preset) {
+    const std::array<std::array<Vec3, 3U>, 2U> triangles{{
+        {point_a, point_b, point_c},
+        {point_a, point_c, point_d},
+    }};
+    return append_triangle_mesh(
+        triangles,
+        collision_preset_info(preset).raw_flags);
+}
+
+std::optional<StableMeshId> Session::create_rectangular_boundary(
+    const Vec3& minimum,
+    const Vec3& maximum,
+    CollisionPreset preset) {
+    if (!edit::finite(minimum) ||
+        !edit::finite(maximum) ||
+        minimum.x >= maximum.x ||
+        minimum.y >= maximum.y ||
+        minimum.z >= maximum.z) {
+        return std::nullopt;
+    }
+
+    const auto x0 = minimum.x;
+    const auto y0 = minimum.y;
+    const auto z0 = minimum.z;
+    const auto x1 = maximum.x;
+    const auto y1 = maximum.y;
+    const auto z1 = maximum.z;
+
+    // Winding points normals toward the playable volume.
+    const std::array<std::array<Vec3, 3U>, 8U> triangles{{
+        {Vec3{x0, y0, z0}, Vec3{x1, y0, z0}, Vec3{x1, y1, z0}},
+        {Vec3{x0, y0, z0}, Vec3{x1, y1, z0}, Vec3{x0, y1, z0}},
+
+        {Vec3{x1, y0, z0}, Vec3{x1, y0, z1}, Vec3{x1, y1, z1}},
+        {Vec3{x1, y0, z0}, Vec3{x1, y1, z1}, Vec3{x1, y1, z0}},
+
+        {Vec3{x1, y0, z1}, Vec3{x0, y0, z1}, Vec3{x0, y1, z1}},
+        {Vec3{x1, y0, z1}, Vec3{x0, y1, z1}, Vec3{x1, y1, z1}},
+
+        {Vec3{x0, y0, z1}, Vec3{x0, y0, z0}, Vec3{x0, y1, z0}},
+        {Vec3{x0, y0, z1}, Vec3{x0, y1, z0}, Vec3{x0, y1, z1}},
+    }};
+
+    return append_triangle_mesh(
+        triangles,
+        collision_preset_info(preset).raw_flags);
 }
 
 bool Session::undo() {
