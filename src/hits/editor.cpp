@@ -81,6 +81,10 @@ std::span<const Surface> Session::surfaces() const noexcept {
     return std::span<const Surface>{surfaces_};
 }
 
+std::span<const Mesh> Session::meshes() const noexcept {
+    return std::span<const Mesh>{meshes_};
+}
+
 bool Session::dirty() const noexcept {
     return revision_ != 0U;
 }
@@ -112,10 +116,44 @@ std::optional<std::size_t> Session::index_of(
         std::distance(surfaces_.begin(), found));
 }
 
+std::optional<std::size_t> Session::mesh_index_of(
+    StableMeshId stable_id) const noexcept {
+    const auto found = std::find_if(
+        meshes_.begin(),
+        meshes_.end(),
+        [stable_id](const Mesh& mesh) {
+            return mesh.stable_id == stable_id;
+        });
+    if (found == meshes_.end()) {
+        return std::nullopt;
+    }
+    return static_cast<std::size_t>(
+        std::distance(meshes_.begin(), found));
+}
+
+std::optional<std::vector<std::size_t>>
+Session::resolve_surface_indices(
+    std::span<const StableSurfaceId> stable_ids) const {
+    std::vector<std::size_t> indices;
+    indices.reserve(stable_ids.size());
+    for (const auto stable_id : stable_ids) {
+        const auto index = index_of(stable_id);
+        if (!index) {
+            return std::nullopt;
+        }
+        indices.push_back(*index);
+    }
+    std::sort(indices.begin(), indices.end());
+    indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
+    return indices;
+}
+
 Session::Snapshot Session::snapshot() const {
     return Snapshot{
         .surfaces = surfaces_,
         .next_stable_id = next_stable_id_,
+        .meshes = meshes_,
+        .next_mesh_id = next_mesh_id_,
         .revision = revision_,
     };
 }
@@ -123,6 +161,8 @@ Session::Snapshot Session::snapshot() const {
 void Session::restore(Snapshot state) {
     surfaces_ = std::move(state.surfaces);
     next_stable_id_ = state.next_stable_id;
+    meshes_ = std::move(state.meshes);
+    next_mesh_id_ = state.next_mesh_id;
     revision_ = state.revision;
 }
 
@@ -145,6 +185,19 @@ std::optional<StableSurfaceId> Session::allocate_stable_id() noexcept {
         next_stable_id_ = 0U;
     } else {
         ++next_stable_id_;
+    }
+    return allocated;
+}
+
+std::optional<StableMeshId> Session::allocate_mesh_id() noexcept {
+    if (next_mesh_id_ == 0U) {
+        return std::nullopt;
+    }
+    const auto allocated = next_mesh_id_;
+    if (next_mesh_id_ == std::numeric_limits<StableMeshId>::max()) {
+        next_mesh_id_ = 0U;
+    } else {
+        ++next_mesh_id_;
     }
     return allocated;
 }
@@ -192,6 +245,15 @@ std::optional<StableSurfaceId> Session::duplicate_surface(
     auto duplicate = original;
     duplicate.stable_id = *duplicate_id;
     surfaces_.push_back(duplicate);
+
+    for (auto& mesh : meshes_) {
+        if (std::find(
+                mesh.surface_ids.begin(),
+                mesh.surface_ids.end(),
+                stable_id) != mesh.surface_ids.end()) {
+            mesh.surface_ids.push_back(*duplicate_id);
+        }
+    }
     return duplicate_id;
 }
 
@@ -204,6 +266,23 @@ bool Session::erase_surface(StableSurfaceId stable_id) {
     begin_mutation();
     surfaces_.erase(
         surfaces_.begin() + static_cast<std::ptrdiff_t>(*index));
+
+    for (auto& mesh : meshes_) {
+        mesh.surface_ids.erase(
+            std::remove(
+                mesh.surface_ids.begin(),
+                mesh.surface_ids.end(),
+                stable_id),
+            mesh.surface_ids.end());
+    }
+    meshes_.erase(
+        std::remove_if(
+            meshes_.begin(),
+            meshes_.end(),
+            [](const Mesh& mesh) {
+                return mesh.surface_ids.empty();
+            }),
+        meshes_.end());
     return true;
 }
 
@@ -221,6 +300,50 @@ bool Session::set_flags(
     begin_mutation();
     surfaces_[*index].flags = flags;
     return true;
+}
+
+bool Session::set_flags(
+    std::span<const StableSurfaceId> stable_ids,
+    std::uint32_t flags) {
+    const auto indices = resolve_surface_indices(stable_ids);
+    if (!indices) {
+        return false;
+    }
+    if (indices->empty()) {
+        return true;
+    }
+
+    const auto changed = std::any_of(
+        indices->begin(),
+        indices->end(),
+        [this, flags](std::size_t index) {
+            return surfaces_[index].flags != flags;
+        });
+    if (!changed) {
+        return true;
+    }
+
+    begin_mutation();
+    for (const auto index : *indices) {
+        surfaces_[index].flags = flags;
+    }
+    return true;
+}
+
+bool Session::set_collision_preset(
+    StableSurfaceId stable_id,
+    CollisionPreset preset) {
+    return set_flags(
+        stable_id,
+        collision_preset_info(preset).raw_flags);
+}
+
+bool Session::set_collision_preset(
+    std::span<const StableSurfaceId> stable_ids,
+    CollisionPreset preset) {
+    return set_flags(
+        stable_ids,
+        collision_preset_info(preset).raw_flags);
 }
 
 bool Session::set_geometry(
@@ -274,21 +397,14 @@ bool Session::translate_surfaces(
         return true;
     }
 
-    std::vector<std::size_t> indices;
-    indices.reserve(stable_ids.size());
-    for (const auto stable_id : stable_ids) {
-        const auto index = index_of(stable_id);
-        if (!index) {
-            return false;
-        }
-        indices.push_back(*index);
+    const auto indices = resolve_surface_indices(stable_ids);
+    if (!indices) {
+        return false;
     }
-    std::sort(indices.begin(), indices.end());
-    indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
 
     std::vector<Surface> translated;
-    translated.reserve(indices.size());
-    for (const auto index : indices) {
+    translated.reserve(indices->size());
+    for (const auto index : *indices) {
         auto surface = surfaces_[index];
         surface.point_a = add(surface.point_a, delta);
         surface.point_b = add(surface.point_b, delta);
@@ -303,8 +419,8 @@ bool Session::translate_surfaces(
     }
 
     bool changed = false;
-    for (std::size_t i = 0U; i < indices.size(); ++i) {
-        const auto& current = surfaces_[indices[i]];
+    for (std::size_t i = 0U; i < indices->size(); ++i) {
+        const auto& current = surfaces_[(*indices)[i]];
         const auto& candidate = translated[i];
         if (current.point_a != candidate.point_a ||
             current.point_b != candidate.point_b ||
@@ -318,10 +434,147 @@ bool Session::translate_surfaces(
     }
 
     begin_mutation();
-    for (std::size_t i = 0U; i < indices.size(); ++i) {
-        surfaces_[indices[i]] = translated[i];
+    for (std::size_t i = 0U; i < indices->size(); ++i) {
+        surfaces_[(*indices)[i]] = translated[i];
     }
     return true;
+}
+
+std::optional<StableMeshId> Session::create_mesh(
+    std::span<const StableSurfaceId> stable_ids) {
+    if (stable_ids.empty() || next_mesh_id_ == 0U) {
+        return std::nullopt;
+    }
+
+    const auto indices = resolve_surface_indices(stable_ids);
+    if (!indices || indices->empty()) {
+        return std::nullopt;
+    }
+
+    std::vector<StableSurfaceId> members;
+    members.reserve(indices->size());
+    for (const auto index : *indices) {
+        members.push_back(surfaces_[index].stable_id);
+    }
+    std::sort(members.begin(), members.end());
+
+    for (const auto& mesh : meshes_) {
+        for (const auto member : members) {
+            if (std::find(
+                    mesh.surface_ids.begin(),
+                    mesh.surface_ids.end(),
+                    member) != mesh.surface_ids.end()) {
+                return std::nullopt;
+            }
+        }
+    }
+
+    begin_mutation();
+    const auto mesh_id = allocate_mesh_id();
+    if (!mesh_id) {
+        return std::nullopt;
+    }
+
+    meshes_.push_back(Mesh{
+        .stable_id = *mesh_id,
+        .surface_ids = std::move(members),
+    });
+    return mesh_id;
+}
+
+std::optional<StableMeshId> Session::merge_meshes(
+    std::span<const StableMeshId> mesh_ids) {
+    if (mesh_ids.empty()) {
+        return std::nullopt;
+    }
+
+    std::vector<std::size_t> indices;
+    indices.reserve(mesh_ids.size());
+    for (const auto mesh_id : mesh_ids) {
+        const auto index = mesh_index_of(mesh_id);
+        if (!index) {
+            return std::nullopt;
+        }
+        indices.push_back(*index);
+    }
+    std::sort(indices.begin(), indices.end());
+    indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
+
+    if (indices.size() == 1U) {
+        return meshes_[indices.front()].stable_id;
+    }
+
+    const auto destination_id = meshes_[indices.front()].stable_id;
+    std::vector<StableSurfaceId> merged;
+    for (const auto index : indices) {
+        merged.insert(
+            merged.end(),
+            meshes_[index].surface_ids.begin(),
+            meshes_[index].surface_ids.end());
+    }
+    std::sort(merged.begin(), merged.end());
+    merged.erase(std::unique(merged.begin(), merged.end()), merged.end());
+
+    begin_mutation();
+
+    auto destination = mesh_index_of(destination_id);
+    if (!destination) {
+        return std::nullopt;
+    }
+    meshes_[*destination].surface_ids = std::move(merged);
+
+    meshes_.erase(
+        std::remove_if(
+            meshes_.begin(),
+            meshes_.end(),
+            [destination_id, &indices, this](const Mesh& mesh) {
+                if (mesh.stable_id == destination_id) {
+                    return false;
+                }
+                const auto index = mesh_index_of(mesh.stable_id);
+                return index &&
+                    std::binary_search(
+                        indices.begin(),
+                        indices.end(),
+                        *index);
+            }),
+        meshes_.end());
+
+    return destination_id;
+}
+
+bool Session::erase_mesh(StableMeshId mesh_id) {
+    const auto index = mesh_index_of(mesh_id);
+    if (!index) {
+        return false;
+    }
+
+    begin_mutation();
+    meshes_.erase(
+        meshes_.begin() + static_cast<std::ptrdiff_t>(*index));
+    return true;
+}
+
+bool Session::set_mesh_collision_preset(
+    StableMeshId mesh_id,
+    CollisionPreset preset) {
+    const auto index = mesh_index_of(mesh_id);
+    if (!index) {
+        return false;
+    }
+    const auto members = meshes_[*index].surface_ids;
+    return set_collision_preset(members, preset);
+}
+
+bool Session::translate_mesh(
+    StableMeshId mesh_id,
+    const Vec3& delta) {
+    const auto index = mesh_index_of(mesh_id);
+    if (!index) {
+        return false;
+    }
+    const auto members = meshes_[*index].surface_ids;
+    return translate_surfaces(members, delta);
 }
 
 bool Session::undo() {
@@ -357,6 +610,8 @@ bool Session::reset_to_source() {
     redo_.clear();
     surfaces_ = source_surfaces_;
     next_stable_id_ = source_next_stable_id_;
+    meshes_.clear();
+    next_mesh_id_ = 1U;
     revision_ = 0U;
     return true;
 }
