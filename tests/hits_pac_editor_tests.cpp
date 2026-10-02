@@ -234,12 +234,7 @@ int main() {
         missing.status ==
         pac_editor::ReplaceStatus::target_slot_not_found);
 
-    std::vector<std::byte> bad_hits{
-        std::byte{'N'},
-        std::byte{'O'},
-        std::byte{'P'},
-        std::byte{'E'},
-    };
+    const std::vector<std::byte> bad_hits(4U, std::byte{0});
     const auto invalid = pac_editor::PacHitsWriter::replace_slot(
         parent,
         3U,
