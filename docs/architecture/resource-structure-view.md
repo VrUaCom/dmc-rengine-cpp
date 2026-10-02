@@ -15,10 +15,12 @@ client shows it.
 | `pnst` (effect bank) | `fx::effect_bank` (loader 0x1402C04C0) + the E / P / G / V / A views | record counts per kind with their registrars, then each record: T texture format and size, A frames, E texture / animation, P class / life / blend / layers, G motion and spawns, V children, C clip points, M model |
 | `collision-shapes`, `so-volume` | `collision::parse_shapes` (ICollisionHandle 0x1404C65A0) | each 80-byte record: sphere, box or capsule with its values |
 | `motion-script` | `motion::MotionScriptFile` (bind 0x1400594B0, interpreter 0x140058FE0) | banks, every action: played motion, ops, waits, last frame, loop / hand-over, weapon states, MOT ids from table B |
-| `pac` (character) | attachment tables, `player_attachment`, `em000_family` | slot roles of `pl000..pl003`, `plwp_*`, `em028`, `em000`, and the cloth / TSC sources of the other enemies |
+| `pac` (character) | attachment tables, `player_attachment`, `em000_family`, `fx::enemy` | slot roles of `pl000..pl003`, `plwp_*`, `em028`, `em000`, the cloth / TSC sources of the other enemies; for `em000..em008` the effect event cases of the handler 0x1401C3130, and for `em000..em004` the death schedule and the frame-gated attack events |
+| `txt` (stage `# GAME`) | `stage_layout::parse_game` (near 0x140247720, BREAK 0x14024A540) | CONFIG camera, every SET block: model, position, rotation, scale, UV scrolls, effect; BREAK blocks: broken model, one-shot effect, remain |
 
 A plain PNST container is not an effect bank and is declined with a reason; a
-PAC with no recovered contract is declined the same way.
+PAC with no recovered contract, and text without a `# GAME` block, are declined
+the same way.
 
 ## Classification of nameless tables
 

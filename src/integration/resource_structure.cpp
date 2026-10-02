@@ -8,10 +8,12 @@
 #include "dmc_rengine/profiles/dmc3/em000_family_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/environment_collision.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/effect_bank.hpp"
+#include "dmc_rengine/profiles/dmc3/fx/enemy_events.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/generator.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/particle.hpp"
 #include "dmc_rengine/profiles/dmc3/motion_script.hpp"
 #include "dmc_rengine/profiles/dmc3/player_attachment_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/stage_layout.hpp"
 #include "dmc_rengine/profiles/dmc3/uv_scroll.hpp"
 
 #include <algorithm>
@@ -490,6 +492,117 @@ std::optional<StructureView> read_motion_script(std::span<const std::byte> bytes
     return view;
 }
 
+// ---- Stage layout text ("# GAME") --------------------------------------------
+
+std::optional<StructureView> read_stage_layout(std::span<const std::byte> bytes, std::string& detail) {
+    namespace sl = dmc3::stage_layout;
+    const auto text = as_text(bytes);
+    if (text.find("# GAME") == std::string_view::npos) {
+        detail = "Only a stage's `# GAME` layout text has a structure reader; this text has no `# GAME` block.";
+        return std::nullopt;
+    }
+    const auto layout = sl::parse_game(text);
+    if (layout.sets.empty() && !layout.has_camera) {
+        detail = "The `# GAME` block holds no SET block and no CONFIG camera.";
+        return std::nullopt;
+    }
+    StructureView view;
+    view.format = "txt";
+    view.reader = "profiles::dmc3::stage_layout::parse_game (record parser near 0x140247720, BREAK 0x14024A540)";
+    const auto v3 = [](const dmc3::Vec3& v) { return num(v.x) + ", " + num(v.y) + ", " + num(v.z); };
+    if (layout.has_camera) add_section(view, {"CONFIG", {{"cam_init", v3(layout.camera)}}});
+    std::map<std::string, std::size_t> kinds;
+    for (std::size_t i = 0U; i < layout.sets.size(); ++i) {
+        const auto& set = layout.sets[i];
+        ++kinds[set.kind.empty() ? std::string{"(none)"} : set.kind];
+        StructureSection s{"SET " + std::to_string(i) + (set.kind.empty() ? std::string{} : " · " + set.kind),
+                           {{"Model", set.model < 0 ? std::string{"none"} : std::to_string(set.model)},
+                            {"Position", v3(set.pos)},
+                            {"Rotation (degrees, X then Y then Z)", v3(set.rot)},
+                            {"Scale", v3(set.scale)}}};
+        for (const auto& uv : set.uv) {
+            s.rows.push_back({"UV scroll (part, texture, U, V)", list(uv)});
+        }
+        if (set.effect_kind != 0) {
+            s.rows.push_back({"Effect", std::string(1, set.effect_kind) + " " + std::to_string(set.effect_id) +
+                                            " at " + v3(set.effect_pos)});
+        }
+        if (set.kind == "BREAK") {
+            static constexpr std::array<std::string_view, 3> remain{"fades out (alpha 64 - 2 per tick)", "stays (on)",
+                                                                   "stays (on2)"};
+            s.rows.push_back({"Broken model", set.broken_model < 0 ? std::string{"none: removed"}
+                                                                   : std::to_string(set.broken_model)});
+            if (set.broken_effect_kind != 0) {
+                s.rows.push_back({"Break effect (once)", std::string(1, set.broken_effect_kind) + " " +
+                                                             std::to_string(set.broken_effect_id) + " at " +
+                                                             v3(set.broken_effect_pos)});
+            }
+            s.rows.push_back({"Remain", std::string{set.remain < remain.size() ? remain[set.remain] : "?"}});
+        }
+        add_section(view, std::move(s));
+    }
+    std::string by_kind;
+    for (const auto& [kind, count] : kinds) by_kind += (by_kind.empty() ? "" : ", ") + std::to_string(count) + " " + kind;
+    view.summary = std::to_string(layout.sets.size()) + " placed object(s)" +
+        (by_kind.empty() ? std::string{} : ": " + by_kind) + (layout.has_camera ? "; initial camera set." : ".");
+    return view;
+}
+
+// ---- Enemy effect events (em000..em008) ------------------------------------------
+
+[[nodiscard]] std::string_view placement_name(fx::enemy::Placement placement) noexcept {
+    switch (placement) {
+    case fx::enemy::Placement::GivenPosition: return "at the given position";
+    case fx::enemy::Placement::ActorPositionYaw: return "at the actor, its yaw";
+    case fx::enemy::Placement::AttachedObject: return "attached to joint";
+    case fx::enemy::Placement::ObjectTranslation: return "at the translation of joint";
+    case fx::enemy::Placement::ActorFields: return "from actor fields";
+    }
+    return "?";
+}
+
+void add_enemy_events(StructureView& view, std::string_view stem) {
+    namespace en = fx::enemy;
+    if (!stem.starts_with("em00") || stem.size() != 5U || stem[4] < '0' || stem[4] > '8') return;
+    StructureSection events{"Effect events (handler " + hex(en::kEventHandler) + ", codes below " +
+                                hex(en::kFirstControlCode) + ")",
+                            {}};
+    for (const auto& c : en::event_cases()) {
+        std::string value;
+        for (const auto& spawn : c.spawns) {
+            if (!value.empty()) value += "; ";
+            value += std::string(1, fx::runtime::kind_letter(spawn.kind)) + std::to_string(spawn.id) + " " +
+                std::string{placement_name(spawn.placement)};
+            if (spawn.placement == en::Placement::AttachedObject ||
+                spawn.placement == en::Placement::ObjectTranslation) {
+                value += " " + std::to_string(spawn.object);
+            }
+            if (spawn.scale != 1.0F) value += " × " + num(spawn.scale);
+        }
+        std::string label = "Code " + hex(c.code);
+        if (c.enemy_type != 0xFFU) label += " (type " + hex(c.enemy_type) + " only)";
+        events.rows.push_back({std::move(label), value.empty() ? std::string{"no spawn"} : value});
+    }
+    add_section(view, std::move(events));
+    if (stem > "em004") return;
+    StructureSection death{"Death schedule (0x140095E85, started by control code " + hex(en::kDeathControlCode) + ")",
+                           {}};
+    for (const auto& step : en::em000_death_schedule()) {
+        std::string codes;
+        for (std::uint8_t i = 0U; i < step.count && i < step.codes.size(); ++i) {
+            codes += (codes.empty() ? "" : ", ") + hex(step.codes[i]);
+        }
+        death.rows.push_back({"Tick " + num(step.tick), "code " + codes});
+    }
+    add_section(view, std::move(death));
+    StructureSection attacks{"Attack effects (CComEm000, frame-gated code 3)", {}};
+    for (const auto& a : en::em000_attack_events()) {
+        attacks.rows.push_back({"Action " + std::to_string(a.bank) + "/" + std::to_string(a.action),
+                                "frame " + num(a.frame) + ": code " + hex(a.code)});
+    }
+    add_section(view, std::move(attacks));
+}
+
 // ---- Character archive slot roles ---------------------------------------------
 
 [[nodiscard]] std::uint32_t pac_slot_count(std::span<const std::byte> bytes) noexcept {
@@ -579,20 +692,28 @@ std::optional<StructureView> read_pac_roles(std::span<const std::byte> bytes, st
     if (const auto bank = motion::player_motion_bank(name)) {
         roles.rows.push_back({"Motion bank", "player motion PAC group " + std::to_string(*bank)});
     }
-    if (roles.rows.empty()) {
+    if (!roles.rows.empty()) {
+        view.summary = std::to_string(roles.rows.size()) + " slot role(s) recovered from the executable for " + stem + ".";
+        add_section(view, std::move(roles));
+    }
+    add_enemy_events(view, stem);
+    if (view.sections.empty()) {
         detail = "No character contract names the slots of '" + stem + ".pac'.";
         return std::nullopt;
     }
-    view.summary = std::to_string(roles.rows.size()) + " slot role(s) recovered from the executable for " + stem + ".";
-    add_section(view, std::move(roles));
+    if (view.summary.empty()) {
+        view.summary = "Effect events of " + stem + " recovered from the executable.";
+    } else if (view.sections.size() > 1U) {
+        view.summary += " Effect events listed.";
+    }
     return view;
 }
 
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 9> k_formats{
-    "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac"};
+constexpr std::array<std::string_view, 10> k_formats{
+    "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt"};
 
 } // namespace
 
@@ -613,6 +734,7 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "collision-shapes" || format == "so-volume") return read_collision_shapes(bytes, format, detail);
         if (format == "motion-script") return read_motion_script(bytes, detail);
         if (format == "pac") return read_pac_roles(bytes, name, detail);
+        if (format == "txt") return read_stage_layout(bytes, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;

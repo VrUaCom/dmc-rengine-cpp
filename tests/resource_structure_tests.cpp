@@ -247,6 +247,39 @@ void character_tables() {
     assert(detail.find("st001") != std::string::npos);
 }
 
+void stage_layout_and_enemy_events() {
+    std::string detail;
+    constexpr std::string_view game =
+        "# GAME\n# SET 0 CONFIG\n  cam_init 1.5, 2, -3 ; camera\n"
+        "# SET 1 MODEL\n  model 4\n  pos 100, 0, -50\n  rot 0, 90, 0\n  uv 0, 1, 0.5, -0.25\n"
+        "  eff V 98\n  epos 1, 2, 3\n"
+        "# SET 3 BREAK\n  model 3\n  bmodel 4\n  beff V 104\n  remain on\n# GAME_END\n";
+    const auto layout = read_structure("txt", bytes_of(game), "st001.txt", detail);
+    assert(layout && layout->summary == "3 placed object(s): 1 BREAK, 1 CONFIG, 1 MODEL; initial camera set.");
+    assert(layout->sections.front().title == "CONFIG");
+    assert(row(*layout, 0U, "cam_init") == "1.5, 2, -3");
+    assert(layout->sections[2].title == "SET 1 · MODEL");
+    assert(row(*layout, 2U, "UV scroll (part, texture, U, V)") == "0, 1, 0.5, -0.25");
+    assert(row(*layout, 2U, "Effect") == "V 98 at 1, 2, 3");
+    assert(row(*layout, 3U, "Broken model") == "4");
+    assert(row(*layout, 3U, "Break effect (once)") == "V 104 at 0, 0, 0");
+    assert(row(*layout, 3U, "Remain") == "stays (on)");
+    assert(!read_structure("txt", bytes_of("plain notes\n"), "", detail));
+    assert(detail.find("# GAME") != std::string::npos);
+
+    // em000: slot roles, then the event handler's cases, the death schedule
+    // and the frame-gated attack events.
+    const auto em000 = read_structure("pac", pac_with(42U), "em000.pac", detail);
+    assert(em000 && em000->sections.size() == 4U);
+    assert(em000->sections[1].title.starts_with("Effect events (handler 0x1401C3130"));
+    assert(row(*em000, 2U, "Tick 0") == "code 0x69, 0xC8");
+    // em006 has no slot contract, only its events; em009 has neither.
+    const auto em006 = read_structure("pac", pac_with(8U), "em006.pac", detail);
+    assert(em006 && em006->sections.size() == 1U);
+    assert(em006->summary == "Effect events of em006 recovered from the executable.");
+    assert(!read_structure("pac", pac_with(8U), "em009.pac", detail));
+}
+
 void nameless_slots_are_typed_by_bytes() {
     using dmc::rengine::gdspaces::ResourceClassifier;
     assert(ResourceClassifier::classify("", shape_table()).format == "so-volume");
@@ -258,6 +291,7 @@ void nameless_slots_are_typed_by_bytes() {
 
     assert(dmc::rengine::integration::has_structure("motion-script"));
     assert(!dmc::rengine::integration::has_structure("mod"));
+    assert(dmc::rengine::integration::has_structure("txt"));
     std::string detail;
     assert(!read_structure("mod", evt_bytes(), "", detail));
     assert(detail.find("No structure reader") != std::string::npos);
@@ -269,6 +303,7 @@ int main() {
     text_formats();
     stage_and_effects();
     character_tables();
+    stage_layout_and_enemy_events();
     nameless_slots_are_typed_by_bytes();
     return 0;
 }
