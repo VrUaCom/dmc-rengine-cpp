@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -134,21 +135,28 @@ int main() {
     assert(extracted->node_index == 0U);
     assert(extracted->triangles.size() == 2U);
 
+    const auto expected_a0 =
+        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 20.0F};
+    const auto expected_b0 =
+        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 20.0F};
+    const auto expected_c0 =
+        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 21.0F};
+    const auto expected_a1 =
+        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 21.0F};
+    const auto expected_b1 =
+        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 20.0F};
+    const auto expected_c1 =
+        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 21.0F};
+
     const auto& first = extracted->triangles[0];
-    assert(first.point_a ==
-        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 20.0F});
-    assert(first.point_b ==
-        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 20.0F});
-    assert(first.point_c ==
-        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 21.0F});
+    assert(first.point_a == expected_a0);
+    assert(first.point_b == expected_b0);
+    assert(first.point_c == expected_c0);
 
     const auto& second = extracted->triangles[1];
-    assert(second.point_a ==
-        dmc::rengine::formats::hits::Vec3{15.0F, 2.0F, 21.0F});
-    assert(second.point_b ==
-        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 20.0F});
-    assert(second.point_c ==
-        dmc::rengine::formats::hits::Vec3{16.0F, 2.0F, 21.0F});
+    assert(second.point_a == expected_a1);
+    assert(second.point_b == expected_b1);
+    assert(second.point_c == expected_c1);
 
     assert(!extract_mesh(scm, 1U, 0U).has_value());
     assert(!extract_mesh(scm, 0U, 1U).has_value());
