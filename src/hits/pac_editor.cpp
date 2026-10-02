@@ -6,6 +6,7 @@
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <algorithm>
+#include <array>
 #include <span>
 #include <string>
 #include <utility>
@@ -75,7 +76,7 @@ ReplaceResult PacHitsWriter::replace_slot(
             parent_pac.bytes.data(),
             parent_pac.bytes.size()},
         parent_pac.resource.id.logical_path);
-    if (!parsed.ok() || parsed.document.format != "pac") {
+    if (!parsed.ok() || parsed.document.format != "PAC") {
         return failure(
             ReplaceStatus::invalid_parent,
             slot_index,
@@ -155,7 +156,7 @@ ReplaceResult PacHitsWriter::replace_slot(
             reopened_parent.bytes.data(),
             reopened_parent.bytes.size()},
         reopened_parent.resource.id.logical_path);
-    if (!reparsed.ok() || reparsed.document.format != "pac") {
+    if (!reparsed.ok() || reparsed.document.format != "PAC") {
         return failure(
             ReplaceStatus::reopen_failed,
             slot_index,
