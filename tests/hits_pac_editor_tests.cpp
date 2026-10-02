@@ -2,6 +2,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/hits/editor.hpp"
 #include "dmc_rengine/hits/pac_editor.hpp"
+#include "dmc_rengine/hits/pac_session.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <algorithm>
@@ -242,6 +243,95 @@ int main() {
     assert(
         invalid.status ==
         pac_editor::ReplaceStatus::invalid_replacement_hits);
+
+    {
+        namespace pac_session =
+            dmc::rengine::hits::pac_session;
+
+        auto opened = pac_session::PacSession::open(parent);
+        assert(opened.has_value());
+        assert(opened->source0() != nullptr);
+        assert(opened->source1() != nullptr);
+        assert(opened->source0()->slot_index == 3U);
+        assert(opened->source1()->slot_index == 6U);
+        assert(
+            opened->source0()->profile ==
+            dmc::rengine::hits::evidence::StaticSourceProfile::
+                source_0_member_3);
+        assert(
+            opened->source1()->profile ==
+            dmc::rengine::hits::evidence::StaticSourceProfile::
+                source_1_member_6);
+        assert(!opened->dirty());
+
+        const auto unchanged = opened->rebuild_pac();
+        assert(unchanged.ok());
+        assert(
+            unchanged.status ==
+            pac_session::BuildStatus::no_changes);
+        assert(unchanged.bytes == parent.bytes);
+
+        assert(opened->source0()->editor.set_collision_preset(
+            1U,
+            editor::CollisionPreset::green_raw_0000000a));
+        assert(opened->source1()->editor.set_collision_preset(
+            1U,
+            editor::CollisionPreset::orange_raw_00000009));
+        assert(opened->dirty());
+
+        const auto combined = opened->rebuild_pac();
+        assert(combined.ok());
+        assert(
+            combined.status ==
+            pac_session::BuildStatus::ok);
+        assert(combined.replaced_slots.size() == 2U);
+        assert(combined.replaced_slots[0] == 3U);
+        assert(combined.replaced_slots[1] == 6U);
+
+        auto combined_parent = parent;
+        combined_parent.bytes = combined.bytes;
+        combined_parent.resource.id.size =
+            static_cast<std::uint64_t>(
+                combined_parent.bytes.size());
+
+        const auto combined_parsed = registry.parse(
+            std::span<const std::byte>{
+                combined_parent.bytes.data(),
+                combined_parent.bytes.size()},
+            combined_parent.resource.id.logical_path);
+        assert(combined_parsed.ok());
+        const auto combined_expansion =
+            gdspaces::ContainerExpander::expand(
+                combined_parent,
+                combined_parsed);
+        assert(combined_expansion.usable());
+
+        const auto combined_slot3 = std::find_if(
+            combined_expansion.children.begin(),
+            combined_expansion.children.end(),
+            [](const gdspaces::ContainerChild& child) {
+                return child.entry.slot_index == 3U;
+            });
+        const auto combined_slot6 = std::find_if(
+            combined_expansion.children.begin(),
+            combined_expansion.children.end(),
+            [](const gdspaces::ContainerChild& child) {
+                return child.entry.slot_index == 6U;
+            });
+        assert(combined_slot3 != combined_expansion.children.end());
+        assert(combined_slot6 != combined_expansion.children.end());
+
+        const auto scan3 =
+            dmc::rengine::formats::hits::RecordScanner::scan(
+                combined_slot3->payload.bytes);
+        const auto scan6 =
+            dmc::rengine::formats::hits::RecordScanner::scan(
+                combined_slot6->payload.bytes);
+        assert(scan3.ok());
+        assert(scan6.ok());
+        assert(scan3.triangles[0].flags == 0x0000000AU);
+        assert(scan6.triangles[0].flags == 0x00000009U);
+    }
 
     return 0;
 }
