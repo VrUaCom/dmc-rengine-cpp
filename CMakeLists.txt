@@ -133,6 +133,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         binary_analysis
         hits
         hits_writer
+        hits_editor
         hits_spatial_compare
         hits_spatial_match
         hits_binary
