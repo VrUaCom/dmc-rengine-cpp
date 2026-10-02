@@ -134,6 +134,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits
         hits_writer
         hits_editor
+        hits_scm_import
         hits_spatial_compare
         hits_spatial_match
         hits_binary
