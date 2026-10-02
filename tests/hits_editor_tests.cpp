@@ -132,6 +132,15 @@ int main() {
     assert(session.surfaces()[1].stable_id == 2U);
     assert(session.meshes().empty());
 
+    const auto initial_view = session.inspect_surface(1U);
+    assert(initial_view.has_value());
+    assert(initial_view->raw_flags == 0x18060001U);
+    assert(initial_view->upper_query_mask == 0x1806U);
+    assert(initial_view->lower_surface_value == 0x0001U);
+    assert(initial_view->preset ==
+           CollisionPreset::red_raw_18060001);
+    assert(!initial_view->mesh_id.has_value());
+
     assert(collision_preset_info(
         CollisionPreset::blue_raw_00000001).raw_flags == 0x00000001U);
     assert(collision_preset_info(
@@ -185,6 +194,10 @@ int main() {
     assert(merged_mesh.has_value());
     assert(session.meshes().size() == 1U);
     assert(session.meshes()[0].surface_ids.size() == 2U);
+
+    const auto grouped_view = session.inspect_surface(1U);
+    assert(grouped_view.has_value());
+    assert(grouped_view->mesh_id == merged_mesh);
 
     assert(session.set_mesh_collision_preset(
         *merged_mesh,
