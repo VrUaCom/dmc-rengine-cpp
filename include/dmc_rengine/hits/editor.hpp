@@ -134,6 +134,10 @@ public:
     [[nodiscard]] std::optional<std::size_t> mesh_index_of(
         StableMeshId stable_id) const noexcept;
 
+    [[nodiscard]] std::vector<StableSurfaceId> connected_surface(
+        StableSurfaceId seed,
+        bool require_same_flags = true) const;
+
     [[nodiscard]] std::optional<StableSurfaceId> add_surface(
         std::uint32_t flags,
         const formats::hits::Vec3& point_a,
@@ -180,6 +184,10 @@ public:
     // collapse or decimate triangles in the serialized resource.
     [[nodiscard]] std::optional<StableMeshId> create_mesh(
         std::span<const StableSurfaceId> stable_ids);
+
+    [[nodiscard]] std::optional<StableMeshId> create_connected_mesh(
+        StableSurfaceId seed,
+        bool require_same_flags = true);
 
     [[nodiscard]] std::optional<StableMeshId> merge_meshes(
         std::span<const StableMeshId> mesh_ids);
