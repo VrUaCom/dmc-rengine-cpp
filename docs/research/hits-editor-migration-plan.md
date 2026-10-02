@@ -44,14 +44,22 @@ The first implemented native authoring slice lives on `feature/hits-editor-mvp` 
 
 The product/UI layer still needs to provide:
 
-- source-aware member 3/source 0 and member 6/source 1 views
-- triangle / connected-surface / SCM-mesh selection
 - 3D HITS + SCM overlay
-- collision-color and raw-flag inspector
-- draw-triangle / draw-quad tools
-- boundary authoring
-- SCM-to-HITS geometry copy
-- PAC member replacement and export workflow
+- visual triangle / connected-surface / SCM-mesh picking
+- final platform UI wiring for collision-color and raw-flag inspector
+- final platform UI wiring for draw / boundary tools
+- file-dialog/export UX and packaged editor application shell
+
+The native C++ authoring core now additionally provides:
+
+- connected-surface discovery by exact shared edges
+- UI-facing surface inspection with raw flags, split upper/lower flag lanes, preset and logical-mesh membership
+- SCM mesh -> world-space HITS conversion using the canonical SCM topology and hierarchy/world-transform paths
+- whole-SCM-object -> one logical collision-mesh import
+- draw-quad authoring as two HITS triangles
+- rectangular four-wall boundary authoring as eight HITS triangles
+- explicit PAC physical-slot HITS replacement through the existing packed relative-slot reflow writer
+- source-aware PAC editing sessions for member 3/source 0 and member 6/source 1, including rebuilding both dirty sources into one PAC output
 
 Topology-changing output is now structurally supported by the corpus-verified spatial writer. Original-game acceptance of arbitrary authored topology remains a separate validation gate and must not be described as proven.
 
