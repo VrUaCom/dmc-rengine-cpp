@@ -39,10 +39,13 @@ enum class Dmc3DdsStatus : std::uint8_t {
 }
 
 struct Dmc3DdsSafety final {
-    // Product authoring envelope derived from the preserved descriptor-backed
-    // corpus. This is not claimed as an original-runtime maximum.
+    // DMC3 HD product authoring envelope derived from the exact preserved
+    // descriptor-backed corpus. Width and height are intentionally separate:
+    // the corpus contains a 1024x2048 DXT5 resource. This is neither the PS2
+    // GS TEX0 limit nor a claim about an original-runtime maximum.
     std::uint32_t min_dimension{64U};
-    std::uint32_t max_dimension{1024U};
+    std::uint32_t max_width{1024U};
+    std::uint32_t max_height{2048U};
 };
 
 struct Dmc3DdsDocument final {
