@@ -1,14 +1,16 @@
 #include "dmc_rengine/hits/viewport.hpp"
 
 #include <algorithm>
-#include <commdlg.h>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
 #include <vector>
+// clang-format off: Win32 base types must precede dependent SDK headers.
 #include <windows.h>
+#include <commdlg.h>
 #include <windowsx.h>
+// clang-format on
 
 using dmc::rengine::hits::viewport::Controller;
 using Preset = dmc::rengine::hits::editor::CollisionPreset;
