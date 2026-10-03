@@ -34,12 +34,14 @@ void write_u32_le(
     std::uint32_t width,
     std::uint32_t height,
     Dmc3DdsSafety safety) noexcept {
-    if (safety.min_dimension == 0U || safety.max_dimension < safety.min_dimension) {
+    if (safety.min_dimension == 0U ||
+        safety.max_width < safety.min_dimension ||
+        safety.max_height < safety.min_dimension) {
         return false;
     }
     return power_of_two(width) && power_of_two(height) &&
         width >= safety.min_dimension && height >= safety.min_dimension &&
-        width <= safety.max_dimension && height <= safety.max_dimension;
+        width <= safety.max_width && height <= safety.max_height;
 }
 
 [[nodiscard]] std::uint32_t linear_size(Dmc3DdsCompression compression) noexcept {
