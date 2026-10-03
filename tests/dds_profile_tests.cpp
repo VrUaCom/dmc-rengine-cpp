@@ -166,6 +166,19 @@ int main() {
     assert(read_u32(dxt5.bytes, 20U) == 0x00020000U);
     assert(dxt5.bytes[87U] == std::byte{'5'});
 
+    // Exact descriptor-backed retail corpus contains one 1024x2048 DXT5
+    // resource. The DMC3 HD envelope must not inherit the PS2 GS 1024x1024
+    // TEX0 axis ceiling as a symmetric DDS authoring limit.
+    const auto tall_dxt5_payload = payload(1024U, 2048U, true);
+    const auto tall_dxt5 = dmc3::Dmc3DdsProfile::build(
+        1024U, 2048U, dmc3::Dmc3DdsCompression::dxt5,
+        std::span<const std::byte>{
+            tall_dxt5_payload.data(), tall_dxt5_payload.size()});
+    assert(tall_dxt5.ok());
+    assert(tall_dxt5.document.width == 1024U);
+    assert(tall_dxt5.document.height == 2048U);
+    assert(tall_dxt5.document.mip_map_count == 12U);
+
     auto bad_flags = dxt5.bytes;
     put_u32(bad_flags, 8U, read_u32(bad_flags, 8U) ^ 0x8U);
     assert(
@@ -234,6 +247,14 @@ int main() {
             32U, 32U, dmc3::Dmc3DdsCompression::dxt1,
             std::span<const std::byte>{
                 below_domain_payload.data(), below_domain_payload.size()}).status ==
+        dmc3::Dmc3DdsStatus::unsupported_dimensions);
+
+    const auto wide_domain_payload = payload(2048U, 1024U, true);
+    assert(
+        dmc3::Dmc3DdsProfile::build(
+            2048U, 1024U, dmc3::Dmc3DdsCompression::dxt5,
+            std::span<const std::byte>{
+                wide_domain_payload.data(), wide_domain_payload.size()}).status ==
         dmc3::Dmc3DdsStatus::unsupported_dimensions);
 
     const auto above_domain_payload = payload(2048U, 2048U, true);
