@@ -1,0 +1,68 @@
+name: HITS Editor Preview
+on:
+  push:
+    branches: [feature/hits-editor-mvp]
+  pull_request:
+    paths:
+      - 'apps/hits-editor/**'
+      - 'src/hits/**'
+      - 'include/dmc_rengine/hits/**'
+      - 'src/formats/scm*'
+      - 'src/formats/hits.cpp'
+      - 'cmake/**'
+      - 'tests/hits_viewport_tests.cpp'
+      - '.github/workflows/hits-editor.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure standalone editor
+        run: cmake -S apps/hits-editor -B build/hits-editor -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build/hits-editor --config Release --parallel 2
+      - name: Test portable viewport and authoring
+        run: ctest --test-dir build/hits-editor -C Release --output-on-failure
+      - name: Package Windows preview
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HITS-Editor-Windows-x64-preview
+          path: |
+            build/hits-editor/Release/hits-editor.exe
+            apps/hits-editor/README.md
+          if-no-files-found: error
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install platform toolchain
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;30.0.16248370' 'cmake;3.22.1'
+      - name: Build standalone APK
+        working-directory: apps/hits-editor/android
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify APK metadata and signature
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify apps/hits-editor/android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apps/hits-editor/android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HITS-Editor-Android-arm64-preview
+          path: apps/hits-editor/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
