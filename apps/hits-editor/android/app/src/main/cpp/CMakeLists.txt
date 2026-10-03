@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(hitseditor LANGUAGES CXX)
+get_filename_component(RENGINE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../../../.." ABSOLUTE)
+include(${RENGINE_ROOT}/cmake/hits_editor_core.cmake)
+add_library(hitseditor SHARED bridge.cpp)
+target_link_libraries(hitseditor PRIVATE DMCRengine::HitsEditorCore)
+target_compile_options(hitseditor PRIVATE -O2)

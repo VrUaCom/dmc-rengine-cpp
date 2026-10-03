@@ -1,6 +1,12 @@
 # Build output
 /build/
 /out/
+/apps/hits-editor/android/.gradle/
+/apps/hits-editor/android/app/build/
+/apps/hits-editor/android/app/.cxx/
+/apps/hits-editor/android/local.properties
+*.jks
+*.keystore
 /cmake-build-*/
 CMakeCache.txt
 CMakeFiles/
