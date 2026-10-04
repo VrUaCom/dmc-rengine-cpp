@@ -1,0 +1,62 @@
+{
+  "schema": "dmc-rengine.ps2-graphics-hardware-baseline.v1",
+  "date": "2026-10-04",
+  "memory": {
+    "eeMainRamBytes": 33554432,
+    "eeScratchpadBytes": 16384,
+    "vu1InstructionBytes": 16384,
+    "vu1DataBytes": 16384,
+    "vu1DataQwords": 1024,
+    "gsEdramBytes": 4194304,
+    "status": "PS2_HARDWARE_CONFIRMED"
+  },
+  "gsTexture": {
+    "tex0": {
+      "tbp0Bits": 14,
+      "tbwBits": 6,
+      "psmBits": 6,
+      "twBits": 4,
+      "thBits": 4
+    },
+    "maxSampledWidth": 1024,
+    "maxSampledHeight": 1024,
+    "dimensionFormula": "min(2^TW, 1024) x min(2^TH, 1024)",
+    "status": "PS2_HARDWARE_CONFIRMED",
+    "baseImageBytes": {
+      "rgba32_1024x1024": 4194304,
+      "bpp16_1024x1024": 2097152,
+      "indexed8_1024x1024": 1048576,
+      "indexed4_1024x1024": 524288
+    }
+  },
+  "geometry": {
+    "model": "VU1/VIF/DMA streamed batches into GS",
+    "fixedScenePolygonMaximum": false,
+    "vu1BatchLimitDependsOn": [
+      "microprogram",
+      "data-memory partition",
+      "input stride",
+      "output stride",
+      "constants",
+      "clipping",
+      "double buffering"
+    ],
+    "status": "PS2_HARDWARE_CONFIRMED_ARCHITECTURE"
+  },
+  "throughput": {
+    "headlineSmallPolygonRatePerSecond": 75000000,
+    "status": "HARDWARE_THROUGHPUT_SPEC",
+    "notAnEngineLimit": true
+  },
+  "dmc3Ps2": {
+    "status": "DMC3_PS2_OPEN",
+    "reason": "Original PS2 executable/resource/microprogram artifact is not present in the currently connected project sources; HD x64 compatibility renderer is not proof of original PS2 batch policy."
+  },
+  "sources": [
+    "https://www.psdevwiki.com/ps2/Memory_Map",
+    "https://www.psdevwiki.com/ps2/Graphics_Synthesizer",
+    "https://psi-rockin.github.io/ps2tek/",
+    "https://github.com/PCSX2/pcsx2/blob/master/pcsx2/GS/GSState.cpp",
+    "https://lukasz.dk/mirror/research-scea/research/pdfs/GDC2000-DOM-white-paper.pdf"
+  ]
+}
