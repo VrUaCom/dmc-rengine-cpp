@@ -1,0 +1,68 @@
+{
+  "schema": "dmc-rengine.ps2-hardware-resource-envelope.v1",
+  "date": "2026-10-04",
+  "purpose": "separate original PS2 hardware constraints from DMC3 HD/D3D11 runtime limits",
+  "sources": {
+    "pcsx2": {
+      "repository": "PCSX2/pcsx2",
+      "commit": "81526d4dc7cc70e4ae75abb35a789417456c6d43",
+      "gsRegs": "pcsx2/GS/GSRegs.h",
+      "gsState": "pcsx2/GS/GSState.cpp",
+      "extractedFacts": [
+        "VM_SIZE = 4194304",
+        "TEX0 TBP0:14 TBW:6 PSM:6 TW:4 TH:4",
+        "CLAMP MINU/MAXU/MINV/MAXV:10 bits each",
+        "GS spec texture exponent max = 10; FixedTEX0 clamps dimensions to <=1024x1024",
+        "MTBA max: 512 for 32-bit swizzled; 1024 for 16-bit and normal 8/4-bit"
+      ]
+    },
+    "ps2DeveloperWiki": {
+      "graphicsSynthesizerFacts": [
+        "147.456 MHz GS",
+        "4 MB embedded DRAM",
+        "48 GB/s peak local bandwidth",
+        "2.352 Gpixel/s untextured",
+        "1.2 Gpixel/s textured",
+        "75M/s small polygon peak"
+      ],
+      "memoryMapFacts": [
+        "32 MB EE RAM",
+        "VU0 4 KB code + 4 KB data",
+        "VU1 16 KB code + 16 KB data",
+        "16 KB EE scratchpad"
+      ]
+    }
+  },
+  "limits": {
+    "gsLocalMemoryBytes": 4194304,
+    "gsTextureSpecifiedMax": [
+      1024,
+      1024
+    ],
+    "gsClampCoordinateDomain": [
+      0,
+      1023
+    ],
+    "vu1WorkingCodeBytes": 16384,
+    "vu1WorkingDataBytes": 16384,
+    "eeMainRamBytes": 33554432
+  },
+  "derivedRawTextureFootprints": {
+    "note": "lower-bound raw texel payload only; excludes GS swizzle/alignment, CLUT, mip and framebuffer/depth residency",
+    "1024x1024x32": 4194304,
+    "1024x1024x16": 2097152,
+    "1024x1024x8": 1048576,
+    "1024x1024x4": 524288
+  },
+  "dmc3Ps2Boundary": {
+    "originalExecutableAvailable": false,
+    "exactGameRuntimeMaximum": "OPEN",
+    "reason": "hardware constraints are known, but DMC3-specific PS2 allocators/batching require the original PS2 executable"
+  },
+  "status": "STRUCTURAL_CONFIRMED",
+  "rejectedConflations": [
+    "PS2 1024x1024 GS ceiling != HD D3D11 texture ceiling",
+    "75M polygons/s hardware peak != DMC3 scene/mesh polygon capacity",
+    "VU1 16KB data memory != whole-stage geometry capacity"
+  ]
+}
