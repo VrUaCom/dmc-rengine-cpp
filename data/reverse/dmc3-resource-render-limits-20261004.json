@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v15",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v16",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -494,6 +494,82 @@
       ],
       "status": "EXE_CONFIRMED_SHARED_DYNAMIC_VERTEX_RING",
       "claimBoundary": "direct-call ownership is closed; exact per-frame occupancy remains dynamic"
+    },
+    "compatibilityLayoutStride": {
+      "selectorRange": "0x14002B284..0x14002B2D2",
+      "strideQuarterGlobal": "0x1405D95F4",
+      "mappings": [
+        {
+          "flags": "0x00000102",
+          "strideQuarter": 5,
+          "outputStrideBytes": 20
+        },
+        {
+          "flags": "0x00000042",
+          "strideQuarter": 7,
+          "outputStrideBytes": 28
+        },
+        {
+          "flags": "0x00000142",
+          "strideQuarter": 9,
+          "outputStrideBytes": 36
+        }
+      ],
+      "uploaderFormula": "base(12 or special 16) + 8*(bit0x100) + 16*(bit0x40) + 4*(bit0x20000)",
+      "status": "EXE_CONFIRMED_LAYOUT_STRIDE_MAPPING"
+    },
+    "drawWrapperStaticCallsiteCensus": {
+      "drawWrapper": "0x140043F90",
+      "directCallsites": 49,
+      "fullyStaticLocalArguments": 40,
+      "runtimeDerivedCallsites": 9,
+      "fixedPatterns": [
+        {
+          "flags": "0x00000102",
+          "mode": 5,
+          "ringBytesPerInvocation": 80,
+          "callsiteCount": 18
+        },
+        {
+          "flags": "0x00000102",
+          "mode": 3,
+          "ringBytesPerInvocation": 60,
+          "callsiteCount": 17
+        },
+        {
+          "flags": "0x00000142",
+          "mode": 5,
+          "ringBytesPerInvocation": 144,
+          "callsiteCount": 1
+        },
+        {
+          "flags": "0x00000102",
+          "mode": 4,
+          "ringBytesPerInvocation": 60,
+          "callsiteCount": 1
+        },
+        {
+          "flags": "0x00000042",
+          "mode": 4,
+          "ringBytesPerInvocation": 84,
+          "callsiteCount": 1
+        },
+        {
+          "flags": "0x00000102",
+          "mode": 4,
+          "ringBytesPerInvocation": 80,
+          "callsiteCount": 1
+        },
+        {
+          "flags": "0x00000142",
+          "mode": 5,
+          "ringBytesPerInvocation": 96,
+          "callsiteCount": 1
+        }
+      ],
+      "fixedCallsitesSingleExecutionSumBytes": 2924,
+      "claimBoundary": "2924 bytes is the sum for one execution of each statically fixed callsite, not per-frame occupancy; loops and conditions determine actual execution count",
+      "status": "EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS"
     }
   },
   "texture": {
@@ -566,10 +642,10 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
+    "resolve iteration counts/order for the 49 dynamic-draw callsites or instrument renderer+0x17A0 at runtime",
     "measure exact shared dynamic-ring occupancy/order in representative retail frames",
     "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
-    "complete retail texture census",
     "practical texture allocation/residency below 16384-per-axis EXE guard",
     "original-game geometry stress test",
     "original-game authored DDS stress test",
