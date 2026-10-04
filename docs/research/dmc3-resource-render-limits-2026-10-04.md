@@ -2552,3 +2552,102 @@ Reproducer:
 Machine evidence:
 
 `data/reverse/dmc3-shw-retail-render-budget-20261005.json`
+
+
+# 71. Continuation v24 — EXE effect tags and bounded retail HTH parameter witness
+
+**Date:** 2026-10-05. This pass connects the numeric type 11/12 runtime work to
+their EXE-confirmed resource tags and to a real hash-bound retail text witness.
+
+The tag mapper at `0x14031E730..0x14031E9FD` compares four-byte NUL-terminated
+IDs from `0x140507CE4..0x140507D1C`. The complete recovered mapping is:
+
+| Tag | Runtime type |
+|---|---:|
+| DOF | 2 |
+| HTH | **11** |
+| BGA | 8 |
+| BGO | 9 |
+| CCT | 5 |
+| SGA | 7 |
+| RDN | **12** |
+| ATF | 1 |
+| GFG | 4 |
+| DGO | 10 |
+| FCS | 3 |
+| LGA | 6 |
+| PDM | 13 |
+| EDT | 14 |
+| EAA | 15 |
+
+**Status:** `EXE_CONFIRMED`.
+
+For HTH/type 11, importer handler `0x14031F0E5` copies source dwords
+`+0x1C/+0x20` directly to runtime record `+0x58/+0x5C`. The bounded archive
+contains one exact text witness:
+
+`analysis_inputs/stage_drops/m20_c00/m20_c00_002/m20_c00_002_083.txt`
+
+SHA-256:
+`afc99521aa3b44e25b9af3fc24623c1f421e85bb4b102d4c4124d7256a287ea3`
+
+Its HTH block contains:
+
+```text
+Id HTH
+StartZ 300
+EndZ 360
+Color 1082163328
+AmplitudeH 16
+AmplitudeV 16
+SpeedH 12
+SpeedV 12
+DetailH 6
+DetailV 3
+Reduction 0
+OtType 0
+```
+
+The source-field order and importer writes connect:
+
+```text
+DetailH = 6 -> runtime +0x58 = 6
+DetailV = 3 -> runtime +0x5C = 3
+```
+
+Using the EXE-confirmed startup compatibility viewport **512×256** and the
+already recovered type-11 producer formula:
+
+```text
+sx = 1 << 6 = 64
+sy = 1 << 3 = 8
+rows = floor(256/8) + 2 = 34
+recordsPerRow = floor(512/64) + 3 = 11
+records = 374
+ringBytes = 40 * 374 = 14,960
+```
+
+Thus this real retail HTH witness uses **14,960 generated/ring bytes**, about
+**22.83%** of the first known 64 KiB interference separation and leaves 50,576
+bytes before that neighbor boundary. This is not a universal HTH maximum; it is
+an exact retail witness projected through the EXE-confirmed importer, viewport
+and producer formula.
+
+No exact `Id RDN` text witness was found in the bounded archive text population.
+That is a bounded negative only. It does **not** prove RDN/type 12 is absent from
+the full retail game or from packed resources outside this archive.
+
+**Status:** HTH witness `EXE_AND_CORPUS_CONFIRMED`; RDN absence
+`BOUNDED_CORPUS_NEGATIVE`.
+
+Reproducer:
+
+`scripts/reverse/census_dmc3_effect_retail_parameters.py`
+
+Evidence:
+
+`data/reverse/dmc3-hd-effect-retail-parameter-census-20261005.json`
+
+Next target: identify the exact serialized/packed owner feeding the stream table
+at runtime owner `+0xF8`, then expand the census beyond loose text witnesses and
+recover any packed RDN/type-12 records.
