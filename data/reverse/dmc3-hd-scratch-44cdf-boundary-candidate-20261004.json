@@ -1,0 +1,26 @@
+{
+  "schema": "dmc-rengine.hd-scratch-44cdf-boundary-candidate.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "helper": "0x1400446F0",
+  "drawCallsite": "0x140044CDF",
+  "scratchBase": "0x140BEB3F0",
+  "nextReferencedGlobal": "0x140C0B3F0",
+  "deltaBytes": 131072,
+  "writer": {
+    "groupBytes": 72,
+    "verticesPerGroup": 6,
+    "mandatoryGroupsPerOuterItem": 1,
+    "optionalGroupsPerOuterItemMax": 3
+  },
+  "projectionIfExtentExact": {
+    "fullGroups": 1820,
+    "vertices": 10920,
+    "usedBytes": 131040,
+    "remainderBytes": 32
+  },
+  "status": "STRUCTURAL_CANDIDATE",
+  "requiredPromotionEvidence": "explicit bound check, exact static-object extent, initializer/zeroing size, or equivalent producer contract"
+}
