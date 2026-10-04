@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-runtime-object-98-producer.v2",
+  "schema": "dmc-rengine.scm-runtime-object-98-producer.v3",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -24,14 +24,24 @@
     "geometryTag": "0x14030A320..0x14030A38D",
     "mask": "0x7F8",
     "forcedPrimitive": 5,
-    "standardGsPrimitive": "TRIANGLE_STRIP",
+    "standardGsPrimitive": "TRIANGLE_FAN",
     "projection": [
       "IIP=1",
       "TME=1",
       "FGE = !(source_flags & 0x00010000)",
       "ABE = (source_flags & 0xF) != 0"
-    ]
+    ],
+    "primitiveDomainAuthority": {
+      "jumpTable": "0x14002BA98",
+      "fanAnchorInitializer": "0x14002B20C",
+      "fanHandler": "0x14002B56E"
+    }
   },
   "status": "EXE_CONFIRMED_SERIALIZED_TO_RUNTIME_GS_PRIM_CONTROL",
-  "supersedes": "data/reverse/dmc3-scm-runtime-object-98-boundary-20260913.json producer-open boundary"
+  "supersedes": "data/reverse/dmc3-scm-runtime-object-98-boundary-20260913.json producer-open boundary",
+  "correction": {
+    "previousName": "TRIANGLE_STRIP",
+    "status": "REJECTED",
+    "reason": "standard GS PRIM=5 and canonical EXE primitive tables identify value 5 as TRIANGLE_FAN"
+  }
 }
