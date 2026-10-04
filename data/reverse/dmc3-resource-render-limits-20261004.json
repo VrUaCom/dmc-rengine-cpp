@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v10",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v11",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -250,6 +250,68 @@
       ],
       "status": "EXE_CONFIRMED_SCM_TRIANGLE_STRIP_ROLLING_DRAW",
       "claimBoundary": "shared per-rendered-frame ring; capacities assume an empty ring and SCM-only consumption"
+    },
+    "geometryBudgetEnvelope": {
+      "allocator": {
+        "assumptions": [
+          "empty target pool",
+          "one mesh per object",
+          "object total_vertex_count = mesh.vertex_count = 65535",
+          "zero auxiliary size",
+          "zero texture overhead",
+          "scene_node_count = object_count + 1"
+        ],
+        "normalPool": {
+          "usableBytes": 5236736,
+          "fullU16Objects": 18,
+          "totalSerializedVertices": 1179630,
+          "plannedBytes": 5084336,
+          "nextObjectPlannedBytes": 5366768
+        },
+        "alternatePool": {
+          "usableBytes": 4185600,
+          "fullU16Objects": 14,
+          "totalSerializedVertices": 917490,
+          "plannedBytes": 3954608,
+          "nextObjectPlannedBytes": 4237040
+        },
+        "status": "EXE_CONFIRMED_FORMULA_DERIVED_ENVELOPE",
+        "claimBoundary": "empty-pool geometry-dense mathematical envelope only; occupancy, fragmentation, textures, auxiliary state and extra mesh/node overhead reduce it"
+      },
+      "renderedFrameContinuousStrip": {
+        "ringBytes": 3932160,
+        "uploadFunction": "0x140043190..0x14004378A",
+        "offsetField": "renderer+0x17A0",
+        "localCapacityGuardFound": false,
+        "rows": [
+          {
+            "outputStrideBytes": 20,
+            "bytesPerTriangle": 60,
+            "emptyRingTriangles": 65536,
+            "maxContinuousSourceVertices": 65535,
+            "maxU16StripBytes": 3931980,
+            "maxU16StripDeltaFromRing": -180
+          },
+          {
+            "outputStrideBytes": 28,
+            "bytesPerTriangle": 84,
+            "emptyRingTriangles": 46811,
+            "maxContinuousSourceVertices": 46813,
+            "maxU16StripBytes": 5504772,
+            "maxU16StripDeltaFromRing": 1572612
+          },
+          {
+            "outputStrideBytes": 36,
+            "bytesPerTriangle": 108,
+            "emptyRingTriangles": 36408,
+            "maxContinuousSourceVertices": 36410,
+            "maxU16StripBytes": 7077564,
+            "maxU16StripDeltaFromRing": 3145404
+          }
+        ],
+        "status": "EXE_CONFIRMED_CONTRACT_DERIVED_ENVELOPE",
+        "claimBoundary": "empty shared rendered-frame ring; topology breaks and other dynamic draws change effective headroom"
+      }
     }
   },
   "d3d11": {
@@ -416,8 +478,8 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
+    "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
-    "later consumers below normalizer full-u16 vertex domain",
     "complete retail texture census",
     "practical texture allocation/residency below 16384-per-axis EXE guard",
     "original-game geometry stress test",
