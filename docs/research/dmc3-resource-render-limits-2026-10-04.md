@@ -304,9 +304,7 @@ The recovered SCM-compatible output variants are:
 | 0x00000142 | 36 | 108 | 36,408 |
 
 The draw wrapper uses non-indexed mode 3 for this path. Its topology lookup resolves
-to numeric topology value 4, and Draw is issued with vertexCount=3. Thus the recovered
-HD compatibility path converts the serialized SCM strip topology into independent
-three-vertex triangle-list draw batches.
+to numeric topology value 4, and Draw is issued with vertexCount=3. Thus the recovered HD compatibility path receives standard GS `PRIM=5 = TRIANGLE_FAN` state and converts each drawable fan triangle into an independent three-vertex D3D11 triangle-list draw.
 
 These triangle counts are NOT a claim that a stage may contain that many polygons.
 They are the arithmetic capacity of an initially empty shared 0x3C0000-byte dynamic
@@ -314,8 +312,7 @@ vertex ring for a single recovered SCM output layout. Other compatibility draws 
 the same ring, and lifecycle/reset timing controls reuse.
 
 Important consequence: the SCM serialized u16 vertex ceiling is not automatically a
-runtime-safe ceiling. For 28- and 36-byte variants, a sufficiently large continuous
-SCM workload can exhaust the shared byte ring before reaching the u16 representable
+runtime-safe ceiling. For 28- and 36-byte variants, a sufficiently large continuous fan workload can exhaust the shared byte ring before reaching the u16 representable
 maximum unless higher-level reset/chunking intervenes. No such capacity guard exists
 inside the recovered upload routine itself.
 
@@ -384,6 +381,48 @@ Status: EXE_CONFIRMED.
 
 
 
+
+
+## Correction: GS primitive 5 is TRIANGLE_FAN
+
+A PS2 GS register cross-check exposed a naming error in the first version of this
+pass. Standard GS PRIM encoding is:
+
+```text
+0 point
+1 line
+2 line strip
+3 triangle list
+4 triangle strip
+5 triangle fan
+6 sprite
+```
+
+The canonical EXE independently confirms the same domain through the jump table
+at `0x14002BA98`:
+
+- primitive 0 -> threshold 1;
+- 1/2 -> threshold 2;
+- 3/4 -> threshold 3;
+- **5 -> threshold 3 plus dedicated fan-anchor initialization at 0x14002B20C**;
+- 6 -> threshold 2.
+
+The second dispatcher table at `0x14002BAB4` routes primitive 5 specifically
+to `0x14002B56E`. That handler consumes the saved first-vertex anchor plus the
+current/previous vertices.
+
+Therefore the source-bound SCM geometry formula
+`((runtimeObject+0x98 & 0x7F8) | 5)` means **GS TRIANGLE_FAN**, not
+TRIANGLE_STRIP.
+
+The earlier TRIANGLE_STRIP label in the 2026-10-04 intermediate evidence is
+**REJECTED** and superseded by the corrected fan evidence. The numerical
+`N-2` triangle count and three uploaded vertices per emitted triangle remain
+unchanged.
+
+This correction does **not** rename the separate serialized SCM topology
+workspace algorithm, which may still use strip-style source reconstruction.
+It corrects only the HD compatibility GS PRIM=5 render path.
 
 ## SCM `ceil(vertexCount/60)` term — planner headroom, not draw batching
 
@@ -558,7 +597,7 @@ These values are **conditional allocator envelopes**, not playable-scene
 claims. Existing pool occupancy, fragmentation, textures, auxiliary state,
 additional nodes/meshes and other allocations reduce them.
 
-### Worst-case continuous-strip rendered-frame envelope
+### Worst-case continuous-fan rendered-frame envelope
 
 The SCM HD path converts `TRIANGLE_STRIP` into one non-indexed 3-vertex draw
 for each drawable strip triangle. The dynamic vertex ring is fixed at
@@ -571,7 +610,7 @@ mapped-write base calculation, IA binding, and the final
 `offset += vertexCount * outputStride`. No direct capacity comparison exists
 in this upload function.
 
-For one continuous strip starting with an empty ring:
+For one continuous fan starting with an empty ring:
 
 | Output stride | Bytes/triangle | Empty-ring triangles | Max continuous source vertices |
 |---:|---:|---:|---:|
@@ -579,7 +618,7 @@ For one continuous strip starting with an empty ring:
 | 28 | 84 | 46,811 | 46,813 |
 | 36 | 108 | 36,408 | 36,410 |
 
-A maximum-size u16 strip (`65,535` source vertices -> `65,533` triangles)
+A maximum-size u16 fan (`65,535` source vertices -> `65,533` triangles)
 would consume:
 
 - 3,931,980 bytes at stride 20, leaving only 180 bytes;
@@ -599,7 +638,7 @@ Status:
   **OPEN / requires controlled stress test**.
 
 
-## SCM TRIANGLE_STRIP -> per-triangle D3D11 draw chunking
+## SCM TRIANGLE_FAN -> per-triangle D3D11 draw conversion
 
 Fresh canonical-EXE tracing closes the geometry chunking mechanism.
 
@@ -616,7 +655,7 @@ incoming geometry vertex:
    then publishes the new vertex into `0x1405D9620`;
 3. calls primitive dispatcher `0x14002B160` on the drawable XYZF2 path.
 
-For primitive 5, the dispatcher threshold is exactly **3 vertices** and selects
+For standard GS primitive 5 (**TRIANGLE_FAN**), the dispatcher threshold is exactly **3 vertices** and selects
 handler `0x14002B56E`.
 
 That handler submits exactly `3 * 12 = 36` packed source bytes to
@@ -624,18 +663,15 @@ That handler submits exactly `3 * 12 = 36` packed source bytes to
 stride and therefore sends **3 vertices** into `0x140043190`, followed by a
 non-indexed triangle draw.
 
-The compatibility counter is not reset after every primitive-5 triangle.
-Because the XYZF2 handler itself maintains the rolling last-three-vertex window,
-after the first two vertices every additional strip vertex produces another
-3-vertex triangle draw from the newest triplet.
+Primitive-5 setup at `0x14002B20C` snapshots the first fan vertex into the dedicated anchor state (`0x1405D9638/0x1405D9658/0x1405D9678`). The XYZF2 handler maintains current/previous state at `0x1405D9620/0x1405D9628` (with their attribute companions). Handler `0x14002B56E` builds each drawable triangle from **anchor + current + previous**. After the first two fan vertices, each additional drawable vertex therefore produces one 3-vertex triangle draw while the anchor remains fixed.
 
 Therefore the HD SCM path is:
 
 ```text
-SCM TRIANGLE_STRIP
+SCM TRIANGLE_FAN
  -> XYZF2 stream
  -> rolling last-three vertex window
- -> one D3D11 triangle draw per subsequent strip vertex
+ -> one D3D11 triangle draw per subsequent fan vertex
  -> 3 uploaded vertices per triangle
 ```
 
