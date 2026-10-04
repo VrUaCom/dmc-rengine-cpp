@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v3",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v4",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -167,14 +167,35 @@
     "descriptorDimensionEncoding": "u16-per-axis",
     "historicalProductSafety": {
       "minDimension": 64,
-      "maxDimension": 1024
+      "maxDimension": 1024,
+      "status": "PRODUCT_SAFETY_LIMIT"
     },
     "retailObservedAtLeast": {
       "width": 1024,
       "height": 2048,
-      "compression": "DXT5"
+      "compression": "DXT5",
+      "status": "CORPUS_CONFIRMED"
     },
-    "classification": "HD corpus observation; not yet an authored-runtime maximum"
+    "ptxDdsToD3d11": {
+      "parser": "0x1403365B0",
+      "resourceVtable": "0x1404C5388",
+      "gpuRealization": "0x140046AF0",
+      "ddsLoader": [
+        "0x1400499C0",
+        "0x140049BA0"
+      ],
+      "createHelper": "0x140049490",
+      "texture2DBranch": "0x1400495DC",
+      "createTexture2DCall": "0x140049642",
+      "createTexture2DVtableOffset": "0x28",
+      "createShaderResourceViewVtableOffset": "0x38",
+      "maxMipCount": 15,
+      "maxArraySize": 2048,
+      "maxWidth": 16384,
+      "maxHeight": 16384,
+      "status": "EXE_CONFIRMED",
+      "scope": "descriptor-wrapped DDS / non-TM2 PTX fallback to D3D11 Texture2D; practical allocation/residency may fail below this guard"
+    }
   },
   "ptxRuntime": {
     "payloadBytes": 520,
@@ -191,7 +212,7 @@
     "SCM runtime count guards",
     "runtimeObject+0x98 producer",
     "complete retail texture census",
-    "D3D11 texture creation guards",
+    "practical texture allocation/residency below 16384-per-axis EXE guard",
     "original-game geometry stress test",
     "original-game authored DDS stress test",
     "simultaneous stage residency budget"
