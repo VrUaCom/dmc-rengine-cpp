@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v4",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v5",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -153,14 +153,23 @@
       "status": "EXE_CONFIRMED_FIXED_BYTE_CAPACITY"
     },
     "ringReset": {
-      "functionRange": "0x140042270..0x1400425A1",
+      "resetFunctionRange": "0x140042270..0x1400425A1",
       "vertexOffsetClear": "renderer+0x17A0",
       "u16IndexOffsetClear": "renderer+0x17D8",
       "u32IndexOffsetClear": "renderer+0x1810",
-      "caller": "0x1400335C0",
-      "higherWrapper": "0x140337FA0",
-      "cadence": "render-cycle boundary strongly indicated; exact once-per-frame cadence not yet promoted",
-      "status": "EXE_CONFIRMED_RESET_BEHAVIOR"
+      "resetCaller": "0x1400335C0",
+      "modeSetter": "0x140337F70",
+      "defaultModeSetup": {
+        "site": "0x1402C5E57",
+        "value": 1
+      },
+      "frameLoop": "0x1402C5EB0..0x1402C5FE2",
+      "renderDispatchCallSite": "0x1402C5F85",
+      "dispatcher": "0x140337EC0",
+      "dispatchTable": "0x1405D1B70",
+      "mode1Target": "0x140337FA0",
+      "status": "EXE_CONFIRMED_NORMAL_RENDERED_FRAME_RESET",
+      "claimBoundary": "Alternate runtime states can skip/change dispatch; ordinary mode-1 rendered loop resets the rings at the start of each rendered iteration."
     }
   },
   "texture": {
@@ -208,8 +217,8 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "exact dynamic-ring reset scheduler cadence",
     "SCM runtime count guards",
+    "non-SCM consumption of shared per-rendered-frame dynamic ring",
     "runtimeObject+0x98 producer",
     "complete retail texture census",
     "practical texture allocation/residency below 16384-per-axis EXE guard",
