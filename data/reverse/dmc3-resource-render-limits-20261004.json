@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v11",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v12",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -406,6 +406,29 @@
       ],
       "statement": "16-bit index width limits each stored index value, not the number of index elements in the buffer.",
       "status": "EXE_CONFIRMED_BUFFER_CAPACITY"
+    },
+    "sharedDynamicVertexRingCallerCensus": {
+      "uploader": "0x140043190",
+      "uploaderDirectCallers": [
+        "0x140043F90"
+      ],
+      "drawWrapper": "0x140043F90",
+      "drawWrapperDirectCallerCount": 49,
+      "scmCompatibilityExamples": [
+        "0x14002B407",
+        "0x14002B555",
+        "0x14002BA5B"
+      ],
+      "nonCompatibilityExamples": [
+        "0x14003D0D7",
+        "0x14003F726",
+        "0x14004180A",
+        "0x140044CDF",
+        "0x1400457CD",
+        "0x14032C718"
+      ],
+      "status": "EXE_CONFIRMED_SHARED_DYNAMIC_VERTEX_RING",
+      "claimBoundary": "direct-call ownership is closed; exact per-frame occupancy remains dynamic"
     }
   },
   "texture": {
@@ -478,6 +501,7 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
+    "measure exact shared dynamic-ring occupancy/order in representative retail frames",
     "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
     "complete retail texture census",
