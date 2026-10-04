@@ -1,0 +1,37 @@
+{
+  "schema": "dmc-rengine.scm-runtime-object-98-producer.v2",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "source": {
+    "serialized": "SCM object+0x10 u32 flags",
+    "materializer": "0x140302F10",
+    "callsite": "0x1403033FE..0x140303405"
+  },
+  "producer": {
+    "function": "0x140302640",
+    "runtimeField": "runtimeObject+0x98",
+    "formula": "0x1C | ((!bit0x00010000) << 5) | ((lowNibbleNonZero) << 6)",
+    "possibleValues": [
+      "0x1C",
+      "0x3C",
+      "0x5C",
+      "0x7C"
+    ]
+  },
+  "consumer": {
+    "geometryTag": "0x14030A320..0x14030A38D",
+    "mask": "0x7F8",
+    "forcedPrimitive": 5,
+    "standardGsPrimitive": "TRIANGLE_STRIP",
+    "projection": [
+      "IIP=1",
+      "TME=1",
+      "FGE = !(source_flags & 0x00010000)",
+      "ABE = (source_flags & 0xF) != 0"
+    ]
+  },
+  "status": "EXE_CONFIRMED_SERIALIZED_TO_RUNTIME_GS_PRIM_CONTROL",
+  "supersedes": "data/reverse/dmc3-scm-runtime-object-98-boundary-20260913.json producer-open boundary"
+}
