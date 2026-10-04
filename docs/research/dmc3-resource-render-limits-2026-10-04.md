@@ -527,6 +527,125 @@ changes the allocation policy.
 
 
 
+
+## Custom HD A+D command protocol and subcommands 11/12
+
+The remaining compatibility-renderer count paths can now be traced back through
+the canonical command producer rather than treated as unexplained globals.
+
+The lower compatibility A+D dispatcher exposes a custom three-register protocol:
+
+- A+D address `0x63` -> `0x14002D200`: stores command/control value and
+  resets argument count `0x1405D96A0 = 0`;
+- A+D address `0x64` -> `0x14002D224`: appends one 64-bit argument to
+  `0x1405D96F0[count]`, then increments the count;
+- A+D address `0x65` -> `0x14002D23F`: interprets the payload as subcommand
+  ID 1..15 and dispatches through table `0x14002D968`.
+
+This closes the ownership of the global argument lanes used by the two generic
+draw helpers.
+
+### Subcommand 11 -> draw callsite 0x14003F4C8
+
+Producer `0x140318EC0` writes generated 0x28-byte records beginning at
+`0x140CC1AD0`. At `0x1403194D8` it registers that backing pointer, then
+serializes an A+D `0x64` argument pair:
+
+```text
+arg0.low32  = registry index for 0x140CC1AD0
+arg0.high32 = (generatedEnd - 0x140CC1AD0) >> 2
+```
+
+The producer terminates the packet with:
+
+```text
+A+D address 0x65
+payload = 0x0B
+```
+
+therefore selecting subcommand **11**.
+
+The subcommand-11 dispatcher loads the high dword as its second integer
+argument; `0x14003F160` stores it in `r12d`, and immediately before
+`0x14003F4C8` forms:
+
+```text
+ringByteCount = 4 * r12d
+```
+
+Therefore:
+
+```text
+ringByteCount =
+4 * ((generatedEnd - backingBase) >> 2)
+= generatedEnd - backingBase
+```
+
+for this aligned producer. The draw count is the exact number of generated
+backing bytes, not a heuristic vertex-count estimate.
+
+The producer's outer coverage bounds at `object+0x15D58/+0x15D5C` originate
+from display-context signed words `[0x140D6D300]+0x20/+0x22`
+(`0x140316360`), so this path is screen/display-derived non-SCM geometry that
+competes for the shared dynamic ring.
+
+A referenced-global boundary places the next distinct global at
+`0x140CD1AD0`, exactly **0x10000 = 65,536 bytes** after the backing base.
+This is strong evidence for a 64 KiB static backing region, but without a direct
+producer-side bounds check or symbol/initializer carrying the exact array size,
+the 64 KiB extent remains **STRUCTURAL_CANDIDATE**, not a promoted hard engine
+limit. At 0x28 bytes/record it could physically contain 1,638 complete records
+(65,520 bytes) if that inferred extent is exact.
+
+### Subcommand 12 -> draw callsite 0x140040344
+
+Producer `0x140319D60` generates 0x50-byte records beginning at
+`0x140CD1AF0`.
+
+At `0x14031A263` it registers the backing pointer and serializes:
+
+```text
+arg1.low32  = registry index for 0x140CD1AF0
+arg1.high32 = generatedEnd - 0x140CD1AF0
+```
+
+The packet ends with A+D address `0x65`, payload `0x0C`, selecting
+subcommand **12**.
+
+The subcommand-12 dispatcher passes that high dword unchanged as `r9d` to
+`0x140040170`; draw site `0x140040344` passes `r9` unchanged to
+`0x140043F90`. Thus this callsite's ring-byte argument is exactly:
+
+```text
+generatedEnd - 0x140CD1AF0
+```
+
+The producer increments the backing pointer by exactly `0x50` per generated
+record. Because this draw uses flags `0x102` (20-byte output stride), each
+0x50-byte producer record corresponds to exactly **4 rendered vertices**.
+
+The next referenced distinct global is `0x140CD9AF0`, exactly
+**0x8000 = 32,768 bytes** after the backing base. This is strong evidence for a
+32 KiB static backing region, but is likewise retained as
+**STRUCTURAL_CANDIDATE** until an explicit size/guard/initializer is recovered.
+If exact, it accommodates 409 complete 0x50-byte records = 1,636 vertices =
+32,720 bytes, leaving 48 bytes.
+
+The producer grid itself starts from zero and advances toward fixed 640/360
+thresholds using steps derived from the input fields at +0x2C/+0x30; values
+above 200 are replaced by 100. No producer-local test against the candidate
+0x8000 backing extent has yet been found, so malformed/extreme parameter safety
+must not be inferred from the normal retail path.
+
+Status:
+- A+D 0x63/0x64/0x65 protocol: **EXE_CONFIRMED**;
+- subcommand 11 generated-byte propagation to 0x14003F4C8:
+  **EXE_CONFIRMED**;
+- subcommand 12 generated-byte propagation to 0x140040344:
+  **EXE_CONFIRMED**;
+- 64 KiB / 32 KiB static backing extents:
+  **STRUCTURAL_CANDIDATE** pending explicit ownership/size evidence.
+
 ## Generic draw helper 0x1400457CD — bounded by an 11-bit source count
 
 One of the four previously generic dynamic-ring callsites is now closed.
