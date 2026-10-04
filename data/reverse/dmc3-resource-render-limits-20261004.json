@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v25",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v21",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -1339,6 +1339,25 @@
         }
       ],
       "claimBoundary": "Bounded archive census only. The 2T bound is light-independent for the recovered closed adjacency semantics, but original-game per-frame invocation order and simultaneous shadows remain dynamic."
+    },
+    "scratch44cdfExactPropagation": {
+      "status": "EXE_CONFIRMED_EXACT_BYTE_PROPAGATION",
+      "function": "0x1400446F0",
+      "drawCallsite": "0x140044CDF",
+      "scratchBase": "0x140BEB3F0",
+      "groupBytes": 72,
+      "verticesPerGroup": 6,
+      "maxGroupsPerOuterItem": 4,
+      "maxBytesPerOuterItem": 288,
+      "maxVerticesPerOuterItem": 24,
+      "outerCountField": "input+0x18",
+      "formula": "drawByteCount = 12 * generatedVertexCount = 72 * generatedGroupCount = generatedEnd - 0x140BEB3F0",
+      "hardCountClamp": "OPEN",
+      "inferredScratchExtent": {
+        "bytes": 131072,
+        "status": "STRUCTURAL_CANDIDATE",
+        "warning": "Referenced-global interval is not ownership proof; base is shared/referenced by legacy compatibility handlers."
+      }
     }
   },
   "texture": {
@@ -1411,6 +1430,7 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
+    "close upstream producer/clamp of 0x1400446F0 input+0x18 and promote/reject the candidate 0x20000 scratch extent",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
     "measure real per-frame SHW light-dependent active/silhouette counts and invocation order; bounded retail topology worst-case is now closed",
