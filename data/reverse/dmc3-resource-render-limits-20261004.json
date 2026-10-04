@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v23",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v24",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -1421,7 +1421,8 @@
     "original-game geometry stress test",
     "original-game authored DDS stress test",
     "simultaneous stage residency budget",
-    "acquire and reverse original DMC3 PS2 SLUS/SLES/ELF for game-specific PS2 allocator limits"
+    "acquire and reverse original DMC3 PS2 SLUS/SLES/ELF for game-specific PS2 allocator limits",
+    "identify exact serialized/packed owner feeding the effect stream table at runtime owner+0xF8 and census packed HTH/RDN records"
   ],
   "corrections": [
     {
@@ -1510,5 +1511,30 @@
       "requirement": "acquire hash-bound original DMC3 PS2 SLUS/SLES/ELF and reverse allocator/VU/GIF resource paths"
     },
     "claimBoundary": "PS2 hardware envelope only. Do not project HD D3D11 limits backward onto PS2 or treat hardware peak throughput as DMC3 resource capacity."
+  },
+  "effectRetailParameterCensus": {
+    "evidence": "data/reverse/dmc3-hd-effect-retail-parameter-census-20261005.json",
+    "tagMapper": "0x14031E730..0x14031E9FD",
+    "tags": {
+      "HTH": 11,
+      "RDN": 12
+    },
+    "HTH": {
+      "retailTextWitnessCount": 1,
+      "witnessSha256": "afc99521aa3b44e25b9af3fc24623c1f421e85bb4b102d4c4124d7256a287ea3",
+      "detailH": 6,
+      "detailV": 3,
+      "startupViewport": [
+        512,
+        256
+      ],
+      "projectedRecords": 374,
+      "projectedRingBytes": 14960,
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "RDN": {
+      "retailTextWitnessCount": 0,
+      "status": "BOUNDED_CORPUS_NEGATIVE"
+    }
   }
 }
