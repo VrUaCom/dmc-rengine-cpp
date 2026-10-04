@@ -379,6 +379,84 @@ all participating resource budgets and caller semantics.
 
 Status: EXE_CONFIRMED.
 
+
+## PTX preflight reservation gate — auxiliary SCM size frontier closed
+
+Fresh canonical-EXE analysis closes the previously open
+`0x1402FE1B0 -> 0x1402FE030` frontier.
+
+`0x1402FE1B0` builds a temporary PTX record context from the model's
+texture source through `0x140336E90`. `0x1402FE030` then iterates the
+resulting 0x50-byte PTX records and counts the active primary allocation plus
+an eligible secondary allocation when `record+0x28` exists and
+`0x140330FF0(record)` accepts it.
+
+The terminal comparison is:
+
+```text
+active_span_count <= ceil_signed(pool[+0xCB14] / 32)
+```
+
+For the canonical global PTX pool base `0x140D5FB70`,
+`pool+0xCB14 == 0x140D6C684`.
+
+The producer is `0x140331D90`:
+
+```text
+blocks << 5 -> pool+0xCB14
+```
+
+Therefore, for the normal non-overflow domain, the comparison reduces to:
+
+```text
+active PTX primary/secondary spans <= configured reservation blocks
+```
+
+This is a texture-placement/reservation gate. It is **not an additional SCM
+vertex-count or polygon-count ceiling**.
+
+Status: **EXE_CONFIRMED_PTX_RESERVATION_GATE**.
+
+## Complete preserved DDS census for the v6 research archive
+
+The exact historical archive
+`DMC 3 RENGINE (6).zip`
+(SHA-256 `7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f`)
+contains:
+
+- 243 DDS paths;
+- 154 unique DDS payloads by SHA-256;
+- 60 unique DXT1;
+- 94 unique DXT5;
+- 15 unique width/height/compression combinations.
+
+Observed dimensions span 128x64 through 1024x2048.
+The unique maximum by pixel area and maximum height is the previously identified
+1024x2048 DXT5 texture, with 12 mip levels and 2,796,368 total DDS bytes.
+
+No preserved DDS in this exact bounded archive exceeds width 1024 or height 2048.
+This is a **CORPUS_CONFIRMED observed maximum for this archive**, not a claim
+that the full retail game contains no larger resource.
+
+Machine authority:
+`data/reverse/dmc3-dds-full-corpus-census-20261004.json`.
+
+## 16-bit index count clarification
+
+The 159,744-element dynamic 16-bit index buffer is valid.
+
+A 16-bit index format limits the **numeric value stored in each index** to
+0..65,535. It does not limit the buffer to 65,535 index elements. A buffer may
+contain 159,744 uint16 entries (319,488 bytes) as long as each entry references
+a vertex representable by the 16-bit index domain.
+
+This distinction is important for DMC3 because the executable contains both:
+- a 159,744-entry 16-bit dynamic index buffer; and
+- a separate 159,744-entry 32-bit dynamic index buffer.
+
+Status: **EXE_CONFIRMED_BUFFER_CAPACITY + TYPE_SEMANTIC_CLARIFICATION**.
+
+
 ## Texture-slot / DDS framing and EXE-backed Texture2D ceiling
 
 DMC3 HD texture slots use descriptor + standard DDS framing. The evidenced slot
