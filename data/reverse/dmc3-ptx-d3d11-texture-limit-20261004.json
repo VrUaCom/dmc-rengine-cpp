@@ -1,0 +1,63 @@
+{
+  "schema": "dmc-rengine.dmc3-ptx-d3d11-texture-limit.v1",
+  "date": "2026-10-04",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "path": [
+    {
+      "address": "0x1403365B0",
+      "role": "PTX texture parser; non-TM2 fallback creates/relocates the texture-resource object"
+    },
+    {
+      "address": "0x140046510",
+      "role": "installs texture resource vtable 0x1404C5388 on fallback object"
+    },
+    {
+      "address": "0x140046AF0",
+      "role": "vtable +0x10 GPU realization; forwards bounded DDS bytes to embedded loader"
+    },
+    {
+      "address": "0x1400499C0",
+      "role": "DDS-from-memory entry"
+    },
+    {
+      "address": "0x140049BA0",
+      "role": "DDS header/resource-dimension validation"
+    },
+    {
+      "address": "0x140049490",
+      "role": "D3D resource creation helper"
+    },
+    {
+      "address": "0x140049642",
+      "role": "ID3D11Device vtable +0x28 CreateTexture2D for resource dimension 3"
+    }
+  ],
+  "guards": {
+    "mipCount": {
+      "max": 15,
+      "site": "0x140049D51"
+    },
+    "texture2DArraySize": {
+      "max": 2048,
+      "site": "0x140049D97"
+    },
+    "texture2DWidth": {
+      "max": 16384,
+      "site": "0x140049DA4"
+    },
+    "texture2DHeight": {
+      "max": 16384,
+      "site": "0x140049DB0"
+    }
+  },
+  "downstream": {
+    "shaderResourceView": "ID3D11Device vtable +0x38 after successful texture creation",
+    "scmBinding": "texture-resource family 0x1404C5388 is the same family whose +0x08 method reaches PSSetShaderResources in the recovered SCM TEX0 registry path"
+  },
+  "status": "EXE_CONFIRMED_PTX_DDS_TO_D3D11_TEXTURE2D_LIMIT",
+  "claimBoundary": "Static validation ceiling only. It does not prove successful allocation or practical gameplay residency for a 16384x16384 authored texture."
+}
