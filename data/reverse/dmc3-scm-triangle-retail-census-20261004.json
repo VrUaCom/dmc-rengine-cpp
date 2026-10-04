@@ -1,0 +1,69 @@
+{
+  "schema": "dmc-rengine.dmc3-scm-triangle-retail-census.v1",
+  "date": "2026-10-04",
+  "population": {
+    "uniqueScm": 68,
+    "meshes": 481,
+    "vertices": 182612,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "sources": {
+    "archive": {
+      "name": "DMC 3 RENGINE (6).zip",
+      "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+      "uniqueScm": 67
+    },
+    "st114Scm": {
+      "bytes": 1038816,
+      "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d"
+    }
+  },
+  "topology": {
+    "breakBit": "0x02",
+    "generatedIndexFormula": "T + 4*R - 2 when T > 0",
+    "uninterrupted": {
+      "triangles": "vertex_count - 2",
+      "generatedIndices": "vertex_count"
+    },
+    "rejectedFormula": "3 * (vertex_count - 2) as generated index count",
+    "status": "EXE_AND_CORPUS_CONFIRMED"
+  },
+  "largestMesh": {
+    "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_b00/m20_b00_004/m20_b00_004_000.scm",
+    "object": 17,
+    "mesh": 1,
+    "vertices": 10196,
+    "triangles": 5696,
+    "breakVertices": 4498,
+    "runs": 2178,
+    "generatedIndices": 14406,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "largestWholeScm": {
+    "name": "st114.scm",
+    "vertices": 27057,
+    "meshes": 72,
+    "triangles": 16248,
+    "breakVertices": 10665,
+    "runs": 5205,
+    "generatedIndices": 36924,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "limits": {
+    "serializedVertexCountMax": 65535,
+    "uninterruptedDerivedTriangleMax": 65533,
+    "uninterruptedGeneratedIndicesAtSerializedMax": 65535,
+    "scmStreamElementCapacity": 98304,
+    "dynamicR16IndexCapacity": 159744,
+    "worstCaseGeneratedIndicesAt65535Vertices": 163833,
+    "excessOverR16Capacity": 4089
+  },
+  "localGuardAudit": {
+    "converter": "0x140044310",
+    "indexUploader": "0x1400425B0",
+    "streamUploader": "0x140043830",
+    "localCapacityComparisonObserved": false,
+    "status": "EXE_CONFIRMED_BOUNDED_NEGATIVE_EVIDENCE"
+  },
+  "claimBoundary": "Retail observed, serialized representable, generated-index and runtime-buffer capacities remain separate."
+}
