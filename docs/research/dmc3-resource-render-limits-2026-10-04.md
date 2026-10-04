@@ -157,23 +157,41 @@ inside the recovered upload routine itself.
 
 Status: EXE_CONFIRMED_SCM_TO_D3D11_DRAW_PATH.
 
-## Dynamic ring lifecycle/reset boundary
+## Dynamic ring lifecycle — normal rendered-frame boundary
 
-The function containing 0x140042567 clears:
-- renderer+0x17A0: dynamic vertex byte offset;
+The reset function containing 0x140042567 clears:
+- renderer+0x17A0: shared dynamic vertex-ring byte offset;
 - renderer+0x17D8: dynamic u16-index byte offset;
 - renderer+0x1810: dynamic u32-index byte offset.
 
-The same routine also toggles renderer state at +0x1828 and clears active offsets for
-the 16-entry layout-buffer table when their resources are present.
+It also toggles renderer state at +0x1828 and clears active offsets for the
+16-entry layout-buffer table when their resources are present.
 
-0x1400335C0 calls this renderer reset and then the input-layout reset. A higher
-wrapper at 0x140337FA0 calls 0x1400335C0 before renderer work and is present in an
-indirect lifecycle/function-pointer table. This is strong evidence for a render-cycle
-reset boundary, but the current static pass does not yet promote it to the exact claim
-"once per frame".
+Fresh whole-EXE caller closure identifies the normal scheduling chain:
 
-Status: EXE_CONFIRMED_RESET_BEHAVIOR; exact scheduler cadence remains open.
+dmc3_main 0x1402C5DF0
+ -> startup 0x1402C5E57 calls 0x140337F70 with mode 1
+ -> 0x140337F70 stores mode 1 at graphics-config +0x13
+ -> normal timed loop 0x1402C5EB0..0x1402C5FE2
+ -> one render-dispatch call 0x140337DF0 at 0x1402C5F85
+ -> 0x140337EC0 indexes table 0x1405D1B70 by graphics-config +0x13
+ -> mode 1 selects 0x140337FA0
+ -> first call in 0x140337FA0 is 0x1400335C0
+ -> renderer/input-layout reset clears the three dynamic ring offsets
+ -> render work proceeds
+ -> dmc3_main eventually jumps back to the timing-loop head.
+
+The dispatch can be skipped/changed by alternate runtime state, so this is not a claim
+that every possible application state renders identically. It does prove that the
+ordinary mode-1 rendered path resets these dynamic rings once at the start of each
+normal rendered loop iteration.
+
+Consequently the 0x3C0000 dynamic vertex ring is best modeled as a **shared normal
+per-rendered-frame byte budget**. It is shared with other dynamic compatibility draws;
+the SCM-only triangle capacities above are empty-frame upper bounds, not guaranteed
+polygon budgets.
+
+Status: EXE_CONFIRMED_NORMAL_RENDERED_FRAME_RESET.
 
 ## HD dynamic and prebuilt index buffers
 
@@ -272,8 +290,8 @@ For Rengine, every future limit entry must carry:
 
 ## Open gates before claiming "maximum DMC3"
 
-1. Close the exact scheduler cadence of 0x140337FA0 / 0x1400335C0 and prove whether the shared dynamic rings reset once per frame or at another render-cycle boundary.
-2. Reverse the exact allocation/validation path for oversized SCM object/mesh vertex counts.
+1. Reverse the exact allocation/validation path for oversized SCM object/mesh vertex counts.
+2. Quantify how much of the shared per-rendered-frame ring is consumed by non-SCM dynamic draws in representative retail frames.
 3. Determine whether any loader/renderer rejects SCM counts before their serialized integer ceiling.
 4. Close the producer of SCM runtimeObject+0x98, now that the complete canonical EXE is available.
 5. Census all texture dimensions and per-slot texture counts from the complete retail resource population.
