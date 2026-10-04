@@ -2706,3 +2706,70 @@ resource path from archive slot to HTH/RDN runtime record.
 Evidence:
 
 `data/reverse/dmc3-hd-demo-effect-stream-owner-20261005.json`
+
+
+## 0x140044CDF exact producer-to-draw byte propagation
+
+A direct canonical-EXE pass closes the previously generic byte-count propagation at
+`0x140044CDF`.
+
+Producer `0x1400446F0` initializes:
+
+```text
+r15 = 0x140BEB3F0
+r12d = 0
+```
+
+For every emitted scratch group it writes exactly `0x48 = 72` bytes, advances:
+
+```text
+r15 += 0x48
+r12d += 6
+```
+
+and may emit one mandatory group plus up to three conditional groups for each
+outer input item. At the terminal draw setup:
+
+```text
+eax = 3 * r12d
+eax <<= 2
+r9  = sign_extend(eax)
+source = 0x140BEB3F0
+call 0x140043F90
+```
+
+Therefore:
+
+```text
+drawByteCount = 12 * generatedVertexCount
+              = 72 * generatedGroupCount
+              = generatedEnd - 0x140BEB3F0
+```
+
+for the aligned producer. This is now **EXE_CONFIRMED_EXACT_BYTE_PROPAGATION**,
+not a generic unknown-count draw.
+
+The outer iteration count is read from `input+0x18`. Static analysis has not
+yet recovered a producer-side clamp for that field. In the worst branch pattern
+one outer item can emit four groups:
+
+```text
+maxGeneratedBytesPerInputItem = 4 * 0x48 = 288
+maxGeneratedVerticesPerInputItem = 24
+```
+
+If the previously inferred `0x20000` contiguous referenced-global interval
+were the true scratch extent, 455 worst-case outer items would consume 131,040
+bytes and 456 would require 131,328 bytes. However the base
+`0x140BEB3F0` is also referenced by multiple legacy compatibility handlers, so
+absence of another referenced global inside that interval is **not sufficient
+ownership evidence** for a dedicated 128 KiB array.
+
+Correction to the earlier candidate wording:
+
+- exact generated-byte propagation: **EXE_CONFIRMED**;
+- `0x20000` dedicated scratch extent: remains **STRUCTURAL_CANDIDATE**, with
+  weaker ownership confidence than a true symbol/initializer/bounds proof;
+- 10,920 generated vertices / 1,820 groups: **not an engine limit**;
+- hard maximum remains open until the upstream producer of `input+0x18` or an
+  explicit scratch bound is recovered.
