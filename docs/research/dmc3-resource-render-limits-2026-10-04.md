@@ -380,6 +380,62 @@ all participating resource budgets and caller semantics.
 Status: EXE_CONFIRMED.
 
 
+
+## SCM runtimeObject+0x98 producer — closed
+
+Fresh whole-EXE analysis closes the producer that was previously left open.
+
+SCM object materialization at `0x140302F10` reads serialized
+`object+0x10` flags and calls `0x140302640(runtimeObject, sourceFlags)`.
+
+Inside `0x140302640`:
+
+```text
+runtimeObject+0x98 =
+    0x1C
+  | ((sourceFlags & 0x00010000) == 0 ? 0x20 : 0)
+  | ((sourceFlags & 0x0000000F) != 0 ? 0x40 : 0)
+```
+
+So the produced runtime values are exactly:
+
+```text
+0x1C / 0x3C / 0x5C / 0x7C
+```
+
+The geometry tag constructor `0x14030A320..0x14030A38D` then uses:
+
+```text
+((runtimeObject+0x98 & 0x7F8) | 5)
+```
+
+as the PRE-enabled GIFtag PRIM/control field.
+
+Under the standard GS PRIM bit layout this means:
+
+- primitive code is forced to **5 = TRIANGLE_STRIP**;
+- IIP is enabled;
+- TME is enabled;
+- FGE is enabled when serialized source flag `0x00010000` is **clear**;
+- ABE is enabled when the serialized source-flags low nibble is **non-zero**.
+
+This creates a direct provenance-clean chain:
+
+```text
+SCM object+0x10
+ -> 0x140302F10
+ -> 0x140302640
+ -> runtimeObject+0x98
+ -> 0x14030A320 geometry GIFtag
+ -> PRIM/control
+ -> compatibility renderer
+```
+
+Status: **EXE_CONFIRMED_SERIALIZED_TO_RUNTIME_GS_PRIM_CONTROL**.
+
+This closes the old `runtimeObject+0x98 producer` frontier.
+
+
 ## PTX preflight reservation gate — auxiliary SCM size frontier closed
 
 Fresh canonical-EXE analysis closes the previously open
