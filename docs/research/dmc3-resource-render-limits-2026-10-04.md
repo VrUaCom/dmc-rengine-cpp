@@ -2468,3 +2468,87 @@ Next useful static target: identify the imported effect stream's resource owner
 and census its real type 11/12 parameter records. Next dynamic target: record
 internal viewport, initial/cached producer end pointers, cached encoded length,
 neighbor scalar/pointers and shared-ring occupancy together in original frames.
+
+
+# 70. Continuation v23 — bounded retail SHW topology and render-budget census
+
+**Date:** 2026-10-05. This pass closes the bounded SHW corpus side of the shadow scratch question without requiring a guessed light direction.
+
+The exact historical archive `DMC 3 RENGINE (6).zip` contains **16 unique SHW payloads**. The corpus totals are:
+
+- **158 hull records**;
+- **1,882 vertices**;
+- **3,104 triangles**;
+- **165 disconnected closed components**.
+
+Every triangle edge in every hull belongs to exactly two triangles, and every serialized adjacency triplet equals the complete three-edge neighbor set. All hulls satisfy the stronger component-aware identity:
+
+```text
+T = 2*V - 4*C
+```
+
+where `C` is the number of disconnected components in that hull record. Five hull records contain multiple components (2 or 3); this explains the earlier apparent failures of the single-component `T=2V-4` rule. In this bounded corpus the components are closed genus-zero triangulated surfaces.
+
+## 70.1 Light-independent SHW draw bound
+
+The EXE-confirmed shadow helper uses:
+
+```text
+groups = A + E
+ringBytes = 72 * (A + E)
+```
+
+where `A` is active face count and `E` is the count of active/inactive neighbor edges that generate silhouette-side groups.
+
+For a closed triangular adjacency graph:
+
+```text
+E <= 3*A
+E <= 3*(T-A)
+```
+
+Therefore, regardless of the binary active/inactive face assignment:
+
+```text
+A + E <= 2*T
+ringBytes <= 144*T
+```
+
+This is a topological upper bound; real light-facing states can only reduce it.
+
+## 70.2 Retail maxima
+
+The largest SHW file by triangles is `em035_021.shw`:
+
+- 17 hulls;
+- 251 vertices;
+- **434 triangles**;
+- EXE-planner runtime allocation: **28,544 bytes**;
+- whole-file shared-ring upper bound, if all hull draws occur in one rendered frame: **62,496 bytes** = about **1.59%** of the 3.75 MiB dynamic vertex ring.
+
+The largest single observed hull contains **116 triangles / 60 vertices**. Because the command descriptor and `0x1400446F0` invocation are hull-scoped, its light-independent per-invocation bound is:
+
+```text
+max groups <= 232
+scratch/ring bytes <= 16,704
+```
+
+That is only **12.74%** of the 128 KiB scratch-neighbor separation.
+
+The first known neighboring-pointer conflict occurs at generated group **1,821**. Since any closed hull obeys `groups<=2*T`, a hull needs at least **911 triangles** even to be structurally capable of reaching that conflict. The largest retail hull observed here has only 116 triangles.
+
+Therefore:
+
+> No SHW hull in this bounded 16-file retail corpus can reach the known 128 KiB scratch-neighbor conflict under any binary face-activity pattern, independent of light direction.
+
+This is stronger than a sampled light-silhouette census, but it remains bounded to this archive and does not define a universal authored-SHW maximum.
+
+**Status:** `CORPUS_CONFIRMED_BOUND_BELOW_CONFLICT + EXE_CONFIRMED_FORMULA_DERIVED_BOUND`.
+
+Reproducer:
+
+`scripts/reverse/census_shw_render_budget.py`
+
+Machine evidence:
+
+`data/reverse/dmc3-shw-retail-render-budget-20261005.json`
