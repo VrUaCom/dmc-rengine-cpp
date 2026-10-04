@@ -1,0 +1,92 @@
+{
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "scm": {
+    "structural": {
+      "objectCount": {
+        "type": "u8",
+        "maxRepresentable": 255
+      },
+      "sceneNodeCount": {
+        "type": "u8",
+        "maxRepresentable": 255
+      },
+      "textureSlotCount": {
+        "type": "u8",
+        "maxRepresentable": 255
+      },
+      "meshCountPerObject": {
+        "type": "u8",
+        "maxRepresentable": 255
+      },
+      "objectTotalVertexCount": {
+        "type": "u16",
+        "maxRepresentable": 65535
+      },
+      "meshVertexCount": {
+        "type": "u16",
+        "maxRepresentable": 65535
+      }
+    },
+    "corpus": {
+      "uniqueFiles": 68,
+      "objects": 254,
+      "meshes": 481,
+      "sceneNodes": 328,
+      "totalVertices": 182612,
+      "largestFile": {
+        "name": "st114.scm",
+        "bytes": 1038816,
+        "vertices": 27057
+      },
+      "verticesPerMesh": {
+        "min": 3,
+        "max": 10196
+      },
+      "meshCountPerObject": {
+        "min": 1,
+        "max": 10
+      },
+      "textureSlotCounts": [
+        6,
+        16,
+        17
+      ]
+    }
+  },
+  "texture": {
+    "descriptorDimensionEncoding": "u16-per-axis",
+    "historicalProductSafety": {
+      "minDimension": 64,
+      "maxDimension": 1024
+    },
+    "retailObservedAtLeast": {
+      "width": 1024,
+      "height": 2048,
+      "compression": "DXT5"
+    },
+    "classification": "HD corpus observation; not yet an authored-runtime maximum"
+  },
+  "ptxRuntime": {
+    "payloadBytes": 600,
+    "texturePointerCapacity": 64,
+    "globalRecordCapacity": 128,
+    "recordStrideBytes": 80,
+    "globalPoolBytes": 10240,
+    "status": "EXE_CONFIRMED"
+  },
+  "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
+  "openGates": [
+    "SCM runtime count guards",
+    "transient vertex/index allocation",
+    "draw splitting",
+    "complete retail texture census",
+    "D3D11 texture creation guards",
+    "original-game geometry stress test",
+    "original-game authored DDS stress test",
+    "simultaneous stage residency budget"
+  ]
+}
