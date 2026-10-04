@@ -1,0 +1,78 @@
+{
+  "schema": "dmc-rengine.scm-geometry-budget-envelope.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "allocation": {
+    "planner": "0x1402FD8D0 -> 0x1402FDD10",
+    "callsite": "0x1400899E1..0x140089A12",
+    "scmChunkReserve": "two runtime domains each reserve 0x80 * ceil(meshVertexCount/60), yielding 0x100 * ceil(meshVertexCount/60) in the total planner",
+    "normalPool": {
+      "usableBytes": 5236736,
+      "fullU16Objects": 18,
+      "totalVertices": 1179630,
+      "plannedBytes": 5084336,
+      "nextPlannedBytes": 5366768
+    },
+    "alternatePool": {
+      "usableBytes": 4185600,
+      "fullU16Objects": 14,
+      "totalVertices": 917490,
+      "plannedBytes": 3954608,
+      "nextPlannedBytes": 4237040
+    },
+    "assumptions": [
+      "one mesh per object",
+      "65535 vertices per object/mesh",
+      "scene nodes = objects+1",
+      "zero texture/auxiliary overhead",
+      "empty pool"
+    ]
+  },
+  "renderRing": {
+    "uploader": "0x140043190..0x14004378A",
+    "ringBytes": 3932160,
+    "offsetField": "renderer+0x17A0",
+    "directRendererClusterRefs": [
+      "0x140042567 reset",
+      "0x140042DF1 initialization/write",
+      "0x140043254 zero/nonzero map-policy test",
+      "0x14004329C mapped destination offset read",
+      "0x1400436FA IA vertex-buffer offset read",
+      "0x140043765 offset += vertexCount*outputStride"
+    ],
+    "localCapacityComparison": "NOT_FOUND_IN_UPLOAD_PATH",
+    "continuousStripProjection": [
+      {
+        "stride": 20,
+        "triangleBytes": 60,
+        "triangleCapacity": 65536,
+        "maxSourceVerticesUnderU16": 65535,
+        "maxU16StripBytes": 3931980,
+        "remainingBytes": 180
+      },
+      {
+        "stride": 28,
+        "triangleBytes": 84,
+        "triangleCapacity": 46811,
+        "maxSourceVertices": 46813,
+        "maxU16StripBytes": 5504772,
+        "overflowBytesAt65535": 1572612
+      },
+      {
+        "stride": 36,
+        "triangleBytes": 108,
+        "triangleCapacity": 36408,
+        "maxSourceVertices": 36410,
+        "maxU16StripBytes": 7077564,
+        "overflowBytesAt65535": 3145404
+      }
+    ]
+  },
+  "status": [
+    "EXE_CONFIRMED",
+    "DERIVED_ENVELOPE"
+  ],
+  "claimBoundary": "No successful original-game stress-test acceptance is claimed at the projected boundaries."
+}
