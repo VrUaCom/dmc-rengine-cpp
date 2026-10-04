@@ -2651,3 +2651,58 @@ Evidence:
 Next target: identify the exact serialized/packed owner feeding the stream table
 at runtime owner `+0xF8`, then expand the census beyond loose text witnesses and
 recover any packed RDN/type-12 records.
+
+
+# 72. Continuation v25 — demo clip effect-stream manager ownership
+
+The runtime owner behind the effect-stream `+0xF8` pointer is now closed one
+level further.
+
+Binder `0x14031EDB0` performs:
+
+```text
+if resource == null:
+    fail
+
+manager+0xF8 = resource
+manager.u16+0x00 = resource.u16+0x04
+
+require resource.dword+0x04 >= 1
+require resource.dword+0x08 != 0
+firstRecord = resource + resource.dword+0x08
+require firstRecord.byte+0x06 == 1
+
+otherwise:
+    manager+0xF8 = null
+    fail
+```
+
+The two direct stream-admission callsites in the complete executable are:
+
+```text
+0x14023BA03 -> 0x14031EE00
+0x14023CBD5 -> 0x14031EE00
+```
+
+Both initialize the same manager object at caller `+0x1B0A0` through binder
+calls `0x14023B9C3` / `0x14023CBC7` immediately before admission.
+
+Separately, parser `0x1402DA750` initializes the canonical TXT parser helpers
+`0x140322CB0/0x140322CA0`, consumes `Clip`, `SetFrame`, `SkipFrame`,
+`CutFrame`, `ClipScale`, `ChangeType`, `Life`, `Id` and `Param`,
+and uses the `/demo/%s/%s` resource domain. Its `Id` path calls the recovered
+effect-tag mapper `0x14031E730`.
+
+Therefore the `+0xF8` stream consumed by `0x14031EE00` is no longer an
+anonymous auxiliary stream: it belongs to the **demo clip screen-effect**
+processing domain and is installed from an offset-backed resource object.
+
+**Status:** `EXE_CONFIRMED_DEMO_CLIP_EFFECT_STREAM_OWNER`.
+
+Still open: the exact outer PAC/PNST/NBZ slot/container that materializes this
+resource pointer. Closing that boundary is required before claiming a complete
+resource path from archive slot to HTH/RDN runtime record.
+
+Evidence:
+
+`data/reverse/dmc3-hd-demo-effect-stream-owner-20261005.json`
