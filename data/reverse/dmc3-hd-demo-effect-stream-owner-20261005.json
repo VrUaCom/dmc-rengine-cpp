@@ -1,0 +1,56 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-demo-effect-stream-owner.v1",
+  "date": "2026-10-05",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "managerBinder": {
+    "function": "0x14031EDB0",
+    "behavior": [
+      "if resource != null: manager+0xF8 = resource",
+      "manager.u16+0x00 = resource.u16+0x04",
+      "requires resource.dword+0x04 >= 1",
+      "requires resource.dword+0x08 != 0",
+      "firstRecord = resource + resource.dword+0x08",
+      "requires firstRecord.byte+0x06 == 1",
+      "otherwise manager+0xF8 is cleared"
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "directConsumers": {
+    "streamAdmission": "0x14031EE00",
+    "callsites": [
+      "0x14023BA03",
+      "0x14023CBD5"
+    ],
+    "binderCallsites": [
+      "0x14023B9C3",
+      "0x14023CBC7"
+    ],
+    "managerObject": "callerObject+0x1B0A0",
+    "admissionIndexArgument": 0,
+    "status": "EXE_CONFIRMED"
+  },
+  "textParser": {
+    "function": "0x1402DA750",
+    "initHelper": "0x140322CB0",
+    "parseInitHelper": "0x140322CA0",
+    "tokenHelper": "0x140322AB0",
+    "strings": [
+      "/demo/%s/%s",
+      "Clip",
+      "SetFrame",
+      "SkipFrame",
+      "CutFrame",
+      "ClipScale",
+      "ChangeType",
+      "Life",
+      "Id",
+      "Param"
+    ],
+    "effectTagMapper": "0x14031E730",
+    "status": "EXE_CONFIRMED_DEMO_CLIP_TEXT_DOMAIN"
+  },
+  "conclusion": {
+    "owner": "The +0xF8 stream consumed by 0x14031EE00 is explicitly installed by 0x14031EDB0 from an offset-backed resource and belongs to the demo clip screen-effect processing domain.",
+    "boundary": "The exact outer PAC/PNST/NBZ slot/container that materializes this resource pointer is not yet closed."
+  }
+}
