@@ -1,0 +1,66 @@
+{
+  "schema": "dmc-rengine.dmc3-scm-frame-ring-budget.v1",
+  "date": "2026-10-04",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "normalFrameScheduler": {
+    "main": "0x1402C5DF0",
+    "modeSetup": {
+      "site": "0x1402C5E57",
+      "setter": "0x140337F70",
+      "value": 1
+    },
+    "loop": "0x1402C5EB0..0x1402C5FE2",
+    "renderDispatchSite": "0x1402C5F85",
+    "renderDispatch": "0x140337DF0 -> 0x140337EC0",
+    "table": "0x1405D1B70",
+    "tableEntries": [
+      "0x140337F90",
+      "0x140337FA0",
+      "0x140337FF0"
+    ],
+    "normalMode1Target": "0x140337FA0",
+    "resetFirstCall": "0x1400335C0",
+    "status": "EXE_CONFIRMED_NORMAL_RENDERED_FRAME_RESET"
+  },
+  "rings": {
+    "vertex": {
+      "byteCapacity": 3932160,
+      "offset": "renderer+0x17A0"
+    },
+    "index16": {
+      "byteCapacity": 319488,
+      "offset": "renderer+0x17D8"
+    },
+    "index32": {
+      "byteCapacity": 638976,
+      "offset": "renderer+0x1810"
+    }
+  },
+  "scm": {
+    "drawVertices": 3,
+    "outputVariants": [
+      {
+        "flags": "0x00000102",
+        "stride": 20,
+        "bytesPerTriangle": 60,
+        "emptyFrameTriangleUpperBound": 65536
+      },
+      {
+        "flags": "0x00000042",
+        "stride": 28,
+        "bytesPerTriangle": 84,
+        "emptyFrameTriangleUpperBound": 46811
+      },
+      {
+        "flags": "0x00000142",
+        "stride": 36,
+        "bytesPerTriangle": 108,
+        "emptyFrameTriangleUpperBound": 36408
+      }
+    ]
+  },
+  "claimBoundary": "SCM capacities assume the normal frame begins with an empty shared ring and no other dynamic draws consume it. They are upper bounds, not guaranteed stage polygon limits."
+}
