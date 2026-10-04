@@ -1,0 +1,107 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-effect-retail-parameter-census.v1",
+  "date": "2026-10-05",
+  "canonicalExe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "exeTagMap": {
+    "mapper": "0x14031E730..0x14031E9FD",
+    "tags": {
+      "DOF": 2,
+      "HTH": 11,
+      "BGA": 8,
+      "BGO": 9,
+      "CCT": 5,
+      "SGA": 7,
+      "RDN": 12,
+      "ATF": 1,
+      "GFG": 4,
+      "DGO": 10,
+      "FCS": 3,
+      "LGA": 6,
+      "PDM": 13,
+      "EDT": 14,
+      "EAA": 15
+    },
+    "status": "EXE_CONFIRMED"
+  },
+  "importer": {
+    "function": "0x14031F050",
+    "HTH": {
+      "type": 11,
+      "handler": "0x14031F0E5",
+      "sourceToRuntime": {
+        "0x00": "record+0x2C",
+        "0x04": "record+0x30",
+        "0x08": "record+0x28",
+        "0x0C": "record+0x18",
+        "0x10": "record+0x1C",
+        "0x14": "record+0x20",
+        "0x18": "record+0x24",
+        "0x1C": "record+0x58",
+        "0x20": "record+0x5C",
+        "0x24": "record+0x60",
+        "0x28": "record+0x01"
+      }
+    },
+    "RDN": {
+      "type": 12,
+      "handler": "0x14031F373",
+      "sourceToRuntime": {
+        "0x00": "record+0x2C",
+        "0x04": "record+0x30"
+      }
+    },
+    "status": "EXE_CONFIRMED"
+  },
+  "archive": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+  },
+  "retailTextWitnesses": {
+    "HTH": [
+      {
+        "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_c00/m20_c00_002/m20_c00_002_083.txt",
+        "sha256": "afc99521aa3b44e25b9af3fc24623c1f421e85bb4b102d4c4124d7256a287ea3",
+        "fields": {
+          "StartZ": "300.000000",
+          "EndZ": "360.000000",
+          "Color": "1082163328",
+          "AmplitudeH": 16,
+          "AmplitudeV": 16,
+          "SpeedH": 12,
+          "SpeedV": 12,
+          "DetailH": 6,
+          "DetailV": 3,
+          "Reduction": 0,
+          "OtType": 0
+        },
+        "runtimeProjection": {
+          "record+0x58": 6,
+          "record+0x5C": 3
+        },
+        "startupViewport": {
+          "width": 512,
+          "height": 256
+        },
+        "workload": {
+          "sx": 64,
+          "sy": 8,
+          "rows": 34,
+          "recordsPerRow": 11,
+          "records": 374,
+          "ringBytes": 14960,
+          "firstKnownInterferenceSeparationBytes": 65536,
+          "fractionOfInterferenceSeparation": 0.228271484375
+        },
+        "status": "EXE_AND_CORPUS_CONFIRMED"
+      }
+    ],
+    "RDN": []
+  },
+  "boundedConclusion": {
+    "HTH": "One exact retail text witness is present. Its DetailH/DetailV values map through the EXE-confirmed importer to shifts 6/3; at the EXE-confirmed startup 512x256 compatibility viewport the producer formula yields 374 records and 14,960 bytes, below the first known 64 KiB interference boundary.",
+    "RDN": "No exact Id RDN text witness was found in the bounded archive text population. This is a bounded negative only; it does not prove RDN is absent from retail game resources generally."
+  }
+}
