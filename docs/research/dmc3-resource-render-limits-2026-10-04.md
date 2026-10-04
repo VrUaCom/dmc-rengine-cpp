@@ -42,6 +42,51 @@ The consolidated corpus receipt also records a largest per-file vertex total of 
 
 Status: CORPUS_CONFIRMED for observed values; STRUCTURAL_CONFIRMED for field widths.
 
+## Retail reconstructed triangle workload
+
+A reproducible census now applies the same topology-break rule used by
+`src/formats/scm_topology.cpp` to the hash-bound 68-unique-SCM corpus.
+
+Population:
+- 68 unique SCM files;
+- 481 meshes;
+- 182,612 serialized vertices;
+- **114,051 reconstructed non-degenerate triangles**.
+
+Largest file workload:
+- `st114.scm`;
+- SHA-256 `fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d`;
+- 41 objects / 72 meshes;
+- 27,057 vertices;
+- **16,248 triangles**.
+
+Largest individual mesh workload:
+- `m20_b00_004_000.scm`, object 17 / mesh 1;
+- 10,196 vertices;
+- **5,696 triangles**.
+
+For comparison with the EXE-confirmed shared normal-frame dynamic vertex ring,
+if every triangle in `st114.scm` were submitted in one rendered frame and no
+other dynamic draw consumed the ring, its byte use would be:
+
+| SCM output stride | bytes/triangle | st114 bytes | fraction of 0x3C0000 |
+|---:|---:|---:|---:|
+| 20 | 60 | 974,880 | 24.79% |
+| 28 | 84 | 1,364,832 | 34.71% |
+| 36 | 108 | 1,754,784 | 44.63% |
+
+This is deliberately a conservative file-level comparison, not a claim that all
+geometry in an SCM is visible/submitted every frame. Multiple SCM resources and
+non-SCM dynamic draws may share the same rendered-frame ring.
+
+Reproducer:
+`scripts/reverse/census_scm_triangle_budget.py`
+
+Machine receipt:
+`data/reverse/dmc3-scm-triangle-budget-census-20261004.json`
+
+Status: CORPUS_CONFIRMED using the EXE-confirmed topology rule.
+
 ## Generated-index workspace
 
 For each SCM mesh:
