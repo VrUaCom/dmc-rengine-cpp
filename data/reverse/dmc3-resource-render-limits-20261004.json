@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v12",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v13",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -312,6 +312,56 @@
         "status": "EXE_CONFIRMED_CONTRACT_DERIVED_ENVELOPE",
         "claimBoundary": "empty shared rendered-frame ring; topology breaks and other dynamic draws change effective headroom"
       }
+    },
+    "vertex60PlannerHeadroom": {
+      "planner": "0x1402FDD10",
+      "exactCeilOperation": "(u16 vertexCount + 59) / 60",
+      "plannerPerMeshPerDomain": "0x40 + 0x80*ceil(vertexCount/60)",
+      "runtimeDomains": 2,
+      "constructorSequence": [
+        "0x1402F9570",
+        "0x1402F1DB0",
+        "0x1402FA360",
+        "0x14030D040/0x14030D430",
+        "0x1402F9120",
+        "0x1402F92B0",
+        "0x140302F10",
+        "0x1402F9F20",
+        "0x140309C60"
+      ],
+      "constructedPerMeshPerDomain": "0x40 material + 0x80 geometry command",
+      "geometryCommand": {
+        "builder": "0x14030A6A3..0x14030A864",
+        "runtimePointerField": "runtimeMesh+0x100+frame*8",
+        "command": "0x5B00001C",
+        "inlineQwordPayload": 7,
+        "blockBytes": 128,
+        "scmIndexedPointerReader": "0x140304672"
+      },
+      "extraFormula": "0x100*(ceil(vertexCount/60)-1)",
+      "wholeImageExactDivideOccurrence": "unique SCM planner occurrence for add 0x3B; divide by 0x3C",
+      "interpretation": "planner allocation headroom; not D3D11 draw chunking",
+      "corpus": {
+        "archive": "DMC 3 RENGINE (6).zip",
+        "uniqueScm": 67,
+        "nonzeroHeadroomFiles": 61,
+        "zeroHeadroomFiles": 6,
+        "aggregateHeadroomBytes": 610816,
+        "medianHeadroomBytes": 1792,
+        "meanHeadroomBytes": 9116.66,
+        "maximum": {
+          "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/st001 - copia/st001 - copia/st001_002.scm",
+          "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+          "vertices": 23049,
+          "meshes": 77,
+          "headroomBytes": 87808
+        }
+      },
+      "status": [
+        "EXE_CONFIRMED_PLANNER_HEADROOM",
+        "CORPUS_CONFIRMED_HEADROOM_CENSUS"
+      ],
+      "authoringPolicy": "preserve original allocator budget for parity; reclaim only under an explicit compatibility/runtime patch"
     }
   },
   "d3d11": {
