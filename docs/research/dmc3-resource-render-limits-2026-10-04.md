@@ -73,38 +73,107 @@ serialized u16 count fields.
 
 Status: EXE_CONFIRMED.
 
-## HD dynamic vertex-buffer budget
+## HD dynamic vertex ring — corrected EXE result
 
-Direct canonical-EXE analysis of the renderer initialization and dynamic upload path:
-- initialization: 0x140042E20..0x140042E67;
-- upload: 0x140043190..0x14004378A;
+Fresh direct analysis of the canonical executable supersedes the earlier
+"98,304 vertices independent of stride" wording.
+
+Relevant ranges:
+- common dynamic vertex-buffer initialization: 0x140042E79..0x140042EC7;
+- dynamic vertex conversion/upload: 0x140043190..0x14004378A;
 - draw wrapper: 0x140043F90..0x140044114.
 
-For each configured dynamic vertex-layout buffer, the renderer creates a D3D11 buffer with:
+The common dynamic D3D11 vertex buffer has a fixed byte capacity:
 
-ByteWidth = stride * 3 * 32768
+ByteWidth = 0x3C0000 = 3,932,160 bytes.
 
-Therefore each such buffer has capacity for exactly:
+The upload path derives an output stride from the active compatibility vertex flags,
+maps the shared buffer, converts/copies vertices, unmaps it, binds it through
+IASetVertexBuffers and advances renderer+0x17A0 by:
 
-3 * 32768 = 98,304 vertices
+consumedBytes = vertexCount * outputStride.
 
-independent of the particular stride.
+Observed output-layout examples from the EXE input-layout/vertex conversion path:
+- flags 0x00000002 -> stride 12;
+- flags 0x40000002 -> stride 16;
+- flags 0x00000102 -> stride 20;
+- flags 0x00000042 -> stride 28;
+- flags 0x00000142 -> stride 36;
+- additional registered layouts include stride 40, 48 and 56.
 
-The upload path:
-Map -> writes converted vertices -> Unmap -> IASetVertexBuffers
-and advances the renderer's byte offset by vertexCount * stride.
+Therefore 98,304 vertices is only the quotient 0x3C0000 / 40 for one 40-byte
+layout. There is no layout-independent 98,304-vertex ceiling.
 
-When the current offset is zero it selects the discard-style map path; when non-zero it
-selects the no-overwrite-style map path. No per-call vertex-count clamp was found inside
-0x140043190 itself. The frame/reset path clears the tracked offset at 0x140042567.
+Map mode is selected from the tracked offset:
+- offset == 0 -> discard-style map;
+- offset != 0 -> no-overwrite-style map.
 
-Interpretation boundary:
-- 98,304 is an EXE-confirmed capacity of one dynamic vertex-layout buffer.
-- It is not yet promoted to "maximum vertices in a stage" or "maximum SCM mesh".
-- cumulative per-frame use, layout switching, resets, and alternative static/resource paths
-  still need complete caller-level closure before a universal maximum is claimed.
+No preflight test of (currentOffset + vertexCount*outputStride) against 0x3C0000
+was found inside 0x140043190. Capacity safety is therefore a caller/lifecycle property,
+not a local guard in the upload routine.
 
-Status: EXE_CONFIRMED_BUFFER_CAPACITY.
+Status: EXE_CONFIRMED_FIXED_BYTE_CAPACITY; previous layout-independent vertex-count
+interpretation REJECTED.
+
+## SCM geometry -> HD draw path
+
+The canonical EXE now supplies a provenance-clean SCM-specific route rather than a
+generic renderer inference.
+
+SCM geometry GIF construction at 0x14030A320..0x14030A38D emits a PRE-enabled
+PACKED stream with register descriptors ST / RGBAQ / XYZF2. The PRIM/control
+formula forces the low three primitive bits to numeric value 5.
+
+The compatibility dispatcher maps packed register descriptor 4 (XYZF2) to
+0x14002D6F6. That handler updates the compatibility XYZ state and reaches
+0x14002B160, whose primitive jump table maps low-three-bit primitive value 5 to
+0x14002B56E.
+
+The 0x14002B56E path assembles one triangle into compatibility scratch and calls
+the real D3D11 draw wrapper 0x140043F90 with exactly three output vertices.
+The recovered SCM-compatible output variants are:
+
+| vertex flags | output stride | bytes per 3-vertex triangle | empty-ring full triangles |
+|---:|---:|---:|---:|
+| 0x00000102 | 20 | 60 | 65,536 |
+| 0x00000042 | 28 | 84 | 46,811 |
+| 0x00000142 | 36 | 108 | 36,408 |
+
+The draw wrapper uses non-indexed mode 3 for this path. Its topology lookup resolves
+to numeric topology value 4, and Draw is issued with vertexCount=3. Thus the recovered
+HD compatibility path converts the serialized SCM strip topology into independent
+three-vertex triangle-list draw batches.
+
+These triangle counts are NOT a claim that a stage may contain that many polygons.
+They are the arithmetic capacity of an initially empty shared 0x3C0000-byte dynamic
+vertex ring for a single recovered SCM output layout. Other compatibility draws consume
+the same ring, and lifecycle/reset timing controls reuse.
+
+Important consequence: the SCM serialized u16 vertex ceiling is not automatically a
+runtime-safe ceiling. For 28- and 36-byte variants, a sufficiently large continuous
+SCM workload can exhaust the shared byte ring before reaching the u16 representable
+maximum unless higher-level reset/chunking intervenes. No such capacity guard exists
+inside the recovered upload routine itself.
+
+Status: EXE_CONFIRMED_SCM_TO_D3D11_DRAW_PATH.
+
+## Dynamic ring lifecycle/reset boundary
+
+The function containing 0x140042567 clears:
+- renderer+0x17A0: dynamic vertex byte offset;
+- renderer+0x17D8: dynamic u16-index byte offset;
+- renderer+0x1810: dynamic u32-index byte offset.
+
+The same routine also toggles renderer state at +0x1828 and clears active offsets for
+the 16-entry layout-buffer table when their resources are present.
+
+0x1400335C0 calls this renderer reset and then the input-layout reset. A higher
+wrapper at 0x140337FA0 calls 0x1400335C0 before renderer work and is present in an
+indirect lifecycle/function-pointer table. This is strong evidence for a render-cycle
+reset boundary, but the current static pass does not yet promote it to the exact claim
+"once per frame".
+
+Status: EXE_CONFIRMED_RESET_BEHAVIOR; exact scheduler cadence remains open.
 
 ## HD dynamic and prebuilt index buffers
 
@@ -164,10 +233,10 @@ For Rengine, every future limit entry must carry:
 
 ## Open gates before claiming "maximum DMC3"
 
-1. Close all callers that reset/switch the dynamic vertex rings and determine whether 98,304 is per-layout, per-frame, or shared under additional aliases.
-2. Bind the SCM compatibility draw path to the exact dynamic/static vertex buffer class used by SCM.
-3. Reverse the exact allocation/validation path for oversized SCM object/mesh vertex counts.
-4. Determine whether any loader/renderer rejects SCM counts before their serialized integer ceiling.
+1. Close the exact scheduler cadence of 0x140337FA0 / 0x1400335C0 and prove whether the shared dynamic rings reset once per frame or at another render-cycle boundary.
+2. Reverse the exact allocation/validation path for oversized SCM object/mesh vertex counts.
+3. Determine whether any loader/renderer rejects SCM counts before their serialized integer ceiling.
+4. Close the producer of SCM runtimeObject+0x98, now that the complete canonical EXE is available.
 5. Census all texture dimensions and per-slot texture counts from the complete retail resource population.
 6. Trace D3D11 texture creation failures/guards and maximum mip/resource dimensions in the canonical executable.
 7. Stress-test authored geometry at increasing counts in the original game.
