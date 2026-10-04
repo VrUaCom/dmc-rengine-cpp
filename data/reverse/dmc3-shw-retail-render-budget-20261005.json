@@ -1,0 +1,314 @@
+{
+  "schema": "dmc-rengine.dmc3-shw-retail-render-budget.v1",
+  "date": "2026-10-05",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "archive": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "bytes": 237658858
+  },
+  "population": {
+    "files": 16,
+    "uniqueSha256": 16,
+    "hulls": 158,
+    "vertices": 1882,
+    "triangles": 3104,
+    "connectedComponents": 165
+  },
+  "validations": {
+    "allMagic": "SHW ",
+    "allVersion": 0.5,
+    "everyTriangleEdgeHasExactlyTwoIncidentTriangles": true,
+    "everyAdjacencyTripletMatchesCompleteThreeEdgeNeighborSet": true,
+    "everyHullIsUnionOfClosedGenusZeroComponents": true,
+    "topologyIdentity": "triangleCount = 2*vertexCount - 4*connectedComponentCount",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exeRenderFormula": {
+    "producer": "0x1403204F0..0x1403206BC",
+    "descriptorTriangleCountWrite": "0x140320600",
+    "drawHelper": "0x1400446F0",
+    "drawCallsite": "0x140044CDF",
+    "perInvocationScope": "one runtime SHW hull descriptor",
+    "groupBytes": 72,
+    "verticesPerGroup": 6,
+    "formula": "groups=A+E; ringBytes=72*(A+E), where A=active faces and E=active/inactive silhouette edges",
+    "topologyBoundProof": "For a closed triangular adjacency graph E<=3A and E<=3(T-A), therefore A+E<=2T and ringBytes<=144*T.",
+    "scratchCandidateBytes": 131072,
+    "firstKnownNeighborConflictGroupOrdinal": 1821,
+    "minimumTrianglesNeededToPossiblyReachThatOrdinalUnder2TBound": 911,
+    "status": "EXE_CONFIRMED_FORMULA_PLUS_DERIVED_TOPOLOGY_BOUND"
+  },
+  "corpusBounds": {
+    "maxFile": {
+      "name": "em035_021.shw",
+      "triangles": 434,
+      "vertices": 251,
+      "hulls": 17,
+      "worstCaseGroupsUpper": 868,
+      "worstCaseSharedRingBytesUpper": 62496,
+      "sharedRingFractionUpper": 0.0158935546875,
+      "plannedRuntimeBytes": 28544
+    },
+    "maxSingleHull": {
+      "source": "em035_021.shw / em035_023.shw",
+      "triangles": 116,
+      "vertices": 60,
+      "worstCaseGroupsUpper": 232,
+      "worstCaseScratchBytesUpper": 16704,
+      "scratchFractionUpper": 0.12744140625
+    },
+    "conclusion": "No SHW hull in this bounded retail corpus can reach the known 128 KiB scratch-neighbor conflict under any binary active/inactive face assignment. The maximum observed single-hull topological upper bound is 232 groups versus first conflict at group 1821.",
+    "status": "CORPUS_CONFIRMED_BOUND_BELOW_CONFLICT"
+  },
+  "multiComponentHulls": [
+    {
+      "file": "em035_029.shw",
+      "hull": 1,
+      "vertices": 16,
+      "triangles": 24,
+      "components": 2
+    },
+    {
+      "file": "em035_029.shw",
+      "hull": 2,
+      "vertices": 24,
+      "triangles": 40,
+      "components": 2
+    },
+    {
+      "file": "em035_029.shw",
+      "hull": 3,
+      "vertices": 24,
+      "triangles": 40,
+      "components": 2
+    },
+    {
+      "file": "em035_033.shw",
+      "hull": 0,
+      "vertices": 39,
+      "triangles": 66,
+      "components": 3
+    },
+    {
+      "file": "em035_059.shw",
+      "hull": 0,
+      "vertices": 39,
+      "triangles": 66,
+      "components": 3
+    }
+  ],
+  "files": [
+    {
+      "name": "em035_005.shw",
+      "sha256": "5a17a4d435d562929f641f29fe4f45d1996a794e107d065ae5c1ad999f07a205",
+      "bytes": 9952,
+      "hulls": 17,
+      "vertices": 159,
+      "triangles": 250,
+      "components": 17,
+      "maxHullVertices": 19,
+      "maxHullTriangles": 34,
+      "plannedRuntimeBytes": 19712,
+      "fileWorstCaseRingBytesUpper": 36000
+    },
+    {
+      "name": "em035_006.shw",
+      "sha256": "ef39b3ad8e713c1b14a8ed69571d03fdc6660db6cbb48266e007bacb10e11e2d",
+      "bytes": 4992,
+      "hulls": 7,
+      "vertices": 79,
+      "triangles": 130,
+      "components": 7,
+      "maxHullVertices": 22,
+      "maxHullTriangles": 40,
+      "plannedRuntimeBytes": 9792,
+      "fileWorstCaseRingBytesUpper": 18720
+    },
+    {
+      "name": "em035_021.shw",
+      "sha256": "7e6244d695e5407e556d3049f7945c60acc3c1b1ebd18a8ac6b9ae2865cc3c6e",
+      "bytes": 15920,
+      "hulls": 17,
+      "vertices": 251,
+      "triangles": 434,
+      "components": 17,
+      "maxHullVertices": 60,
+      "maxHullTriangles": 116,
+      "plannedRuntimeBytes": 28544,
+      "fileWorstCaseRingBytesUpper": 62496
+    },
+    {
+      "name": "em035_022.shw",
+      "sha256": "dc7884346b35c76a83c246b07bb5e616b8ea48f60dc591e2b4b549ef7e7da598",
+      "bytes": 5840,
+      "hulls": 5,
+      "vertices": 91,
+      "triangles": 162,
+      "components": 5,
+      "maxHullVertices": 25,
+      "maxHullTriangles": 46,
+      "plannedRuntimeBytes": 10496,
+      "fileWorstCaseRingBytesUpper": 23328
+    },
+    {
+      "name": "em035_023.shw",
+      "sha256": "b51e70ce704205f0a4b00fdf5418db718ac800e5c508b366eb69c5ae6e93c5d6",
+      "bytes": 3904,
+      "hulls": 1,
+      "vertices": 60,
+      "triangles": 116,
+      "components": 1,
+      "maxHullVertices": 60,
+      "maxHullTriangles": 116,
+      "plannedRuntimeBytes": 6624,
+      "fileWorstCaseRingBytesUpper": 16704
+    },
+    {
+      "name": "em035_026.shw",
+      "sha256": "7181f038c045f5878a5a7bbda192231dcb4adb16191f2aed02e5d9938e30b8a3",
+      "bytes": 1952,
+      "hulls": 1,
+      "vertices": 30,
+      "triangles": 56,
+      "components": 1,
+      "maxHullVertices": 30,
+      "maxHullTriangles": 56,
+      "plannedRuntimeBytes": 3744,
+      "fileWorstCaseRingBytesUpper": 8064
+    },
+    {
+      "name": "em035_029.shw",
+      "sha256": "cf187353af67a90c29d80440cf0c3d80d5a5efb53a0c6de56ceca77e9755998c",
+      "bytes": 4832,
+      "hulls": 4,
+      "vertices": 80,
+      "triangles": 132,
+      "components": 7,
+      "maxHullVertices": 24,
+      "maxHullTriangles": 40,
+      "plannedRuntimeBytes": 8832,
+      "fileWorstCaseRingBytesUpper": 19008
+    },
+    {
+      "name": "em035_033.shw",
+      "sha256": "1e582a42ce678c8376813f822233d951aa478b40b0abb6055233b5dbf10df434",
+      "bytes": 2352,
+      "hulls": 1,
+      "vertices": 39,
+      "triangles": 66,
+      "components": 3,
+      "maxHullVertices": 39,
+      "maxHullTriangles": 66,
+      "plannedRuntimeBytes": 4352,
+      "fileWorstCaseRingBytesUpper": 9504
+    },
+    {
+      "name": "em035_048.shw",
+      "sha256": "f9d743690cae40e756cd351de824371be2e2cb0e7662756832c3715e6d455581",
+      "bytes": 13776,
+      "hulls": 17,
+      "vertices": 218,
+      "triangles": 368,
+      "components": 17,
+      "maxHullVertices": 34,
+      "maxHullTriangles": 64,
+      "plannedRuntimeBytes": 25376,
+      "fileWorstCaseRingBytesUpper": 52992
+    },
+    {
+      "name": "em035_049.shw",
+      "sha256": "cc5d678a0cc92445e2e5b0e1d85ca66883573f2a4ffad828dddf1c14dc9ea86e",
+      "bytes": 5792,
+      "hulls": 4,
+      "vertices": 90,
+      "triangles": 164,
+      "components": 4,
+      "maxHullVertices": 24,
+      "maxHullTriangles": 44,
+      "plannedRuntimeBytes": 10176,
+      "fileWorstCaseRingBytesUpper": 23616
+    },
+    {
+      "name": "em035_059.shw",
+      "sha256": "59e690b1eb2f1fc4afc514349949f1cbfab0cde5aaee180f77e50a44c9c20fd0",
+      "bytes": 2352,
+      "hulls": 1,
+      "vertices": 39,
+      "triangles": 66,
+      "components": 3,
+      "maxHullVertices": 39,
+      "maxHullTriangles": 66,
+      "plannedRuntimeBytes": 4352,
+      "fileWorstCaseRingBytesUpper": 9504
+    },
+    {
+      "name": "m20_s00_004_004.shw",
+      "sha256": "21b326601078d426990fa10cdb3fb3e303dd7b31dfd886a1f51fb675e43198e4",
+      "bytes": 10976,
+      "hulls": 17,
+      "vertices": 175,
+      "triangles": 282,
+      "components": 17,
+      "maxHullVertices": 19,
+      "maxHullTriangles": 34,
+      "plannedRuntimeBytes": 21248,
+      "fileWorstCaseRingBytesUpper": 40608
+    },
+    {
+      "name": "m20_s00_004_023.shw",
+      "sha256": "658fad1fe31e02fbc622da6e243a8549b904f1a93959faac77ef9b9575c829ce",
+      "bytes": 8960,
+      "hulls": 15,
+      "vertices": 143,
+      "triangles": 226,
+      "components": 15,
+      "maxHullVertices": 19,
+      "maxHullTriangles": 34,
+      "plannedRuntimeBytes": 17728,
+      "fileWorstCaseRingBytesUpper": 32544
+    },
+    {
+      "name": "m20_s00_004_028.shw",
+      "sha256": "93488d5853359268d995145b7247cfe1d98c9bac082ee6d6f354a74abfcb81e1",
+      "bytes": 8592,
+      "hulls": 17,
+      "vertices": 138,
+      "triangles": 208,
+      "components": 17,
+      "maxHullVertices": 9,
+      "maxHullTriangles": 14,
+      "plannedRuntimeBytes": 17696,
+      "fileWorstCaseRingBytesUpper": 29952
+    },
+    {
+      "name": "m20_s00_004_030.shw",
+      "sha256": "20c8f446b50c7fd0e4db34465b3ae4c072af0552dc43477b982552adc6a2bb74",
+      "bytes": 8592,
+      "hulls": 17,
+      "vertices": 138,
+      "triangles": 208,
+      "components": 17,
+      "maxHullVertices": 9,
+      "maxHullTriangles": 14,
+      "plannedRuntimeBytes": 17696,
+      "fileWorstCaseRingBytesUpper": 29952
+    },
+    {
+      "name": "pl011_008.shw",
+      "sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "bytes": 9488,
+      "hulls": 17,
+      "vertices": 152,
+      "triangles": 236,
+      "components": 17,
+      "maxHullVertices": 12,
+      "maxHullTriangles": 20,
+      "plannedRuntimeBytes": 19040,
+      "fileWorstCaseRingBytesUpper": 33984
+    }
+  ],
+  "claimBoundary": "Bounded archive census only. The 2T bound is light-independent for the recovered closed adjacency semantics, but original-game per-frame invocation order and simultaneous shadows remain dynamic."
+}
