@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.hd-dynamic-ring-static-callsite-census.v1",
+  "schema": "dmc-rengine.hd-dynamic-ring-static-callsite-census.v2",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -34,64 +34,125 @@
     "16*quarter = 4*stride"
   ],
   "directCallsiteCount": 49,
-  "fullyStaticCount": 40,
-  "runtimeDerivedCount": 9,
+  "fullyStaticCount": 42,
+  "runtimeDerivedCount": 4,
   "patterns": [
     {
-      "flags": "0x102",
+      "flags": "0x00000102",
       "mode": 5,
       "bytes": 80,
-      "count": 18
+      "count": 20
     },
     {
-      "flags": "0x102",
+      "flags": "0x00000102",
       "mode": 3,
       "bytes": 60,
       "count": 17
     },
     {
-      "flags": "0x142",
+      "flags": "0x00000142",
       "mode": 5,
       "bytes": 144,
       "count": 1
     },
     {
-      "flags": "0x102",
+      "flags": "0x00000102",
       "mode": 4,
       "bytes": 60,
       "count": 1
     },
     {
-      "flags": "0x42",
+      "flags": "0x00000042",
       "mode": 4,
       "bytes": 84,
       "count": 1
     },
     {
-      "flags": "0x102",
+      "flags": "0x00000102",
       "mode": 4,
       "bytes": 80,
       "count": 1
     },
     {
-      "flags": "0x142",
+      "flags": "0x00000142",
       "mode": 5,
       "bytes": 96,
       "count": 1
     }
   ],
-  "singleExecutionSumFixedBytes": 2924,
+  "singleExecutionSumFixedBytes": 3084,
   "runtimeDerivedCallsites": [
-    "0x14002B407",
-    "0x14002B555",
-    "0x14002BA5B",
-    "0x14003D8A7",
-    "0x14003F395",
-    "0x14003F4C8",
-    "0x140040344",
-    "0x140044CDF",
-    "0x1400457CD"
+    {
+      "callsite": "0x14003F4C8",
+      "flags": "0x102",
+      "mode": 4,
+      "bytesFormula": "4*r12d"
+    },
+    {
+      "callsite": "0x140040344",
+      "flags": "0x102",
+      "mode": 5,
+      "bytesFormula": "r14d (function-supplied)"
+    },
+    {
+      "callsite": "0x140044CDF",
+      "flags": "0x2",
+      "mode": 3,
+      "bytesFormula": "12*r12d"
+    },
+    {
+      "callsite": "0x1400457CD",
+      "flags": "0x40000002",
+      "modeFormula": "1/3/5 from source mode",
+      "bytesFormula": "registeredStride * runtimeVertexCount"
+    }
   ],
-  "status": "EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS",
-  "claimBoundary": "Static callsite count is not dynamic execution count. Per-frame occupancy remains open until caller loop/order closure or runtime instrumentation."
+  "status": "EXE_CONFIRMED_STATIC_AND_BOUNDED_CALLSITE_CENSUS",
+  "claimBoundary": "45/49 direct sites are fixed or bounded per invocation; four generic helpers still require caller-count closure for exact frame occupancy.",
+  "boundedCompatibilityCount": 3,
+  "boundedCompatibility": [
+    {
+      "callsite": "0x14002B407",
+      "mode": 1,
+      "ringBytes": [
+        40,
+        56,
+        72
+      ]
+    },
+    {
+      "callsite": "0x14002B555",
+      "mode": 3,
+      "ringBytes": [
+        60,
+        84,
+        108
+      ]
+    },
+    {
+      "callsite": "0x14002BA5B",
+      "mode": 5,
+      "ringBytes": [
+        80,
+        112,
+        144
+      ]
+    }
+  ],
+  "newlyClosed": [
+    {
+      "callsite": "0x14003D8A7",
+      "reason": "draw executes only when ESI==0",
+      "flags": "0x102",
+      "mode": 5,
+      "ringBytes": 80
+    },
+    {
+      "callsite": "0x14003F395",
+      "reason": "r13d is set to 1 before draw and remains unchanged",
+      "flags": "0x102",
+      "mode": 5,
+      "ringBytes": 80
+    }
+  ]
 }
