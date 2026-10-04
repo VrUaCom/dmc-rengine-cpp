@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v24",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v25",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -1422,7 +1422,7 @@
     "original-game authored DDS stress test",
     "simultaneous stage residency budget",
     "acquire and reverse original DMC3 PS2 SLUS/SLES/ELF for game-specific PS2 allocator limits",
-    "identify exact serialized/packed owner feeding the effect stream table at runtime owner+0xF8 and census packed HTH/RDN records"
+    "close exact outer PAC/PNST/NBZ slot/container materializing the demo clip effect-stream resource and census packed RDN/type-12 records"
   ],
   "corrections": [
     {
@@ -1536,5 +1536,15 @@
       "retailTextWitnessCount": 0,
       "status": "BOUNDED_CORPUS_NEGATIVE"
     }
+  },
+  "demoEffectStreamOwner": {
+    "evidence": "data/reverse/dmc3-hd-demo-effect-stream-owner-20261005.json",
+    "binder": "0x14031EDB0",
+    "streamAdmission": "0x14031EE00",
+    "managerOffset": "caller+0x1B0A0",
+    "streamPointerOffset": "manager+0xF8",
+    "textParser": "0x1402DA750",
+    "domain": "/demo/%s/%s",
+    "status": "EXE_CONFIRMED_DEMO_CLIP_EFFECT_STREAM_OWNER"
   }
 }
