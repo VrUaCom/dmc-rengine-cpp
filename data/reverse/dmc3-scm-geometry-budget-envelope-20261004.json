@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-geometry-budget-envelope.v1",
+  "schema": "dmc-rengine.scm-geometry-budget-envelope.v2",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -43,36 +43,48 @@
       "0x140043765 offset += vertexCount*outputStride"
     ],
     "localCapacityComparison": "NOT_FOUND_IN_UPLOAD_PATH",
-    "continuousStripProjection": [
+    "continuousFanProjection": [
       {
         "stride": 20,
         "triangleBytes": 60,
         "triangleCapacity": 65536,
         "maxSourceVerticesUnderU16": 65535,
-        "maxU16StripBytes": 3931980,
-        "remainingBytes": 180
+        "remainingBytes": 180,
+        "maxU16FanBytes": 3931980
       },
       {
         "stride": 28,
         "triangleBytes": 84,
         "triangleCapacity": 46811,
         "maxSourceVertices": 46813,
-        "maxU16StripBytes": 5504772,
-        "overflowBytesAt65535": 1572612
+        "overflowBytesAt65535": 1572612,
+        "maxU16FanBytes": 5504772
       },
       {
         "stride": 36,
         "triangleBytes": 108,
         "triangleCapacity": 36408,
         "maxSourceVertices": 36410,
-        "maxU16StripBytes": 7077564,
-        "overflowBytesAt65535": 3145404
+        "overflowBytesAt65535": 3145404,
+        "maxU16FanBytes": 7077564
       }
-    ]
+    ],
+    "primitive": {
+      "value": 5,
+      "name": "TRIANGLE_FAN",
+      "fanAnchorInitializer": "0x14002B20C",
+      "fanHandler": "0x14002B56E",
+      "status": "EXE_CONFIRMED"
+    }
   },
   "status": [
     "EXE_CONFIRMED",
     "DERIVED_ENVELOPE"
   ],
-  "claimBoundary": "No successful original-game stress-test acceptance is claimed at the projected boundaries."
+  "claimBoundary": "No successful original-game stress-test acceptance is claimed at the projected boundaries.",
+  "correction": {
+    "previous": "continuous TRIANGLE_STRIP projection",
+    "status": "REJECTED_SUPERSEDED_NAMING",
+    "reason": "GS PRIM=5 is TRIANGLE_FAN; N-2 triangle arithmetic is unchanged"
+  }
 }
