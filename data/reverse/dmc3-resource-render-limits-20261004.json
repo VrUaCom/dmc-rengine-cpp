@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v16",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v17",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -570,6 +570,20 @@
       "fixedCallsitesSingleExecutionSumBytes": 2924,
       "claimBoundary": "2924 bytes is the sum for one execution of each statically fixed callsite, not per-frame occupancy; loops and conditions determine actual execution count",
       "status": "EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS"
+    },
+    "deviceCreation": {
+      "import": "D3D11CreateDeviceAndSwapChain",
+      "iat": "0x14034F650",
+      "thunk": "0x1403453EA",
+      "callsite": "0x140042ADD",
+      "requestedFeatureLevels": 1,
+      "requestedFeatureLevelValue": "0xB000",
+      "requestedFeatureLevel": "D3D_FEATURE_LEVEL_11_0",
+      "outputFeatureLevelStorage": "0x140BEB3E8",
+      "fallbackFeatureLevelList": false,
+      "failurePolicy": "negative HRESULT branches to device-creation failure path",
+      "relationToTexture2DLimit": "FL11 resource limit 16384 U/V matches recovered EXE width/height guard 0x4000",
+      "status": "EXE_CONFIRMED_D3D_FEATURE_LEVEL_11_0"
     }
   },
   "texture": {
