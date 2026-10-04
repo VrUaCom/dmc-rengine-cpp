@@ -1,0 +1,133 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-dynamic-geometry-budget.v1",
+  "date": "2026-10-04",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "streamBuffers": {
+    "descriptorCount": 16,
+    "descriptorStride": 56,
+    "descriptorStrideHex": "0x38",
+    "pingPongSets": 2,
+    "elementCapacityPerActiveStream": 98304,
+    "capacityFormula": "stream_stride * 3 * 0x8000 = stream_stride * 0x18000 bytes",
+    "active": [
+      {
+        "stream": 0,
+        "stride": 12,
+        "byteWidth": 1179648,
+        "byteWidthHex": "0x120000"
+      },
+      {
+        "stream": 2,
+        "stride": 12,
+        "byteWidth": 1179648,
+        "byteWidthHex": "0x120000"
+      },
+      {
+        "stream": 3,
+        "stride": 16,
+        "byteWidth": 1572864,
+        "byteWidthHex": "0x180000"
+      },
+      {
+        "stream": 4,
+        "stride": 16,
+        "byteWidth": 1572864,
+        "byteWidthHex": "0x180000"
+      },
+      {
+        "stream": 6,
+        "stride": 4,
+        "byteWidth": 393216,
+        "byteWidthHex": "0x60000"
+      },
+      {
+        "stream": 7,
+        "stride": 4,
+        "byteWidth": 393216,
+        "byteWidthHex": "0x60000"
+      },
+      {
+        "stream": 8,
+        "stride": 8,
+        "byteWidth": 786432,
+        "byteWidthHex": "0xC0000"
+      }
+    ],
+    "bytesPerSet": 7077888,
+    "mibPerSet": 6.75,
+    "bytesAcrossTwoSets": 14155776,
+    "mibAcrossTwoSets": 13.5,
+    "initializerRange": "0x140042D5D..0x140042E77",
+    "uploader": "0x140043830",
+    "status": "EXE_CONFIRMED"
+  },
+  "scm": {
+    "converter": "0x140044310",
+    "serializedMeshVertexCount": {
+      "type": "u16",
+      "maxRepresentable": 65535,
+      "status": "STRUCTURAL_CONFIRMED"
+    },
+    "streamCapacityComparison": "65535 < 98304; per-stream capacity does not undercut single-mesh serialized vertex ceiling",
+    "indexPath": {
+      "uploaderAndDraw": "0x1400425B0",
+      "elementBytes": 2,
+      "dxgiFormat": "DXGI_FORMAT_R16_UINT",
+      "capacityIndices": 159744,
+      "capacityHex": "0x27000",
+      "byteWidth": 319488,
+      "byteWidthHex": "0x4E000",
+      "status": "EXE_CONFIRMED_SCM_TO_D3D11_R16_INDEXED_DRAW"
+    },
+    "noBreakDerivedThreshold": {
+      "vertices": 53250,
+      "formula": "3 * (v - 2) <= 159744",
+      "status": "DERIVED_BOUND_FROM_EXE_CONFIRMED_CAPACITY"
+    },
+    "retailMaxMesh": {
+      "vertices": 10196,
+      "noBreakIndices": 30582,
+      "fractionOfIndexCapacity": 0.19145,
+      "status": "CORPUS_CONFIRMED_PLUS_DERIVED"
+    }
+  },
+  "genericBackend": {
+    "dynamicVertexBuffer": {
+      "byteWidth": 3932160,
+      "byteWidthHex": "0x3C0000",
+      "mib": 3.75,
+      "uploader": "0x140043190"
+    },
+    "dynamicR32IndexBuffer": {
+      "indexCapacity": 159744,
+      "byteWidth": 638976,
+      "byteWidthHex": "0x9C000",
+      "dxgiFormat": "DXGI_FORMAT_R32_UINT"
+    },
+    "staticQuadIndexBuffer": {
+      "quads": 159744,
+      "indices": 958464,
+      "bytes": 3833856,
+      "bytesHex": "0x3A8000",
+      "referencedVertices": 638976
+    },
+    "drawWrapper": "0x140043F90",
+    "status": "EXE_CONFIRMED_GENERIC_HD_BACKEND"
+  },
+  "reset": {
+    "function": "0x140042270",
+    "directWrapper": "0x1400335C0",
+    "schedulerSemantic": "OPEN",
+    "preferredTerm": "renderer reset window"
+  },
+  "openGates": [
+    "SCM stream/index pre-call capacity guard and rollover/split behavior",
+    "exact renderer reset cadence",
+    "original-game geometry stress around derived threshold",
+    "multi-mesh accumulation stress",
+    "failure behavior on buffer exhaustion"
+  ]
+}
