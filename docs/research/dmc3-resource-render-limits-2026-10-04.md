@@ -525,6 +525,79 @@ Rengine. The original allocator contract requests it, so binary/runtime parity
 must preserve that budget unless a separate compatibility patch intentionally
 changes the allocation policy.
 
+
+## Compatibility layout stride code and static draw-call ring census
+
+A fresh whole-EXE pass closes the meaning of compatibility global
+`0x1405D95F4` and makes per-call dynamic-ring accounting explicit.
+
+At `0x14002B284..0x14002B2D2`, the compatibility renderer selects these
+layout states:
+
+| vertex flags | `0x1405D95F4` | recovered output stride |
+|---:|---:|---:|
+| `0x00000102` | 5 | 20 bytes |
+| `0x00000042` | 7 | 28 bytes |
+| `0x00000142` | 9 | 36 bytes |
+
+The dynamic uploader `0x140043190` independently recomputes the same output
+strides from the flag bits:
+
+```text
+base = 16 if (flags & 0x40000002) == 0x40000002 else 12
++8  if flags & 0x00000100
++16 if flags & 0x00000040
++4  if flags & 0x00020000
+```
+
+For the SCM/legacy compatibility primitive handlers, the byte-count argument
+to `0x140043F90` is formed from `0x1405D95F4` as:
+
+```text
+8  * strideQuarter = 2 * outputStride
+12 * strideQuarter = 3 * outputStride
+16 * strideQuarter = 4 * outputStride
+```
+
+The wrapper divides this byte count by the registered layout stride to recover
+vertex count, calls the uploader, and the uploader advances
+`renderer+0x17A0` by `vertexCount * outputStride`. For these recovered
+layouts, the incoming byte-count argument is therefore the exact dynamic-ring
+consumption for that draw.
+
+### Whole-image direct-call census
+
+The canonical EXE has 49 direct callsites to `0x140043F90`.
+
+A bounded local constant-propagation pass resolves flags/mode/byte-count
+completely at **40/49** callsites. Fixed signatures are:
+
+| flags | mode | ring bytes / invocation | direct callsites |
+|---:|---:|---:|---:|
+| `0x102` | 5 | 80 | 18 |
+| `0x102` | 3 | 60 | 17 |
+| `0x142` | 5 | 144 | 1 |
+| `0x102` | 4 | 60 | 1 |
+| `0x42`  | 4 | 84 | 1 |
+| `0x102` | 4 | 80 | 1 |
+| `0x142` | 5 | 96 | 1 |
+
+If every one of those 40 fixed callsites executed exactly once, they would add
+2,924 bytes to the shared ring. **This is not a per-frame occupancy claim**:
+many callsites are inside loops/conditional render paths and may execute zero,
+one or many times per rendered frame.
+
+The remaining 9 direct callsites have runtime-derived byte counts and/or
+runtime-derived layout state. They include the compatibility primitive cluster
+and generic draw helpers. Their occupancy must be determined from caller
+iteration counts or runtime instrumentation rather than by pretending each
+static callsite executes once.
+
+Status:
+**EXE_CONFIRMED_LAYOUT_STRIDE_MAPPING +
+EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS**.
+
+
 ## Shared dynamic-ring caller census
 
 A whole-image direct-call census closes the ownership question for the HD
