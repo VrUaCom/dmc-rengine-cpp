@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v2",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v3",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -55,6 +55,38 @@
         16,
         17
       ]
+    },
+    "hdCompatibilityDraw": {
+      "geometryPacket": "0x14030A320..0x14030A38D",
+      "xyzf2Handler": "0x14002D6F6",
+      "primitiveDispatcher": "0x14002B160",
+      "scmPrimitive5Handler": "0x14002B56E",
+      "drawWrapper": "0x140043F90",
+      "verticesPerDraw": 3,
+      "drawMode": 3,
+      "topologyNumeric": 4,
+      "layouts": [
+        {
+          "flags": "0x00000102",
+          "strideBytes": 20,
+          "bytesPerTriangle": 60,
+          "emptyRingTriangleCapacity": 65536
+        },
+        {
+          "flags": "0x00000042",
+          "strideBytes": 28,
+          "bytesPerTriangle": 84,
+          "emptyRingTriangleCapacity": 46811
+        },
+        {
+          "flags": "0x00000142",
+          "strideBytes": 36,
+          "bytesPerTriangle": 108,
+          "emptyRingTriangleCapacity": 36408
+        }
+      ],
+      "status": "EXE_CONFIRMED_SCM_TO_D3D11_DRAW_PATH",
+      "claimBoundary": "Capacities are for an initially empty shared dynamic ring, not stage/game polygon maxima."
     }
   },
   "d3d11": {
@@ -64,13 +96,6 @@
       "indexFormat": "DXGI_FORMAT_R32_UINT",
       "indexFormatValue": 42,
       "countDomain": "uint32",
-      "status": "EXE_CONFIRMED"
-    },
-    "dynamicVertexBuffers": {
-      "createRange": "0x140042E20..0x140042E67",
-      "uploadRange": "0x140043190..0x14004378A",
-      "capacityVerticesPerLayoutBuffer": 98304,
-      "formula": "ByteWidth = stride * 3 * 32768",
       "status": "EXE_CONFIRMED"
     },
     "dynamicIndexBuffers": [
@@ -92,6 +117,50 @@
       "quadGroups": 159744,
       "coveredSequentialVertices": 638976,
       "status": "EXE_CONFIRMED"
+    },
+    "dynamicVertexRing": {
+      "byteWidth": 3932160,
+      "byteWidthHex": "0x3C0000",
+      "offsetField": "renderer+0x17A0",
+      "uploadRange": "0x140043190..0x14004378A",
+      "mapPolicy": {
+        "zeroOffset": "discard-style",
+        "nonzeroOffset": "no-overwrite-style"
+      },
+      "localCapacityGuardFound": false,
+      "outputLayouts": [
+        {
+          "flags": "0x00000002",
+          "strideBytes": 12
+        },
+        {
+          "flags": "0x40000002",
+          "strideBytes": 16
+        },
+        {
+          "flags": "0x00000102",
+          "strideBytes": 20
+        },
+        {
+          "flags": "0x00000042",
+          "strideBytes": 28
+        },
+        {
+          "flags": "0x00000142",
+          "strideBytes": 36
+        }
+      ],
+      "status": "EXE_CONFIRMED_FIXED_BYTE_CAPACITY"
+    },
+    "ringReset": {
+      "functionRange": "0x140042270..0x1400425A1",
+      "vertexOffsetClear": "renderer+0x17A0",
+      "u16IndexOffsetClear": "renderer+0x17D8",
+      "u32IndexOffsetClear": "renderer+0x1810",
+      "caller": "0x1400335C0",
+      "higherWrapper": "0x140337FA0",
+      "cadence": "render-cycle boundary strongly indicated; exact once-per-frame cadence not yet promoted",
+      "status": "EXE_CONFIRMED_RESET_BEHAVIOR"
     }
   },
   "texture": {
@@ -118,9 +187,9 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "dynamic vertex ring caller/reset closure",
-    "SCM-to-buffer-class binding",
+    "exact dynamic-ring reset scheduler cadence",
     "SCM runtime count guards",
+    "runtimeObject+0x98 producer",
     "complete retail texture census",
     "D3D11 texture creation guards",
     "original-game geometry stress test",
