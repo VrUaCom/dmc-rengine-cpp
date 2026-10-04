@@ -1,0 +1,441 @@
+{
+  "schema": "dmc-rengine.resource-limits.cropped-emulation.v1",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": "Unmodified instruction slices; external RNG/state/transform calls stubbed; no original-game execution",
+  "subcommand11": [
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        6,
+        6
+      ],
+      "completed": true,
+      "endDelta": 3640,
+      "knownScalarWrite": null,
+      "formulaBytes": 3640
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        5,
+        5
+      ],
+      "completed": true,
+      "endDelta": 11960,
+      "knownScalarWrite": null,
+      "formulaBytes": 11960
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        4,
+        4
+      ],
+      "completed": true,
+      "endDelta": 41280,
+      "knownScalarWrite": null,
+      "formulaBytes": 41280
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        3,
+        3
+      ],
+      "completed": false,
+      "endDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031928f",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "formulaBytes": 156040
+    }
+  ],
+  "subcommand12": [
+    {
+      "input": [
+        100,
+        100
+      ],
+      "normalized": [
+        100,
+        100
+      ],
+      "steps": [
+        64,
+        32
+      ],
+      "recordsEntered": 120,
+      "completed": true,
+      "knownNeighborWrite": null,
+      "endDelta": 9600
+    },
+    {
+      "input": [
+        60,
+        60
+      ],
+      "normalized": [
+        60,
+        60
+      ],
+      "steps": [
+        38,
+        19
+      ],
+      "recordsEntered": 323,
+      "completed": true,
+      "knownNeighborWrite": null,
+      "endDelta": 25840
+    },
+    {
+      "input": [
+        50,
+        50
+      ],
+      "normalized": [
+        50,
+        50
+      ],
+      "steps": [
+        32,
+        16
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    },
+    {
+      "input": [
+        200,
+        200
+      ],
+      "normalized": [
+        200,
+        200
+      ],
+      "steps": [
+        128,
+        64
+      ],
+      "recordsEntered": 30,
+      "completed": true,
+      "knownNeighborWrite": null,
+      "endDelta": 2400
+    },
+    {
+      "input": [
+        201,
+        201
+      ],
+      "normalized": [
+        100,
+        100
+      ],
+      "steps": [
+        64,
+        32
+      ],
+      "recordsEntered": 120,
+      "completed": true,
+      "knownNeighborWrite": null,
+      "endDelta": 9600
+    },
+    {
+      "input": [
+        0,
+        100
+      ],
+      "normalized": [
+        0,
+        100
+      ],
+      "steps": [
+        0,
+        32
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    },
+    {
+      "input": [
+        100,
+        0
+      ],
+      "normalized": [
+        100,
+        0
+      ],
+      "steps": [
+        64,
+        0
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    },
+    {
+      "input": [
+        1,
+        3
+      ],
+      "normalized": [
+        1,
+        3
+      ],
+      "steps": [
+        0,
+        0
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    }
+  ],
+  "shadow": [
+    {
+      "triangles": 1,
+      "edgeMarker": 0,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 1,
+      "draw": {
+        "bytes": 288,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 24
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 1,
+      "edgeMarker": 1,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 1,
+      "draw": {
+        "bytes": 72,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 6
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 1,
+      "edgeMarker": 0,
+      "active": false,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 0,
+      "draw": {
+        "bytes": 0,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 0
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 455,
+      "edgeMarker": 0,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 455,
+      "draw": {
+        "bytes": 131040,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 10920
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 456,
+      "edgeMarker": 0,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 456,
+      "draw": null,
+      "knownRendererPointerWrite": {
+        "ip": "0x140044a15",
+        "address": "0x140c0b3f0",
+        "size": 4,
+        "verticesSoFar": 10926
+      }
+    },
+    {
+      "triangles": 1820,
+      "edgeMarker": 1,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 1820,
+      "draw": {
+        "bytes": 131040,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 10920
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 1821,
+      "edgeMarker": 1,
+      "active": true,
+      "tetraVisibilityPattern": false,
+      "activeTriangles": 1821,
+      "draw": null,
+      "knownRendererPointerWrite": {
+        "ip": "0x140044a15",
+        "address": "0x140c0b3f0",
+        "size": 4,
+        "verticesSoFar": 10926
+      }
+    },
+    {
+      "triangles": 1820,
+      "edgeMarker": 0,
+      "active": true,
+      "tetraVisibilityPattern": true,
+      "activeTriangles": 455,
+      "draw": {
+        "bytes": 131040,
+        "flags": 2,
+        "mode": 3,
+        "vertices": 10920
+      },
+      "knownRendererPointerWrite": null
+    },
+    {
+      "triangles": 1824,
+      "edgeMarker": 0,
+      "active": true,
+      "tetraVisibilityPattern": true,
+      "activeTriangles": 456,
+      "draw": null,
+      "knownRendererPointerWrite": {
+        "ip": "0x140044a15",
+        "address": "0x140c0b3f0",
+        "size": 4,
+        "verticesSoFar": 10926
+      }
+    }
+  ],
+  "shadowPlanner": [
+    {
+      "hulls": [],
+      "plannedBytesU32": 640,
+      "expectedBytesU32": 640,
+      "signed16CountInterpretation": true
+    },
+    {
+      "hulls": [
+        [
+          3,
+          1
+        ]
+      ],
+      "plannedBytesU32": 1120,
+      "expectedBytesU32": 1120,
+      "signed16CountInterpretation": true
+    },
+    {
+      "hulls": [
+        [
+          4,
+          4
+        ],
+        [
+          8,
+          12
+        ]
+      ],
+      "plannedBytesU32": 2240,
+      "expectedBytesU32": 2240,
+      "signed16CountInterpretation": true
+    },
+    {
+      "hulls": [
+        [
+          4,
+          4
+        ],
+        [
+          8,
+          12
+        ],
+        [
+          12,
+          20
+        ]
+      ],
+      "plannedBytesU32": 3616,
+      "expectedBytesU32": 3616,
+      "signed16CountInterpretation": true
+    },
+    {
+      "hulls": [
+        [
+          32767,
+          32767
+        ]
+      ],
+      "plannedBytesU32": 2098080,
+      "expectedBytesU32": 2098080,
+      "signed16CountInterpretation": true
+    },
+    {
+      "hulls": [
+        [
+          32768,
+          32768
+        ]
+      ],
+      "plannedBytesU32": 4292871136,
+      "expectedBytesU32": 4292871136,
+      "signed16CountInterpretation": true
+    }
+  ],
+  "verification": {
+    "cases": 27,
+    "passed": true
+  }
+}

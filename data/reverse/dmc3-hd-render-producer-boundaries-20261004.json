@@ -1,0 +1,374 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-render-producer-boundaries.v1",
+  "date": "2026-10-04",
+  "baseCommit": "a6a740a27cc125bb92a2dd86e3c8c7458156140d",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "sizeBytes": 6356432,
+    "imageBase": "0x140000000"
+  },
+  "shadow": {
+    "status": "EXE_CONFIRMED",
+    "owner": "SHW shadow-volume batching",
+    "attach": "0x14008BC60",
+    "binder": "0x1403204B0",
+    "planner": "0x14031FC40",
+    "constructor": "0x14031FD30",
+    "commandWrite": {
+      "site": "0x14031FE4E",
+      "value": "0x58000000"
+    },
+    "decoder": "0x140032CC0",
+    "helperCall": "0x140032D93",
+    "helper": "0x1400446F0",
+    "drawCallsite": "0x140044CDF",
+    "serializedHullStride": 64,
+    "runtimeHullStride": 160,
+    "sourceCounts": {
+      "vertex": "SHW+0x20+hullIndex*0x40+0x00",
+      "triangle": "SHW+0x20+hullIndex*0x40+0x02",
+      "runtimeInterpretation": "signed 16-bit",
+      "positiveDomain": [
+        0,
+        32767
+      ],
+      "triangleRuntimeField": "+0x08",
+      "triangleDescriptorField": "+0x18",
+      "descriptorCountCopySite": "0x140320600"
+    },
+    "visibilityProducer": "0x1403204F0",
+    "visibilityRule": "Negative first marker skips face; active face emits one cap group plus one side group for each zero neighbor marker",
+    "formula": {
+      "A": "active faces",
+      "E": "zero neighbor-visibility lanes over active faces, 0..3*A",
+      "groups": "A+E",
+      "vertices": "6*(A+E)",
+      "sourceBytes": "72*(A+E)",
+      "ringBytes": "72*(A+E)",
+      "drawFlags": "0x2",
+      "drawMode": 3,
+      "outputStrideBytes": 12
+    },
+    "allocation": {
+      "selector": -2,
+      "selectorSite": "0x14008BC95",
+      "routerCall": "0x14008BC97",
+      "sharedWith": "SCM routed contiguous pool",
+      "formula": "0x280 + 0xA0*H + 0x20*sum(V_i+T_i+6)",
+      "H": "u8 hull count at SHW+0x10",
+      "V_i_T_i": "signed 16-bit hull counts",
+      "arithmetic": "u32 result; formula wraps for negative high-bit counts",
+      "claimBoundary": "Planned payload before pool rounding; not total per-frame scratch or GPU-ring occupancy"
+    }
+  },
+  "subcommand11": {
+    "status": "EXE_CONFIRMED",
+    "producer": "0x140318EC0",
+    "effectDispatch": {
+      "effectType": 11,
+      "tableBase": "0x1403156C8",
+      "tableIndex": 10,
+      "handler": "0x1403155B1",
+      "callsite": "0x1403155B7"
+    },
+    "cachedUpdater": "0x14031A830",
+    "dimensionInitializer": "0x140316360",
+    "displaySource": "[0x140D6D300]+0x20/+0x22 signed16 -> context+0x15D58/+0x15D5C",
+    "formula": {
+      "sx": "1 << field58",
+      "sy": "1 << field5C",
+      "rows": "floor(height/sy)+2",
+      "recordsPerRow": "floor(width/sx)+3",
+      "records": "rows*recordsPerRow",
+      "ringBytes": "40*records"
+    },
+    "formulaDomain": "Nonnegative dimensions, positive signed strides, no arithmetic overflow. Arbitrary x86-masked shift values require separate treatment.",
+    "verifiedShiftRange": [
+      3,
+      6
+    ],
+    "conflict": {
+      "status": "EXE_CONFIRMED",
+      "base": "0x140CC1AD0",
+      "neighbor": "0x140CD1AD0",
+      "neighborKind": "scalar read by producer and cached updater",
+      "distanceBytes": 65536,
+      "recordBytes": 40,
+      "completeRecordsBeforeNeighbor": 1638,
+      "firstConflictOrdinal": 1639,
+      "firstConflictInstruction": "0x14031928F",
+      "writeAddress": "0x140CD1AD0",
+      "writeBytes": 4,
+      "necessaryCondition": "40*rows*recordsPerRow <= 65536",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    }
+  },
+  "subcommand12": {
+    "status": "EXE_CONFIRMED",
+    "producer": "0x140319D60",
+    "effectDispatch": {
+      "effectType": 12,
+      "tableBase": "0x1403156C8",
+      "tableIndex": 11,
+      "handler": "0x1403155BE",
+      "callsite": "0x1403155C4"
+    },
+    "inputRule": "Unsigned a=field2C, b=field30; each value >200 resets to100; no local minimum guard",
+    "formula": {
+      "sx": "floor(64*a/100)",
+      "sy": "floor(32*b/100)",
+      "records": "ceil(640/sx)*ceil(360/sy)",
+      "vertices": "4*records",
+      "ringBytes": "80*records"
+    },
+    "formulaDomain": "Normalized values and positive sx/sy",
+    "zeroProgressInputs": {
+      "a": [
+        0,
+        1
+      ],
+      "b": [
+        0,
+        3
+      ]
+    },
+    "zeroStepBehavior": "Affected post-tested loop has no coordinate progress and continues writes; verifier stops at first known pointer conflict",
+    "conflict": {
+      "status": "EXE_CONFIRMED",
+      "base": "0x140CD1AF0",
+      "neighbor": "0x140CD9AF0",
+      "neighborKind": "live pointer owned by producer 0x1403196A0",
+      "distanceBytes": 32768,
+      "recordBytes": 80,
+      "completeRecordsBeforeNeighbor": 409,
+      "firstConflictOrdinal": 410,
+      "firstConflictInstruction": "0x14031A153",
+      "writeAddress": "0x140CD9AF0",
+      "writeBytes": 4,
+      "necessaryCondition": "80*records <= 32768",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    }
+  },
+  "collisionBoundaries": {
+    "shadow": {
+      "status": "EXE_CONFIRMED",
+      "base": "0x140BEB3F0",
+      "neighbor": "0x140C0B3F0",
+      "neighborKind": "live renderer pointer",
+      "distanceBytes": 131072,
+      "recordBytes": 72,
+      "completeRecordsBeforeNeighbor": 1820,
+      "firstConflictOrdinal": 1821,
+      "firstConflictInstruction": "0x140044A15",
+      "writeAddress": "0x140C0B3F0",
+      "writeBytes": 4,
+      "necessaryCondition": "A+E <= 1820",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    },
+    "subcommand11": {
+      "status": "EXE_CONFIRMED",
+      "base": "0x140CC1AD0",
+      "neighbor": "0x140CD1AD0",
+      "neighborKind": "scalar read by producer and cached updater",
+      "distanceBytes": 65536,
+      "recordBytes": 40,
+      "completeRecordsBeforeNeighbor": 1638,
+      "firstConflictOrdinal": 1639,
+      "firstConflictInstruction": "0x14031928F",
+      "writeAddress": "0x140CD1AD0",
+      "writeBytes": 4,
+      "necessaryCondition": "40*rows*recordsPerRow <= 65536",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    },
+    "subcommand12": {
+      "status": "EXE_CONFIRMED",
+      "base": "0x140CD1AF0",
+      "neighbor": "0x140CD9AF0",
+      "neighborKind": "live pointer owned by producer 0x1403196A0",
+      "distanceBytes": 32768,
+      "recordBytes": 80,
+      "completeRecordsBeforeNeighbor": 409,
+      "firstConflictOrdinal": 410,
+      "firstConflictInstruction": "0x14031A153",
+      "writeAddress": "0x140CD9AF0",
+      "writeBytes": 4,
+      "necessaryCondition": "80*records <= 32768",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    }
+  },
+  "disassemblyManifest": [
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-attach.asm",
+      "startVA": "0x14008bc60",
+      "endVAExclusive": "0x14008bce6",
+      "codeBytes": 134,
+      "codeSha256": "e9ec536b5a83fb79c6452360a3c596b99904a7f469c8b4939732e5cf815d851e",
+      "disassemblySha256": "f96238fefdfedcf9482bfc1dac0b05e074e02ffe475e5c2cae4954f3f1df7a6b",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-binder.asm",
+      "startVA": "0x1403204b0",
+      "endVAExclusive": "0x1403204c0",
+      "codeBytes": 16,
+      "codeSha256": "497aa1299f69d2a2d5ffb171b1e531e99e8e5b3a090a2bd38af7d4f2fc9697a8",
+      "disassemblySha256": "9389f4b99be432abb8cba312e35b08324c8d61b1dad204df586306303441b51c",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-allocation-planner.asm",
+      "startVA": "0x14031fc40",
+      "endVAExclusive": "0x14031fd23",
+      "codeBytes": 227,
+      "codeSha256": "3438df599c0794275e2531ee36d1af9a9fe60f3e0ae9d0afe0bfd49f0058cf8d",
+      "disassemblySha256": "a901822417d4c669f3d6b0b394819d896c563c1974a26f0fe1c60d9189f895c3",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-constructor.asm",
+      "startVA": "0x14031fd30",
+      "endVAExclusive": "0x1403200c0",
+      "codeBytes": 912,
+      "codeSha256": "6c8e4e05e40ed5bb2cca2830d27da2b93bd94ccc80256163dd5d68e7cd49330d",
+      "disassemblySha256": "62aebf802e372b05b40678ce4164bc1d53ee57552e72cb98b574cd463f8f3a4e",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-visibility.asm",
+      "startVA": "0x1403204f0",
+      "endVAExclusive": "0x1403206e5",
+      "codeBytes": 501,
+      "codeSha256": "cf646df26c377ca70f81b6a4c87eb5e6af4961da1f703a70bcf2d31c0fe9d150",
+      "disassemblySha256": "ef5cc2efa4a2311cd8e6fb8529569ae3828769abde6f980cad418b05280d5c71",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/packet-decoder.asm",
+      "startVA": "0x140032cc0",
+      "endVAExclusive": "0x140033267",
+      "codeBytes": 1447,
+      "codeSha256": "8e6e7e8b965dee7b635e14375ff9824d505935238b1f17ef19a11c55a1ab4b2c",
+      "disassemblySha256": "98ae5a3259b4fe508cefbd3ee1c40f0df294f6e6af4b1def27f4da3c7c6602fe",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/shadow-batching.asm",
+      "startVA": "0x1400446f0",
+      "endVAExclusive": "0x140044d05",
+      "codeBytes": 1557,
+      "codeSha256": "3094cf6cdc55d3fe4a48d86612c3e6fb925f1a2ca24289a88c0adb7b95872e7f",
+      "disassemblySha256": "2ec3279ecdfb672f4f27e91db09eafdf2f6973234948ed87389feeeaf194eca9",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/effect-dispatch.asm",
+      "startVA": "0x140315470",
+      "endVAExclusive": "0x1403156b0",
+      "codeBytes": 576,
+      "codeSha256": "05f4ddd3a83d902fe205d0e0314ab99da012b3a510782c076d2e8c2b15694fb8",
+      "disassemblySha256": "49fcd467f5aebbe7753a287b9483d3ac80475eec82b3cbd49d075659e3fe8c9b",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/display-dimensions.asm",
+      "startVA": "0x140316360",
+      "endVAExclusive": "0x140316422",
+      "codeBytes": 194,
+      "codeSha256": "fcda6569567740ffcbb88676699d71018fcfbb0b8fa5a6f7a1d07d19068009a6",
+      "disassemblySha256": "fee4ecbf018da60e702094a86fbc8a10e6001a2e36d7a3720cf64970d2d0614a",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/subcommand11-producer.asm",
+      "startVA": "0x140318ec0",
+      "endVAExclusive": "0x1403195e4",
+      "codeBytes": 1828,
+      "codeSha256": "2bf842de26c6b10a9d9b3e19624f4069fbca465caf7a21358e05e9266a9dfb0b",
+      "disassemblySha256": "bf6727d9d87ed98ff392f4d38aed88d31f59b0f570255a9991400257de9c838e",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/subcommand12-producer.asm",
+      "startVA": "0x140319d60",
+      "endVAExclusive": "0x14031a349",
+      "codeBytes": 1513,
+      "codeSha256": "83729304bfd437c1cc33a2f5bd96d3ac1184f7082b517e3decb3fbb774e9e636",
+      "disassemblySha256": "c8d5b89fca3b685678327d88311b6b6e9c4cedb3f74242e18965846415c85432",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/subcommand11-cached-update.asm",
+      "startVA": "0x14031a830",
+      "endVAExclusive": "0x14031ae0a",
+      "codeBytes": 1498,
+      "codeSha256": "8e01d4b1dddc9f38351948cd17360b39e115c5c8dc29005bacc3a534e2ffde97",
+      "disassemblySha256": "520b83939786bd9feb3caee41de77281c48f0a32b023c168e829e79ceeac2dc3",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    },
+    {
+      "path": "data/reverse/render-producer-boundaries-20261004/neighbor-pointer-owner.asm",
+      "startVA": "0x1403196a0",
+      "endVAExclusive": "0x140319d5a",
+      "codeBytes": 1722,
+      "codeSha256": "b53b910dea03dbb7e4211eee7c98e3bed6b935a294e76e44536debcbdc9baca2",
+      "disassemblySha256": "fcbb38a8ee8075a3adb94b160b88afc07d350bf01f0219aac80fd49cedd442b8",
+      "scope": "Address slice; not an assertion of a compiler function extent"
+    }
+  ],
+  "emulation": {
+    "receipt": "data/reverse/dmc3-hd-render-producer-verification-20261004.json",
+    "script": "tools/reverse/verify_dmc3_render_producer_boundaries.py",
+    "passedCases": 27,
+    "dependencies": [
+      "pefile==2024.8.26",
+      "unicorn==2.1.4"
+    ],
+    "stubs": {
+      "subcommand11": [],
+      "subcommand12": [
+        "0x140059390 RNG returns0"
+      ],
+      "shadow": [
+        "0x140045FE0 state return",
+        "0x1400460E0 state return",
+        "0x140046910 state return",
+        "0x1400313F0 transform copies source float4"
+      ],
+      "shadowPlanner": []
+    },
+    "claimBoundary": "Synthetic descriptors, parameters, display, markers, and transforms; no D3D11/GPU or original-game execution"
+  },
+  "openGates": [
+    "Exact linker object extents",
+    "Retail parameter/SHW/light reachability",
+    "Cached update shape stability and dynamic call order",
+    "Per-frame shared ring occupancy",
+    "Original-game stress and failure behavior"
+  ],
+  "effectDispatchTable": {
+    "address": "0x1403156C8",
+    "indexRule": "effectType-1",
+    "encoding": "u32 image-relative targets",
+    "rawHex": "2055310030553100405531005055310060553100705531007d5531008a55310097553100a4553100b1553100be553100cb553100d8553100e5553100f0553100",
+    "sha256": "19e54dfe5d45cc23eb4fef716120d09e9826fabdaa943deb5369e6e68240d20b"
+  },
+  "packetDispatchTables": {
+    "targetsAddress": "0x140033268",
+    "targetsRawHex": "6c31030091300300da30030089310300743103009e310300c0310300cf310300e6310300f13003000d3103002d3103004d310300f1310300",
+    "slotsAddress": "0x1400332A0",
+    "slotsRawHex": "000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d010d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d02020d0d0d03030403050607080d0d0d0d0d0d0d0d090d0d0a0d0d0d0b0d090c",
+    "indexRule": "(commandByte&0x7F)-8",
+    "mappings": [
+      {
+        "command": "0x58",
+        "slot": 3,
+        "target": "0x140033189"
+      },
+      {
+        "command": "0x5b",
+        "slot": 7,
+        "target": "0x1400331cf"
+      }
+    ]
+  }
+}

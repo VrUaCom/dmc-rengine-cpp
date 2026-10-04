@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v20",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v21",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -634,11 +634,15 @@
           "callsite": "0x140044CDF",
           "flags": "0x2",
           "mode": 3,
-          "bytesFormula": "12*r12d"
+          "bytesFormula": "12*r12d",
+          "sourceClosed": "SHW active-face and silhouette-side output",
+          "producer": "0x1400446F0",
+          "owner": "SHW",
+          "ringBytes": "72*(A+E)"
         }
       ],
       "fixedCallsitesSingleExecutionSumBytes": 3084,
-      "claimBoundary": "3084 bytes is one execution of each fixed site only; dynamic frame occupancy depends on loops and the four generic count helpers",
+      "claimBoundary": "3084 bytes is one execution of each fixed site only. All three remaining generic-count producer sources are closed, but none has a proven whole-game admission cap; frame occupancy depends on invocation counts and runtime inputs.",
       "status": "EXE_CONFIRMED_46_OF_49_FIXED_OR_BOUNDED",
       "boundedGenericCallsites": 1,
       "boundedGeneric": [
@@ -707,7 +711,23 @@
       "verticesIfExtentIsExact": 10920,
       "remainderBytes": 32,
       "status": "STRUCTURAL_CANDIDATE",
-      "claimBoundary": "No explicit bound check or exact size-bearing initializer recovered yet; not a hard engine limit."
+      "claimBoundary": "Exact linker array extent remains candidate. SHW ownership, formula, and neighboring-pointer write conflict are EXE_CONFIRMED in renderProducerBoundaries evidence.",
+      "owner": "SHW shadow-volume batching",
+      "protectedNeighborBoundary": {
+        "status": "EXE_CONFIRMED",
+        "base": "0x140BEB3F0",
+        "neighbor": "0x140C0B3F0",
+        "neighborKind": "live renderer pointer",
+        "distanceBytes": 131072,
+        "recordBytes": 72,
+        "completeRecordsBeforeNeighbor": 1820,
+        "firstConflictOrdinal": 1821,
+        "firstConflictInstruction": "0x140044A15",
+        "writeAddress": "0x140C0B3F0",
+        "writeBytes": 4,
+        "necessaryCondition": "A+E <= 1820",
+        "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+      }
     },
     "customAdCommandProtocol": {
       "handlers": {
@@ -760,7 +780,49 @@
         "remainderBytes": 16,
         "status": "STRUCTURAL_CANDIDATE"
       },
-      "status": "EXE_CONFIRMED_GENERATED_BYTE_PROPAGATION"
+      "status": "EXE_CONFIRMED_GENERATED_BYTE_PROPAGATION",
+      "workloadEvidence": {
+        "status": "EXE_CONFIRMED",
+        "producer": "0x140318EC0",
+        "effectDispatch": {
+          "effectType": 11,
+          "tableBase": "0x1403156C8",
+          "tableIndex": 10,
+          "handler": "0x1403155B1",
+          "callsite": "0x1403155B7"
+        },
+        "cachedUpdater": "0x14031A830",
+        "dimensionInitializer": "0x140316360",
+        "displaySource": "[0x140D6D300]+0x20/+0x22 signed16 -> context+0x15D58/+0x15D5C",
+        "formula": {
+          "sx": "1 << field58",
+          "sy": "1 << field5C",
+          "rows": "floor(height/sy)+2",
+          "recordsPerRow": "floor(width/sx)+3",
+          "records": "rows*recordsPerRow",
+          "ringBytes": "40*records"
+        },
+        "formulaDomain": "Nonnegative dimensions, positive signed strides, no arithmetic overflow. Arbitrary x86-masked shift values require separate treatment.",
+        "verifiedShiftRange": [
+          3,
+          6
+        ],
+        "conflict": {
+          "status": "EXE_CONFIRMED",
+          "base": "0x140CC1AD0",
+          "neighbor": "0x140CD1AD0",
+          "neighborKind": "scalar read by producer and cached updater",
+          "distanceBytes": 65536,
+          "recordBytes": 40,
+          "completeRecordsBeforeNeighbor": 1638,
+          "firstConflictOrdinal": 1639,
+          "firstConflictInstruction": "0x14031928F",
+          "writeAddress": "0x140CD1AD0",
+          "writeBytes": 4,
+          "necessaryCondition": "40*rows*recordsPerRow <= 65536",
+          "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+        }
+      }
     },
     "subcommand12GeneratedDraw": {
       "producer": "0x140319D60",
@@ -796,7 +858,113 @@
         "remainderBytes": 48,
         "status": "STRUCTURAL_CANDIDATE"
       },
-      "status": "EXE_CONFIRMED_GENERATED_BYTE_PROPAGATION"
+      "status": "EXE_CONFIRMED_GENERATED_BYTE_PROPAGATION",
+      "workloadEvidence": {
+        "status": "EXE_CONFIRMED",
+        "producer": "0x140319D60",
+        "effectDispatch": {
+          "effectType": 12,
+          "tableBase": "0x1403156C8",
+          "tableIndex": 11,
+          "handler": "0x1403155BE",
+          "callsite": "0x1403155C4"
+        },
+        "inputRule": "Unsigned a=field2C, b=field30; each value >200 resets to100; no local minimum guard",
+        "formula": {
+          "sx": "floor(64*a/100)",
+          "sy": "floor(32*b/100)",
+          "records": "ceil(640/sx)*ceil(360/sy)",
+          "vertices": "4*records",
+          "ringBytes": "80*records"
+        },
+        "formulaDomain": "Normalized values and positive sx/sy",
+        "zeroProgressInputs": {
+          "a": [
+            0,
+            1
+          ],
+          "b": [
+            0,
+            3
+          ]
+        },
+        "zeroStepBehavior": "Affected post-tested loop has no coordinate progress and continues writes; verifier stops at first known pointer conflict",
+        "conflict": {
+          "status": "EXE_CONFIRMED",
+          "base": "0x140CD1AF0",
+          "neighbor": "0x140CD9AF0",
+          "neighborKind": "live pointer owned by producer 0x1403196A0",
+          "distanceBytes": 32768,
+          "recordBytes": 80,
+          "completeRecordsBeforeNeighbor": 409,
+          "firstConflictOrdinal": 410,
+          "firstConflictInstruction": "0x14031A153",
+          "writeAddress": "0x140CD9AF0",
+          "writeBytes": 4,
+          "necessaryCondition": "80*records <= 32768",
+          "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+        }
+      }
+    },
+    "renderProducerBoundaries": {
+      "evidence": "data/reverse/dmc3-hd-render-producer-boundaries-20261004.json",
+      "verification": "data/reverse/dmc3-hd-render-producer-verification-20261004.json",
+      "ownershipStatus": "EXE_CONFIRMED_ALL_THREE_GENERIC_COUNT_PRODUCERS",
+      "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
+    },
+    "shadowVolumeProducer": {
+      "status": "EXE_CONFIRMED",
+      "owner": "SHW shadow-volume batching",
+      "attach": "0x14008BC60",
+      "binder": "0x1403204B0",
+      "planner": "0x14031FC40",
+      "constructor": "0x14031FD30",
+      "commandWrite": {
+        "site": "0x14031FE4E",
+        "value": "0x58000000"
+      },
+      "decoder": "0x140032CC0",
+      "helperCall": "0x140032D93",
+      "helper": "0x1400446F0",
+      "drawCallsite": "0x140044CDF",
+      "serializedHullStride": 64,
+      "runtimeHullStride": 160,
+      "sourceCounts": {
+        "vertex": "SHW+0x20+hullIndex*0x40+0x00",
+        "triangle": "SHW+0x20+hullIndex*0x40+0x02",
+        "runtimeInterpretation": "signed 16-bit",
+        "positiveDomain": [
+          0,
+          32767
+        ],
+        "triangleRuntimeField": "+0x08",
+        "triangleDescriptorField": "+0x18",
+        "descriptorCountCopySite": "0x140320600"
+      },
+      "visibilityProducer": "0x1403204F0",
+      "visibilityRule": "Negative first marker skips face; active face emits one cap group plus one side group for each zero neighbor marker",
+      "formula": {
+        "A": "active faces",
+        "E": "zero neighbor-visibility lanes over active faces, 0..3*A",
+        "groups": "A+E",
+        "vertices": "6*(A+E)",
+        "sourceBytes": "72*(A+E)",
+        "ringBytes": "72*(A+E)",
+        "drawFlags": "0x2",
+        "drawMode": 3,
+        "outputStrideBytes": 12
+      },
+      "allocation": {
+        "selector": -2,
+        "selectorSite": "0x14008BC95",
+        "routerCall": "0x14008BC97",
+        "sharedWith": "SCM routed contiguous pool",
+        "formula": "0x280 + 0xA0*H + 0x20*sum(V_i+T_i+6)",
+        "H": "u8 hull count at SHW+0x10",
+        "V_i_T_i": "signed 16-bit hull counts",
+        "arithmetic": "u32 result; formula wraps for negative high-bit counts",
+        "claimBoundary": "Planned payload before pool rounding; not total per-frame scratch or GPU-ring occupancy"
+      }
     }
   },
   "texture": {
@@ -869,8 +1037,9 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "close final generic draw 0x140044CDF and dynamic execution frequency/order for subcommands 11/12",
-    "promote or reject candidate static backing extents: 0x140CC1AD0 (64 KiB), 0x140CD1AF0 (32 KiB), 0x140BEB3F0 (128 KiB); find explicit bounds/initializers",
+    "Determine runtime execution frequency/order and retail input admission for SHW and subcommands11/12; producer ownership and formulas are now closed",
+    "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
+    "Census SHW hull counts and light-dependent silhouettes; verify cached subcommand11 shape stability and parameter initializers",
     "measure exact shared dynamic-ring occupancy/order in representative retail frames",
     "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
