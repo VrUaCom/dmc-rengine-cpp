@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.hd-dynamic-ring-static-callsite-census.v3",
+  "schema": "dmc-rengine.hd-dynamic-ring-static-callsite-census.v4",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -101,8 +101,8 @@
       "bytesFormula": "12*r12d"
     }
   ],
-  "status": "EXE_CONFIRMED_46_OF_49_FIXED_OR_BOUNDED",
-  "claimBoundary": "46/49 direct draw sites are fixed or bounded per invocation; three generic helpers remain.",
+  "status": "EXE_CONFIRMED_46_OF_49_FIXED_OR_BOUNDED_PLUS_2_SOURCE_RESOLVED",
+  "claimBoundary": "Two of the three remaining generic counts now have exact producer byte-span semantics but not yet promoted hard backing-size caps; 0x140044CDF remains the final source/count frontier.",
   "boundedCompatibilityCount": 3,
   "boundedCompatibility": [
     {
@@ -173,6 +173,22 @@
           "maxBytes": 131008
         }
       ]
+    }
+  ],
+  "sourceResolvedRuntimeDraws": [
+    {
+      "callsite": "0x14003F4C8",
+      "protocolSubcommand": 11,
+      "producer": "0x140318EC0",
+      "ringBytes": "exact generated backing span; encoded as dwords then multiplied by 4",
+      "hardMaximum": "OPEN; candidate 64 KiB static backing extent"
+    },
+    {
+      "callsite": "0x140040344",
+      "protocolSubcommand": 12,
+      "producer": "0x140319D60",
+      "ringBytes": "exact generated backing span in bytes",
+      "hardMaximum": "OPEN; candidate 32 KiB static backing extent"
     }
   ]
 }
