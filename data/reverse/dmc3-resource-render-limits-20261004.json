@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v6",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v7",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -123,6 +123,62 @@
       ],
       "status": "EXE_CONFIRMED_SCM_TO_D3D11_DRAW_PATH",
       "claimBoundary": "Capacities are for an initially empty shared dynamic ring, not stage/game polygon maxima."
+    },
+    "normalizerLimit": {
+      "function": "0x1403051B0",
+      "vertexCountInput": {
+        "type": "u16",
+        "maxRepresentable": 65535
+      },
+      "loopCounter": "u32",
+      "generatedIndexType": "u16",
+      "maxSourceIndexAtVertexCount65535": 65534,
+      "explicitLowerVertexCountGuardFound": false,
+      "workspaceCapacity": "align16(6*(vertexCount-2)) bytes",
+      "status": "EXE_CONFIRMED_NORMALIZER_U16_DOMAIN"
+    },
+    "runtimeAllocation": {
+      "totalPlanner": "0x1402FD8D0 -> common 0x1402FD9C0 + SCM 0x1402FDD10 -> align16",
+      "commonFormula": "0xB0 + 0xE0*sceneNodes + 0x40*textureCount + optional texture-state terms",
+      "specificFormula": "0xA0 + 0x740*objects + 0x220*meshes + 0x100*sum(ceil(meshVertexCount/60)) + 2*auxSize",
+      "callsite": "0x1400899FB..0x140089A12",
+      "selector": -2,
+      "arena": {
+        "topLevelVirtualAllocBytes": 272629760,
+        "topLevelMiB": 260,
+        "masterArenaBytes": 268435456,
+        "masterArenaMiB": 256
+      },
+      "normalPoolRoute": {
+        "poolIndex": 1,
+        "spanBytes": 5242880,
+        "blockBytes": 1024,
+        "alignmentBytes": 16,
+        "slotCount": 5114,
+        "emptyPoolUsableBytes": 5236736,
+        "emptyPoolUsableHex": "0x4FE800"
+      },
+      "overridePoolRoute": {
+        "condition": "byte[0x140CA8AB1] == 1",
+        "poolIndex": 2,
+        "spanBytes": 4194304,
+        "blockBytes": 512,
+        "alignmentBytes": 64,
+        "slotCount": 8175,
+        "emptyPoolUsableBytes": 4185600,
+        "emptyPoolUsableHex": "0x3FDE00"
+      },
+      "allocationRule": "ceil(requestBytes/blockBytes) contiguous free bitmap slots",
+      "singleMaxU16MeshSpecificExample": {
+        "objects": 1,
+        "meshes": 1,
+        "vertexCount": 65535,
+        "chunkCount": 1093,
+        "bytesBeforeCommonAndAux": 282368,
+        "hex": "0x44F00"
+      },
+      "status": "EXE_CONFIRMED_SCM_RUNTIME_ALLOCATION_LIMIT_PATH",
+      "claimBoundary": "Occupancy, fragmentation, common/texture sizing, auxiliary validation and live pool routing can reduce effective capacity."
     }
   },
   "d3d11": {
@@ -253,8 +309,9 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "SCM runtime count guards",
+    "auxiliary SCM runtime-size validation domain 0x1402FE1B0/0x1402FE030",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
+    "later consumers below normalizer full-u16 vertex domain",
     "runtimeObject+0x98 producer",
     "complete retail texture census",
     "practical texture allocation/residency below 16384-per-axis EXE guard",
