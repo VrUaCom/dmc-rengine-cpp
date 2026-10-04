@@ -1,0 +1,73 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-dds-texture-limits.v1",
+  "date": "2026-10-04",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "provenance": {
+    "dmc3MaterializerCallSite": "0x140330A2D",
+    "ddsEntry": "0x1400499C0",
+    "ddsValidation": "0x140049A10",
+    "ddsCreatePath": "0x140049BA0",
+    "shaderResourceViewCallSite": "0x140330AA4",
+    "d3dDeviceGlobal": "0x140C0B418",
+    "status": "EXE_CONFIRMED_DMC3_TEXTURE_PATH_TO_DDS_LOADER"
+  },
+  "loaderLimits": {
+    "texture2D": {
+      "widthMax": 16384,
+      "heightMax": 16384,
+      "arraySizeMax": 2048,
+      "evidenceRange": "0x140049D97..0x140049DB7",
+      "status": "EXE_CONFIRMED"
+    },
+    "texture1D": {
+      "widthMax": 16384,
+      "arraySizeMax": 2048,
+      "evidenceRange": "0x140049DBC..0x140049DCF",
+      "status": "EXE_CONFIRMED_GENERIC_DDS_LOADER"
+    },
+    "texture3D": {
+      "widthMax": 2048,
+      "heightMax": 2048,
+      "depthMax": 2048,
+      "evidenceRange": "0x140049D71..0x140049D92",
+      "status": "EXE_CONFIRMED_GENERIC_DDS_LOADER"
+    },
+    "mipCountMax": 15
+  },
+  "derivedFullMipPayloadAt2DCeiling": {
+    "dimensions": [
+      16384,
+      16384
+    ],
+    "mipLevels": 15,
+    "dxt1PayloadBytes": 178956984,
+    "dxt5PayloadBytes": 357913968,
+    "standardDdsHeaderBytes": 128,
+    "status": "DERIVED_SIZE_FROM_EXE_CONFIRMED_DIMENSION_LIMIT"
+  },
+  "observedRetail": {
+    "atLeastOne": {
+      "width": 1024,
+      "height": 2048,
+      "compression": "DXT5"
+    },
+    "status": "CORPUS_CONFIRMED"
+  },
+  "rengineProductSafety": {
+    "minDimension": 64,
+    "maxDimension": 1024,
+    "status": "PRODUCT_SAFETY_LIMIT",
+    "note": "Not an original runtime maximum; narrower than an observed 1024x2048 retail DDS."
+  },
+  "claimBoundary": "16384x16384 is the canonical HD 2D DDS loader ceiling. Practical live-game/residency/authoring maximum remains open.",
+  "openGates": [
+    "complete retail texture dimension/count/size census",
+    "simultaneous texture residency budget",
+    "feature-level and resource-size practical failures",
+    "authored DDS stress above 1024 safety envelope",
+    "PTX record fanout vs texture-count ceiling"
+  ]
+}
