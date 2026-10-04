@@ -1,0 +1,54 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-ptx-texture-capacity.v1",
+  "date": "2026-10-04",
+  "target": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "payload": {
+    "bytes": 520,
+    "bytesHex": "0x208",
+    "recordPointerSlots": 64,
+    "textureCountOffset": "0x200",
+    "recordsPerTextureOffset": "0x204",
+    "status": "EXE_CONFIRMED"
+  },
+  "parser": {
+    "function": "0x1403365B0",
+    "materializer": "0x1403366E0",
+    "descriptorDdsFallback": {
+      "recordsPerTexture": 1,
+      "status": "EXE_CONFIRMED"
+    },
+    "tm2Branch": {
+      "recordCountSource": "u16 source+0x04 -> descriptor+0x3C",
+      "semantic": "PRESERVED_TECHNICAL_ROLE"
+    }
+  },
+  "descriptorDdsCapacity": {
+    "texturesPerPayload": 64,
+    "derivation": "64 record-pointer slots / 1 record per texture",
+    "status": "DERIVED_ABI_CAPACITY",
+    "gracefulRejectAboveCapacity": "NOT_CONFIRMED"
+  },
+  "globalPool": {
+    "records": 128,
+    "recordStrideBytes": 80,
+    "recordStrideHex": "0x50",
+    "recordArrayBytes": 10240,
+    "recordArrayBytesHex": "0x2800",
+    "status": "EXE_CONFIRMED"
+  },
+  "corpusComparison": {
+    "largestExtractedSiblingSet": 17,
+    "fractionOfPayloadCapacity": 0.265625,
+    "status": "CORPUS_CONFIRMED_BOUNDED_ARCHIVE"
+  },
+  "claimBoundary": "64 is the descriptor+DDS payload storage capacity, not a proven clean input validation maximum. Global pool capacity is 128 records but simultaneous renderable texture count depends on lifecycle/reservations.",
+  "openGates": [
+    "payload owner concurrency",
+    "live pool reservation values",
+    "18..64 authored texture stress",
+    "isolated >64 failure test",
+    "complete NBZ texture census"
+  ]
+}
