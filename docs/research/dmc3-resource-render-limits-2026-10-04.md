@@ -896,6 +896,52 @@ This distinction is important for DMC3 because the executable contains both:
 Status: **EXE_CONFIRMED_BUFFER_CAPACITY + TYPE_SEMANTIC_CLARIFICATION**.
 
 
+
+## D3D11 device feature-level requirement
+
+The canonical executable imports `D3D11CreateDeviceAndSwapChain` through IAT
+`0x14034F650`; the import thunk at `0x1403453EA` has one executable callsite:
+`0x140042ADD`.
+
+The callsite reconstructs the complete Win64 argument list. In particular:
+
+```text
+pFeatureLevels = &stackFeatureLevel
+FeatureLevels  = 1
+SDKVersion     = 7
+pFeatureLevel  = 0x140BEB3E8
+```
+
+Immediately before the call:
+
+```text
+0x1400429FC: stackFeatureLevel = 0xB000
+```
+
+`0xB000` is `D3D_FEATURE_LEVEL_11_0`.
+
+Therefore DMC3 HD does not ask D3D11 to negotiate down through a list of 10.x/9.x
+feature levels on this canonical path: it explicitly requests exactly one level,
+**11_0**, and device creation fails if the call returns a failing HRESULT.
+
+This closes an important texture-limit ambiguity. Microsoft defines the
+feature-level-11 Texture2D U/V resource limit as **16,384 texels**, which matches
+the executable's own recovered pre-`CreateTexture2D` checks:
+
+```text
+width  <= 0x4000
+height <= 0x4000
+```
+
+Thus the 16,384-per-axis guard is not an arbitrary Rengine or DDS-parser number:
+it aligns with both the canonical game's requested D3D feature level and the
+Direct3D 11 resource domain.
+
+It remains an API/validation ceiling, not a guarantee that a maximal texture can
+be allocated alongside the game's other resident resources.
+
+Status: **EXE_CONFIRMED_D3D_FEATURE_LEVEL_11_0**.
+
 ## Texture-slot / DDS framing and EXE-backed Texture2D ceiling
 
 DMC3 HD texture slots use descriptor + standard DDS framing. The evidenced slot
