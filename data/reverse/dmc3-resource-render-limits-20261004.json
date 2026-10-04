@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v14",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v15",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -573,7 +573,8 @@
     "practical texture allocation/residency below 16384-per-axis EXE guard",
     "original-game geometry stress test",
     "original-game authored DDS stress test",
-    "simultaneous stage residency budget"
+    "simultaneous stage residency budget",
+    "acquire and reverse original DMC3 PS2 SLUS/SLES/ELF for game-specific PS2 allocator limits"
   ],
   "corrections": [
     {
@@ -588,5 +589,79 @@
         "primitive-5 handler 0x14002B56E"
       ]
     }
-  ]
+  ],
+  "ps2Hardware": {
+    "authority": {
+      "pcsx2": {
+        "repository": "PCSX2/pcsx2",
+        "commit": "81526d4dc7cc70e4ae75abb35a789417456c6d43",
+        "files": [
+          "pcsx2/GS/GSRegs.h",
+          "pcsx2/GS/GSState.cpp"
+        ]
+      },
+      "ps2DeveloperWiki": [
+        "Graphics Synthesizer",
+        "Memory Map"
+      ]
+    },
+    "graphicsSynthesizer": {
+      "localMemoryBytes": 4194304,
+      "localMemoryMiB": 4,
+      "tex0": {
+        "TBP0Bits": 14,
+        "TBWBits": 6,
+        "PSMBits": 6,
+        "TWBits": 4,
+        "THBits": 4,
+        "specifiedMaxExponent": 10,
+        "specifiedMaxWidth": 1024,
+        "specifiedMaxHeight": 1024
+      },
+      "clampRegion": {
+        "MINUBits": 10,
+        "MAXUBits": 10,
+        "MINVBits": 10,
+        "MAXVBits": 10,
+        "valueDomain": [
+          0,
+          1023
+        ],
+        "scmRelation": "matches recovered SCM REGION_REPEAT 10-bit lanes"
+      },
+      "mtba": {
+        "automaticMipBaseMax32BitSwizzled": 512,
+        "automaticMipBaseMax16BitAndNormalPaletted": 1024,
+        "scope": "MTBA automatic mip-base generation constraint; not general TEX0 replacement"
+      },
+      "raw1024SquareBytes": {
+        "bpp32": 4194304,
+        "bpp16": 2097152,
+        "bpp8": 1048576,
+        "bpp4": 524288
+      },
+      "status": "STRUCTURAL_CONFIRMED"
+    },
+    "memory": {
+      "mainRamBytes": 33554432,
+      "vu0CodeBytes": 4096,
+      "vu0DataBytes": 4096,
+      "vu1CodeBytes": 16384,
+      "vu1DataBytes": 16384,
+      "eeScratchpadBytes": 16384,
+      "status": "STRUCTURAL_CONFIRMED"
+    },
+    "peakThroughput": {
+      "pixelsPerSecondUntextured": 2352000000,
+      "pixelsPerSecondTextured": 1200000000,
+      "smallPolygonsPerSecond": 75000000,
+      "classification": "throughput only; not resource/scene geometry capacity"
+    },
+    "dmc3Ps2Executable": {
+      "availableInConnectedProjectSources": false,
+      "gameSpecificAllocatorLimitStatus": "OPEN",
+      "requirement": "acquire hash-bound original DMC3 PS2 SLUS/SLES/ELF and reverse allocator/VU/GIF resource paths"
+    },
+    "claimBoundary": "PS2 hardware envelope only. Do not project HD D3D11 limits backward onto PS2 or treat hardware peak throughput as DMC3 resource capacity."
+  }
 }
