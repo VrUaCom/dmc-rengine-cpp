@@ -1,0 +1,73 @@
+{
+  "schema": "dmc-rengine.scm-triangle-budget-census.v1",
+  "date": "2026-10-04",
+  "algorithm": {
+    "authority": "scripts/reverse/census_scm_triangle_budget.py + src/formats/scm_topology.cpp",
+    "topologyBreakBit": "0x02",
+    "method": "reconstruct canonical strip indices, then count sliding non-degenerate triples",
+    "status": "CORPUS_CONFIRMED_USING_EXE_CONFIRMED_TOPOLOGY_RULE"
+  },
+  "sources": {
+    "archive": {
+      "name": "DMC 3 RENGINE (6).zip",
+      "bytes": 237658858,
+      "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+      "uniqueScmBeforeExtra": 67
+    },
+    "extraScm": [
+      {
+        "name": "st114.scm",
+        "bytes": 1038816,
+        "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d"
+      }
+    ]
+  },
+  "corpus": {
+    "uniqueScm": 68,
+    "meshes": 481,
+    "vertices": 182612,
+    "reconstructedNondegenerateTriangles": 114051
+  },
+  "maxima": {
+    "file": {
+      "name": "st114.scm",
+      "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d",
+      "bytes": 1038816,
+      "objects": 41,
+      "meshes": 72,
+      "vertices": 27057,
+      "triangles": 16248
+    },
+    "mesh": {
+      "file": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_b00/m20_b00_004/m20_b00_004_000.scm",
+      "object": 17,
+      "mesh": 1,
+      "vertices": 10196,
+      "triangles": 5696
+    }
+  },
+  "maxFileEmptySharedRingProjection": [
+    {
+      "strideBytes": 20,
+      "bytesPerTriangle": 60,
+      "bytes": 974880,
+      "fraction": 0.2479248046875,
+      "percent": 24.79248046875
+    },
+    {
+      "strideBytes": 28,
+      "bytesPerTriangle": 84,
+      "bytes": 1364832,
+      "fraction": 0.3470947265625,
+      "percent": 34.70947265625
+    },
+    {
+      "strideBytes": 36,
+      "bytesPerTriangle": 108,
+      "bytes": 1754784,
+      "fraction": 0.4462646484375,
+      "percent": 44.62646484375
+    }
+  ],
+  "claimBoundary": "Projection assumes every reconstructed triangle in the entire SCM is submitted in one normal rendered frame and no other dynamic draw consumes the shared 0x3C0000-byte ring. It is a comparative upper-bound workload model, not a stage polygon limit."
+}
