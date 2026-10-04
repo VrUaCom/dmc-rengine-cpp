@@ -381,6 +381,63 @@ Status: EXE_CONFIRMED.
 
 
 
+
+## SCM TRIANGLE_STRIP -> per-triangle D3D11 draw chunking
+
+Fresh canonical-EXE tracing closes the geometry chunking mechanism.
+
+The SCM geometry GIFtag now has a fully source-bound primitive code:
+`PRIM=5 = TRIANGLE_STRIP`.
+
+The packed `XYZF2` handler at `0x14002D6F6` does the following for every
+incoming geometry vertex:
+
+1. increments compatibility vertex count at `0x1405D9680`;
+2. shifts the rolling vertex-state window:
+   `0x1405D9630 <- old 0x1405D9628`,
+   `0x1405D9628 <- old 0x1405D9620`,
+   then publishes the new vertex into `0x1405D9620`;
+3. calls primitive dispatcher `0x14002B160` on the drawable XYZF2 path.
+
+For primitive 5, the dispatcher threshold is exactly **3 vertices** and selects
+handler `0x14002B56E`.
+
+That handler submits exactly `3 * 12 = 36` packed source bytes to
+`0x140043F90`. The draw wrapper divides by the recovered 12-byte packed input
+stride and therefore sends **3 vertices** into `0x140043190`, followed by a
+non-indexed triangle draw.
+
+The compatibility counter is not reset after every primitive-5 triangle.
+Because the XYZF2 handler itself maintains the rolling last-three-vertex window,
+after the first two vertices every additional strip vertex produces another
+3-vertex triangle draw from the newest triplet.
+
+Therefore the HD SCM path is:
+
+```text
+SCM TRIANGLE_STRIP
+ -> XYZF2 stream
+ -> rolling last-three vertex window
+ -> one D3D11 triangle draw per subsequent strip vertex
+ -> 3 uploaded vertices per triangle
+```
+
+Consequences:
+
+- an SCM mesh with thousands of vertices is **not uploaded as one giant draw**;
+- the 3.75 MiB dynamic vertex ring is consumed cumulatively by duplicated
+  per-triangle vertices;
+- starting from an empty ring, SCM-only triangle capacity is therefore
+  `floor(0x3C0000 / (3*outputStride))`:
+  - 20-byte output layout: 65,536 triangles;
+  - 28-byte output layout: 46,811 triangles;
+  - 36-byte output layout: 36,408 triangles;
+- these are per-empty-ring capacities, not stage/game polygon maxima, because
+  the ring is shared with other dynamic draws during the rendered frame.
+
+Status: **EXE_CONFIRMED_SCM_TRIANGLE_STRIP_ROLLING_DRAW**.
+
+
 ## SCM runtimeObject+0x98 producer — closed
 
 Fresh whole-EXE analysis closes the producer that was previously left open.
