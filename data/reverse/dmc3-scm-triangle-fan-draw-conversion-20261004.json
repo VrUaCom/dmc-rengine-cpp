@@ -1,0 +1,67 @@
+{
+  "schema": "dmc-rengine.scm-triangle-fan-draw-conversion.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "sourcePrimitive": {
+    "serializedSource": "SCM object+0x10 flags -> 0x140302640 -> runtimeObject+0x98",
+    "geometryTag": "0x14030A320..0x14030A38D",
+    "formula": "((runtimeObject+0x98 & 0x7F8) | 5)",
+    "primitive": 5,
+    "name": "TRIANGLE_FAN"
+  },
+  "primitiveTables": {
+    "thresholdTable": "0x14002BA98",
+    "thresholdMapping": {
+      "0": "point -> 1",
+      "1": "line -> 2",
+      "2": "line strip -> 2",
+      "3": "triangle list -> 3",
+      "4": "triangle strip -> 3",
+      "5": "triangle fan -> 3 + anchor initialization",
+      "6": "sprite -> 2"
+    },
+    "drawTable": "0x14002BAB4",
+    "primitive5Target": "0x14002B56E"
+  },
+  "fanState": {
+    "anchorInitializer": "0x14002B20C..0x14002B24A",
+    "anchor": [
+      "0x1405D9638",
+      "0x1405D9658",
+      "0x1405D9678"
+    ],
+    "current": [
+      "0x1405D9620",
+      "0x1405D9640",
+      "0x1405D9660"
+    ],
+    "previous": [
+      "0x1405D9628",
+      "0x1405D9648",
+      "0x1405D9668"
+    ],
+    "olderPositionState": "0x1405D9630",
+    "xyzf2Handler": "0x14002D6F6",
+    "xyzf2Shift": [
+      "0x1405D9630 <- old 0x1405D9628",
+      "0x1405D9628 <- old 0x1405D9620",
+      "new XYZF2 -> 0x1405D9620"
+    ]
+  },
+  "draw": {
+    "fanHandler": "0x14002B56E",
+    "triangleComposition": "anchor + current + previous",
+    "drawWrapper": "0x140043F90",
+    "dynamicUploader": "0x140043190",
+    "verticesPerDraw": 3,
+    "drawKind": "non-indexed D3D11 triangle-list draw",
+    "fanTriangleCount": "N-2 for a continuous drawable fan"
+  },
+  "status": "EXE_CONFIRMED_SCM_TRIANGLE_FAN_DRAW_CONVERSION",
+  "correction": {
+    "rejects": "TRIANGLE_STRIP label for PRIM=5",
+    "note": "serialized SCM generated-index/topology reconstruction is a separate domain and is not renamed by this correction"
+  }
+}
