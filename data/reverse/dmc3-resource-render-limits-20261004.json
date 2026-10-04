@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v8",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v9",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -193,6 +193,29 @@
       "normalDomainReduction": "active PTX span count <= configured reservation blocks",
       "status": "EXE_CONFIRMED_PTX_RESERVATION_GATE",
       "geometryLimit": false
+    },
+    "runtimeObject98": {
+      "producer": "0x140302640",
+      "materializerCallsite": "0x1403033FE..0x140303405",
+      "serializedSource": "SCM object+0x10 flags",
+      "formula": "0x1C | ((flags & 0x00010000)==0 ? 0x20 : 0) | ((flags & 0x0000000F)!=0 ? 0x40 : 0)",
+      "possibleValues": [
+        "0x1C",
+        "0x3C",
+        "0x5C",
+        "0x7C"
+      ],
+      "geometryTagConsumer": "0x14030A320..0x14030A38D",
+      "geometryProjection": "((runtimeObject+0x98 & 0x7F8) | 5)",
+      "gsPrimProjection": {
+        "primitive": 5,
+        "primitiveName": "TRIANGLE_STRIP",
+        "IIP": true,
+        "TME": true,
+        "FGE": "source flag 0x00010000 clear",
+        "ABE": "source flags low nibble non-zero"
+      },
+      "status": "EXE_CONFIRMED_SERIALIZED_TO_RUNTIME_GS_PRIM_CONTROL"
     }
   },
   "d3d11": {
@@ -361,7 +384,6 @@
   "openGates": [
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
     "later consumers below normalizer full-u16 vertex domain",
-    "runtimeObject+0x98 producer",
     "complete retail texture census",
     "practical texture allocation/residency below 16384-per-axis EXE guard",
     "original-game geometry stress test",
