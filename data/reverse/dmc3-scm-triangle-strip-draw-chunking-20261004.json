@@ -1,57 +1,18 @@
 {
   "schema": "dmc-rengine.scm-triangle-strip-draw-chunking.v1",
   "date": "2026-10-04",
+  "status": "REJECTED_SUPERSEDED_NAMING",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
-  "sourcePrimitive": {
-    "runtimeObject98Producer": "0x140302640",
-    "geometryTag": "0x14030A320..0x14030A38D",
-    "primitive": 5,
-    "name": "TRIANGLE_STRIP"
-  },
-  "xyzf2": {
-    "handler": "0x14002D6F6",
-    "countIncrement": "0x14002D700 -> 0x1405D9680",
-    "rollingWindowUpdates": [
-      "0x1405D9630 <- old 0x1405D9628",
-      "0x1405D9628 <- old 0x1405D9620",
-      "new XYZF2 -> 0x1405D9620"
-    ],
-    "dispatcherCall": "0x14002D756 -> 0x14002B160"
-  },
-  "dispatcher": {
-    "function": "0x14002B160",
-    "primitive5Threshold": 3,
-    "primitive5Handler": "0x14002B56E"
-  },
-  "draw": {
-    "wrapper": "0x140043F90",
-    "dynamicUpload": "0x140043190",
-    "packedInputStrideBytes": 12,
-    "packedBytesPerDraw": 36,
-    "verticesPerDraw": 3,
-    "drawKind": "non-indexed triangle"
-  },
-  "dynamicRing": {
-    "bytes": 3932160,
-    "capacities": [
-      {
-        "outputStrideBytes": 20,
-        "bytesPerTriangle": 60,
-        "emptyRingTriangles": 65536
-      },
-      {
-        "outputStrideBytes": 28,
-        "bytesPerTriangle": 84,
-        "emptyRingTriangles": 46811
-      },
-      {
-        "outputStrideBytes": 36,
-        "bytesPerTriangle": 108,
-        "emptyRingTriangles": 36408
-      }
-    ]
-  },
-  "status": "EXE_CONFIRMED_SCM_TRIANGLE_STRIP_ROLLING_DRAW"
+  "rejectedClaim": "GS PRIM=5 was labeled TRIANGLE_STRIP",
+  "correction": "GS PRIM=5 is TRIANGLE_FAN",
+  "reason": [
+    "standard GS PRIM encoding assigns 4=TRIANGLE_STRIP and 5=TRIANGLE_FAN",
+    "canonical jump table 0x14002BA98 gives primitive 5 a dedicated anchor-initialization path at 0x14002B20C",
+    "second primitive dispatcher table 0x14002BAB4 routes primitive 5 to 0x14002B56E",
+    "0x14002B56E consumes fixed anchor state plus current/previous vertex state"
+  ],
+  "supersededBy": "data/reverse/dmc3-scm-triangle-fan-draw-conversion-20261004.json",
+  "preservedNumericResults": "three uploaded vertices per emitted triangle and N-2 fan triangle count remain valid"
 }
