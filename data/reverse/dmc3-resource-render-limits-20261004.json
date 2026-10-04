@@ -2,40 +2,33 @@
   "schema": "dmc-rengine.dmc3-resource-render-limits.v2",
   "date": "2026-10-04",
   "canonicalExecutable": {
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-    "size": 6356432
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
   "scm": {
     "structural": {
       "objectCount": {
         "type": "u8",
-        "maxRepresentable": 255,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 255
       },
       "sceneNodeCount": {
         "type": "u8",
-        "maxRepresentable": 255,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 255
       },
       "textureSlotCount": {
         "type": "u8",
-        "maxRepresentable": 255,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 255
       },
       "meshCountPerObject": {
         "type": "u8",
-        "maxRepresentable": 255,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 255
       },
       "objectTotalVertexCount": {
         "type": "u16",
-        "maxRepresentable": 65535,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 65535
       },
       "meshVertexCount": {
         "type": "u16",
-        "maxRepresentable": 65535,
-        "status": "STRUCTURAL_CONFIRMED"
+        "maxRepresentable": 65535
       }
     },
     "corpus": {
@@ -61,131 +54,75 @@
         6,
         16,
         17
-      ],
-      "status": "CORPUS_CONFIRMED"
-    },
-    "generatedIndexWorkspace": {
-      "capacityBytesFormula": "align16(6 * (vertexCount - 2))",
-      "noBreakGeneratedIndexFormula": "3 * (vertexCount - 2)",
-      "serializedIndexType": "u16",
-      "status": "EXE_AND_CORPUS_CONFIRMED"
+      ]
     }
   },
-  "hdGeometryBackend": {
-    "pingPongSets": 2,
-    "dynamicVertexBuffer": {
-      "byteWidth": 3932160,
-      "byteWidthHex": "0x3C0000",
-      "mebibytes": 3.75,
-      "usage": "D3D11_USAGE_DYNAMIC",
-      "bind": "D3D11_BIND_VERTEX_BUFFER",
-      "cpuAccess": "D3D11_CPU_ACCESS_WRITE",
-      "initializerStrideBytes": 40,
-      "uploadFunction": "0x140043190",
-      "status": "EXE_CONFIRMED_GENERIC_HD_BACKEND",
-      "scmSpecific": false
+  "d3d11": {
+    "drawWrapper": {
+      "address": "0x140043F90",
+      "indexedMode": 5,
+      "indexFormat": "DXGI_FORMAT_R32_UINT",
+      "indexFormatValue": 42,
+      "countDomain": "uint32",
+      "status": "EXE_CONFIRMED"
     },
-    "dynamicIndexBuffers": {
-      "r16": {
+    "dynamicVertexBuffers": {
+      "createRange": "0x140042E20..0x140042E67",
+      "uploadRange": "0x140043190..0x14004378A",
+      "capacityVerticesPerLayoutBuffer": 98304,
+      "formula": "ByteWidth = stride * 3 * 32768",
+      "status": "EXE_CONFIRMED"
+    },
+    "dynamicIndexBuffers": [
+      {
         "elementBytes": 2,
         "byteWidth": 319488,
-        "byteWidthHex": "0x4E000",
-        "indexCapacity": 159744,
-        "indexCapacityHex": "0x27000",
-        "dxgiFormat": "DXGI_FORMAT_R16_UINT",
-        "status": "EXE_CONFIRMED"
+        "indexCapacity": 159744
       },
-      "r32": {
+      {
         "elementBytes": 4,
         "byteWidth": 638976,
-        "byteWidthHex": "0x9C000",
-        "indexCapacity": 159744,
-        "indexCapacityHex": "0x27000",
-        "dxgiFormat": "DXGI_FORMAT_R32_UINT",
-        "status": "EXE_CONFIRMED"
-      },
-      "uploaderAndDraw": "0x1400425B0"
-    },
-    "scmIndexedDraw": {
-      "converter": "0x140044310",
-      "uploaderAndDraw": "0x1400425B0",
-      "indexElementBytes": 2,
-      "dxgiFormat": "DXGI_FORMAT_R16_UINT",
-      "dynamicIndexCapacity": 159744,
-      "status": "EXE_CONFIRMED_SCM_TO_D3D11_R16_INDEXED_DRAW"
-    },
-    "derivedSingleMeshNoBreakVertexBound": {
-      "value": 53250,
-      "derivation": "3 * (vertexCount - 2) <= 159744",
-      "status": "DERIVED_BOUND_FROM_EXE_CONFIRMED_CAPACITY",
-      "caveats": [
-        "assumes empty R16 dynamic index buffer at start of allocation window",
-        "assumes no draw splitting or rollover",
-        "assumes an unbroken strip",
-        "does not prove original-game acceptance at the bound",
-        "shared draws can reduce available capacity"
-      ]
-    },
-    "largestObservedRetailMeshWorstCase": {
-      "vertices": 10196,
-      "noBreakGeneratedIndices": 30582,
-      "fractionOfR16Capacity": 0.19145
-    },
-    "genericStaticQuadIndexBuffer": {
+        "indexCapacity": 159744
+      }
+    ],
+    "prebuiltQuadIndexBuffer": {
+      "elementBytes": 4,
       "byteWidth": 3833856,
-      "byteWidthHex": "0x3A8000",
-      "quads": 159744,
-      "indices": 958464,
-      "indexType": "u32",
-      "referencedVertices": 638976,
-      "status": "EXE_CONFIRMED_GENERIC_HD_BACKEND"
+      "indexCapacity": 958464,
+      "quadGroups": 159744,
+      "coveredSequentialVertices": 638976,
+      "status": "EXE_CONFIRMED"
     }
   },
   "texture": {
     "descriptorDimensionEncoding": "u16-per-axis",
     "historicalProductSafety": {
       "minDimension": 64,
-      "maxDimension": 1024,
-      "status": "PRODUCT_SAFETY_LIMIT"
+      "maxDimension": 1024
     },
     "retailObservedAtLeast": {
       "width": 1024,
       "height": 2048,
-      "compression": "DXT5",
-      "status": "CORPUS_CONFIRMED"
+      "compression": "DXT5"
     },
     "classification": "HD corpus observation; not yet an authored-runtime maximum"
   },
   "ptxRuntime": {
     "payloadBytes": 520,
-    "payloadBytesHex": "0x208",
+    "payloadHex": "0x208",
     "texturePointerCapacity": 64,
     "globalRecordCapacity": 128,
     "recordStrideBytes": 80,
-    "recordStrideHex": "0x50",
-    "firstRecordArrayBytes": 10240,
-    "firstRecordArrayBytesHex": "0x2800",
+    "recordArraySpanBytes": 10240,
     "status": "EXE_CONFIRMED"
   },
-  "rendererReset": {
-    "function": "0x140042270",
-    "observedEffects": [
-      "switch ping-pong selector",
-      "zero current vertex offset",
-      "zero R16 index offset",
-      "zero R32 index offset"
-    ],
-    "schedulingSemantic": "OPEN",
-    "preferredTerm": "renderer reset window"
-  },
-  "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware, derived and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress and rollover gates close.",
+  "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "SCM dynamic-index rollover/pre-call guard and split behavior",
-    "renderer reset cadence",
-    "SCM-specific vertex-stream storage and capacity",
+    "dynamic vertex ring caller/reset closure",
+    "SCM-to-buffer-class binding",
     "SCM runtime count guards",
     "complete retail texture census",
-    "D3D11 texture creation dimension guards",
+    "D3D11 texture creation guards",
     "original-game geometry stress test",
     "original-game authored DDS stress test",
     "simultaneous stage residency budget"
