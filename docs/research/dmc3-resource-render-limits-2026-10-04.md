@@ -382,6 +382,95 @@ Status: EXE_CONFIRMED.
 
 
 
+
+## Loader allocation envelope vs rendered-frame ring envelope
+
+The canonical executable now gives two different geometry budgets that must not
+be conflated.
+
+### Empty-pool SCM allocation envelope
+
+For the normal SCM allocation route, the recovered size planner is:
+
+```text
+common =
+    0xB0
+  + 0xE0 * sceneNodeCount
+  + 0x40 * textureCount
+  + optional texture-state terms
+
+scmSpecific =
+    0xA0
+  + 0x740 * objectCount
+  + 0x220 * meshCount
+  + 0x100 * sum(ceil(meshVertexCount / 60))
+  + 2 * auxiliarySize
+```
+
+The `ceil(vertexCount/60)` term is therefore an **EXE-confirmed allocation
+reserve quantum**. The current pass does not rename every reserved 0x80-byte
+sub-block as a draw chunk: the proven HD draw path operates independently as
+3-vertex triangle draws.
+
+Using the most geometry-dense structural arrangement for this allocator
+(one mesh per object, every object at the u16 total-vertex ceiling, zero
+auxiliary bytes, no texture overhead, and one helper/root node in addition to
+the geometry objects), the mathematical empty-pool envelope is:
+
+| Route | Empty usable bytes | Max full-u16 objects | Serialized vertices | Planned bytes |
+|---|---:|---:|---:|---:|
+| normal pool 1 | 5,236,736 | 18 | 1,179,630 | 5,084,336 |
+| alternate pool 2 | 4,185,600 | 14 | 917,490 | 3,954,608 |
+
+The next full-u16 object would require 5,366,768 bytes on the normal scenario
+and 4,237,040 bytes on the alternate scenario, exceeding the respective
+empty-pool usable spans.
+
+These values are **conditional allocator envelopes**, not playable-scene
+claims. Existing pool occupancy, fragmentation, textures, auxiliary state,
+additional nodes/meshes and other allocations reduce them.
+
+### Worst-case continuous-strip rendered-frame envelope
+
+The SCM HD path converts `TRIANGLE_STRIP` into one non-indexed 3-vertex draw
+for each drawable strip triangle. The dynamic vertex ring is fixed at
+`0x3C0000 = 3,932,160` bytes and `0x140043190` contains no local
+`offset + uploadBytes <= ringSize` clamp or wrap.
+
+The renderer-cluster direct-reference census for `renderer+0x17A0` shows:
+reset/initialization, zero/non-zero selection for discard vs no-overwrite,
+mapped-write base calculation, IA binding, and the final
+`offset += vertexCount * outputStride`. No direct capacity comparison exists
+in this upload function.
+
+For one continuous strip starting with an empty ring:
+
+| Output stride | Bytes/triangle | Empty-ring triangles | Max continuous source vertices |
+|---:|---:|---:|---:|
+| 20 | 60 | 65,536 | 65,535 (u16 SCM ceiling dominates) |
+| 28 | 84 | 46,811 | 46,813 |
+| 36 | 108 | 36,408 | 36,410 |
+
+A maximum-size u16 strip (`65,535` source vertices -> `65,533` triangles)
+would consume:
+
+- 3,931,980 bytes at stride 20, leaving only 180 bytes;
+- 5,504,772 bytes at stride 28, exceeding the ring by 1,572,612 bytes;
+- 7,077,564 bytes at stride 36, exceeding the ring by 3,145,404 bytes.
+
+This explains why the format/normalizer u16 ceiling is not by itself a safe
+rendering ceiling. Topology breaks reduce actual triangle draws; other dynamic
+draws in the same rendered frame consume the same ring and reduce available
+headroom.
+
+Status:
+- allocator formulas/pool routes: **EXE_CONFIRMED**;
+- ring size/upload increment/no local guard: **EXE_CONFIRMED**;
+- tables above: deterministic projections from those confirmed contracts;
+- successful original-game rendering exactly at these projected boundaries:
+  **OPEN / requires controlled stress test**.
+
+
 ## SCM TRIANGLE_STRIP -> per-triangle D3D11 draw chunking
 
 Fresh canonical-EXE tracing closes the geometry chunking mechanism.
