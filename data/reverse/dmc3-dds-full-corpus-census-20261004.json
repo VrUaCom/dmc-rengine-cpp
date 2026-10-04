@@ -1,0 +1,127 @@
+{
+  "schema": "dmc-rengine.dmc3-dds-full-corpus-census.v1",
+  "date": "2026-10-04",
+  "archive": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "bytes": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+  },
+  "population": {
+    "ddsPaths": 243,
+    "uniqueSha256": 154,
+    "uniqueDXT1": 60,
+    "uniqueDXT5": 94,
+    "dimensionCompressionCombinations": 15
+  },
+  "observedBounds": {
+    "minWidth": 128,
+    "minHeight": 64,
+    "maxWidth": 1024,
+    "maxHeight": 2048,
+    "maxMipCount": 12,
+    "minMipCount": 8
+  },
+  "maximum": {
+    "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/plwp_grenade/plwp_grenade_000/plwp_grenade_000_000.dds",
+    "sha256": "00f03a616da7e8ae2a44f5a9a386a21b705ff74118a64bd72734504db23e40c1",
+    "width": 1024,
+    "height": 2048,
+    "mipCount": 12,
+    "compression": "DXT5",
+    "bytes": 2796368
+  },
+  "uniqueDistribution": [
+    {
+      "width": 128,
+      "height": 64,
+      "compression": "DXT5",
+      "count": 6
+    },
+    {
+      "width": 128,
+      "height": 128,
+      "compression": "DXT1",
+      "count": 1
+    },
+    {
+      "width": 128,
+      "height": 128,
+      "compression": "DXT5",
+      "count": 16
+    },
+    {
+      "width": 256,
+      "height": 128,
+      "compression": "DXT1",
+      "count": 2
+    },
+    {
+      "width": 256,
+      "height": 128,
+      "compression": "DXT5",
+      "count": 11
+    },
+    {
+      "width": 256,
+      "height": 256,
+      "compression": "DXT1",
+      "count": 23
+    },
+    {
+      "width": 256,
+      "height": 256,
+      "compression": "DXT5",
+      "count": 23
+    },
+    {
+      "width": 256,
+      "height": 512,
+      "compression": "DXT1",
+      "count": 2
+    },
+    {
+      "width": 256,
+      "height": 512,
+      "compression": "DXT5",
+      "count": 9
+    },
+    {
+      "width": 512,
+      "height": 256,
+      "compression": "DXT1",
+      "count": 1
+    },
+    {
+      "width": 512,
+      "height": 256,
+      "compression": "DXT5",
+      "count": 3
+    },
+    {
+      "width": 512,
+      "height": 512,
+      "compression": "DXT1",
+      "count": 28
+    },
+    {
+      "width": 512,
+      "height": 512,
+      "compression": "DXT5",
+      "count": 25
+    },
+    {
+      "width": 1024,
+      "height": 1024,
+      "compression": "DXT1",
+      "count": 3
+    },
+    {
+      "width": 1024,
+      "height": 2048,
+      "compression": "DXT5",
+      "count": 1
+    }
+  ],
+  "claimBoundary": "Complete census of the exact bounded v6 research archive only; not a completeness claim for every resource in the retail game.",
+  "status": "CORPUS_CONFIRMED"
+}
