@@ -1,0 +1,71 @@
+{
+  "schema": "dmc-rengine.hd-dynamic-vertex-ring-caller-census.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "uploader": {
+    "address": "0x140043190",
+    "directCallers": [
+      "0x140043F90"
+    ]
+  },
+  "drawWrapper": {
+    "address": "0x140043F90",
+    "directCallerCount": 49,
+    "directCallers": [
+      "0x14002B407",
+      "0x14002B555",
+      "0x14002BA5B",
+      "0x14002D1E2",
+      "0x14002DD3D",
+      "0x14003D0D7",
+      "0x14003D1EB",
+      "0x14003D4B5",
+      "0x14003D81C",
+      "0x14003D8A7",
+      "0x14003DA45",
+      "0x14003DBA1",
+      "0x14003DD8E",
+      "0x14003DF92",
+      "0x14003E0E1",
+      "0x14003E3A4",
+      "0x14003E44C",
+      "0x14003E4B4",
+      "0x14003E634",
+      "0x14003E79C",
+      "0x14003E905",
+      "0x14003EA6C",
+      "0x14003EBDE",
+      "0x14003ED1F",
+      "0x14003F0E0",
+      "0x14003F395",
+      "0x14003F4C8",
+      "0x14003F726",
+      "0x14003F97E",
+      "0x14003FB85",
+      "0x14003FE2B",
+      "0x14003FFF7",
+      "0x1400400DE",
+      "0x140040344",
+      "0x140040490",
+      "0x1400406EB",
+      "0x140040842",
+      "0x140040993",
+      "0x140040A09",
+      "0x140040BD9",
+      "0x140040FAB",
+      "0x14004101C",
+      "0x1400412AD",
+      "0x1400415A1",
+      "0x140041681",
+      "0x14004180A",
+      "0x140044CDF",
+      "0x1400457CD",
+      "0x14032C718"
+    ]
+  },
+  "conclusion": "The renderer+0x17A0 dynamic vertex ring is shared by SCM compatibility draws and other renderer callsites.",
+  "status": "EXE_CONFIRMED_SHARED_DYNAMIC_VERTEX_RING",
+  "remainingDynamicQuestion": "exact occupancy and draw order in representative retail frames"
+}
