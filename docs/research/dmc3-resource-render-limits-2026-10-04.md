@@ -383,6 +383,32 @@ Status: EXE_CONFIRMED.
 
 
 
+
+## Shared dynamic-ring caller census
+
+A whole-image direct-call census closes the ownership question for the HD
+dynamic vertex ring:
+
+- `0x140043190` (Map/convert/Unmap/IASetVertexBuffers uploader) has one direct
+  executable caller: `0x140043F90`;
+- `0x140043F90` has **49 direct callsites** in the canonical executable;
+- SCM compatibility primitive handlers are among those callsites
+  (`0x14002B407`, `0x14002B555`, `0x14002BA5B`);
+- many other direct callsites lie outside that compatibility primitive cluster,
+  including the `0x14003Dxxx..0x140041xxx`, `0x140044CDF`,
+  `0x1400457CD` and `0x14032C718` regions.
+
+Therefore the dynamic vertex ring at `renderer+0x17A0` is conclusively a
+**shared renderer resource**, not an SCM-private allocation.
+
+This closes the structural ownership question but not the dynamic occupancy
+question: static reverse can prove who may consume the ring, while the exact
+remaining headroom at a particular point in a retail frame requires either a
+full scheduler/draw-order reconstruction or runtime instrumentation.
+
+Status: **EXE_CONFIRMED_SHARED_DYNAMIC_VERTEX_RING**.
+
+
 ## Loader allocation envelope vs rendered-frame ring envelope
 
 The canonical executable now gives two different geometry budgets that must not
