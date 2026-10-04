@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v5",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v6",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -54,6 +54,42 @@
         6,
         16,
         17
+      ],
+      "reconstructedNondegenerateTriangles": 114051,
+      "maxTriangleFile": {
+        "name": "st114.scm",
+        "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d",
+        "vertices": 27057,
+        "meshes": 72,
+        "objects": 41,
+        "triangles": 16248
+      },
+      "maxTriangleMesh": {
+        "file": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_b00/m20_b00_004/m20_b00_004_000.scm",
+        "object": 17,
+        "mesh": 1,
+        "vertices": 10196,
+        "triangles": 5696
+      },
+      "maxFileEmptyRingProjection": [
+        {
+          "strideBytes": 20,
+          "bytesPerTriangle": 60,
+          "bytes": 974880,
+          "percent": 24.79248046875
+        },
+        {
+          "strideBytes": 28,
+          "bytesPerTriangle": 84,
+          "bytes": 1364832,
+          "percent": 34.70947265625
+        },
+        {
+          "strideBytes": 36,
+          "bytesPerTriangle": 108,
+          "bytes": 1754784,
+          "percent": 44.62646484375
+        }
       ]
     },
     "hdCompatibilityDraw": {
