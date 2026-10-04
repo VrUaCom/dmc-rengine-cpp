@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v18",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v19",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -523,7 +523,7 @@
       "directCallsites": 49,
       "fullyStaticLocalArguments": 42,
       "boundedCompatibilityCallsites": 3,
-      "genericRuntimeCountCallsites": 4,
+      "genericRuntimeCountCallsites": 3,
       "fixedPatterns": [
         {
           "flags": "0x00000102",
@@ -631,17 +631,21 @@
           "flags": "0x2",
           "mode": 3,
           "bytesFormula": "12*r12d"
-        },
-        {
-          "callsite": "0x1400457CD",
-          "flags": "0x40000002",
-          "modeFormula": "1/3/5 from source mode",
-          "bytesFormula": "registeredStride * runtimeVertexCount"
         }
       ],
       "fixedCallsitesSingleExecutionSumBytes": 3084,
       "claimBoundary": "3084 bytes is one execution of each fixed site only; dynamic frame occupancy depends on loops and the four generic count helpers",
-      "status": "EXE_CONFIRMED_STATIC_AND_BOUNDED_CALLSITE_CENSUS"
+      "status": "EXE_CONFIRMED_46_OF_49_FIXED_OR_BOUNDED",
+      "boundedGenericCallsites": 1,
+      "boundedGeneric": [
+        {
+          "callsite": "0x1400457CD",
+          "flags": "0x40000002",
+          "outputStrideBytes": 16,
+          "sourceCount": "11-bit N <= 2047",
+          "ringByteMax": 131008
+        }
+      ]
     },
     "deviceCreation": {
       "import": "D3D11CreateDeviceAndSwapChain",
@@ -656,6 +660,50 @@
       "failurePolicy": "negative HRESULT branches to device-creation failure path",
       "relationToTexture2DLimit": "FL11 resource limit 16384 U/V matches recovered EXE width/height guard 0x4000",
       "status": "EXE_CONFIRMED_D3D_FEATURE_LEVEL_11_0"
+    },
+    "genericDraw457cd": {
+      "callsite": "0x1400457CD",
+      "countSource": "(state+0x160) & 0x7FF",
+      "sourceCountMax": 2047,
+      "zeroSkipsDraw": true,
+      "helper": "0x140043110",
+      "helperMappings": [
+        {
+          "mode": 1,
+          "vertexFormula": "2*N",
+          "maxVertices": 4094,
+          "maxRingBytes": 65504
+        },
+        {
+          "mode": 3,
+          "vertexFormula": "3*N",
+          "maxVertices": 6141,
+          "maxRingBytes": 98256
+        },
+        {
+          "mode": 5,
+          "vertexFormula": "4*N",
+          "maxVertices": 8188,
+          "maxRingBytes": 131008
+        }
+      ],
+      "flags": "0x40000002",
+      "outputStrideBytes": 16,
+      "status": "EXE_CONFIRMED_BOUNDED_DYNAMIC_DRAW"
+    },
+    "scratch44cdfCandidate": {
+      "helper": "0x1400446F0",
+      "callsite": "0x140044CDF",
+      "scratchBase": "0x140BEB3F0",
+      "nextReferencedGlobal": "0x140C0B3F0",
+      "inferredSpanBytes": 131072,
+      "groupBytes": 72,
+      "verticesPerGroup": 6,
+      "fullGroupsIfExtentIsExact": 1820,
+      "verticesIfExtentIsExact": 10920,
+      "remainderBytes": 32,
+      "status": "STRUCTURAL_CANDIDATE",
+      "claimBoundary": "No explicit bound check or exact size-bearing initializer recovered yet; not a hard engine limit."
     }
   },
   "texture": {
@@ -728,7 +776,7 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "resolve caller count/range and frame ordering for generic draw helpers 0x14003F4C8, 0x140040344, 0x140044CDF, 0x1400457CD or instrument renderer+0x17A0",
+    "close remaining generic draw helpers 0x14003F4C8, 0x140040344, 0x140044CDF; confirm 0x140BEB3F0 scratch object extent",
     "measure exact shared dynamic-ring occupancy/order in representative retail frames",
     "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
