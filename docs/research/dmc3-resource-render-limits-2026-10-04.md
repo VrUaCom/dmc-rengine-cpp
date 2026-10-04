@@ -42,6 +42,125 @@ The consolidated corpus receipt also records a largest per-file vertex total of 
 
 Status: CORPUS_CONFIRMED for observed values; STRUCTURAL_CONFIRMED for field widths.
 
+## SCM normalizer and runtime allocation ceiling
+
+Fresh canonical-EXE analysis closes a second limit domain that is independent of
+the per-frame D3D11 ring.
+
+### Normalizer count domain
+
+SCM normalizer `0x1403051B0` reads `mesh.vertex_count` as a `u16`, zero-extends
+it and compares a 32-bit loop counter directly against that value. Generated
+workspace indices are written as `u16`.
+
+At the serialized maximum `vertex_count = 65,535`, the largest source vertex
+index is `65,534`, which is still exactly representable as `u16`. No lower
+explicit vertex-count cap was found in this normalizer.
+
+The canonical workspace policy
+
+`align16(6 * (vertexCount - 2))`
+
+also provides the required worst-case storage domain for its generated u16
+sequence.
+
+This proves that the normalizer itself does **not** lower the per-mesh u16
+representational ceiling. It does not by itself prove that a 65,535-vertex mesh
+is universally gameplay-safe because the complete runtime blob and per-frame
+renderer budgets are separate limits.
+
+Status: EXE_CONFIRMED_NORMALIZER_U16_DOMAIN.
+
+### Runtime blob planner
+
+For SCM family mask `0x30000000`, `0x1402FD8D0` computes the runtime allocation
+as:
+
+`align16(commonSize + scmSpecificSize)`
+
+using common planner `0x1402FD9C0` plus SCM planner `0x1402FDD10`.
+
+The SCM-specific term is exactly:
+
+`0xA0 + 0x740*O + 0x220*M + 0x100*sum(ceil(V_i/60)) + 2*A`
+
+where:
+
+- `O` = object count;
+- `M` = total mesh count;
+- `V_i` = each mesh vertex count;
+- `A` = the auxiliary size returned by `0x1402FE1B0` for one of the two passes.
+
+The `0x100*ceil(V/60)` contribution comes from two passes, each allocating
+`0x80` bytes for every 60-vertex chunk.
+
+The common term is:
+
+`0xB0 + 0xE0*N + 0x40*T + optionalTextureState`
+
+with `N` scene nodes and `T` texture-companion entries. When the runtime
+texture-state flags are non-zero, the optional term includes `0x20`,
+`0x50*T*L` for the first parsed texture level count `L`, and an additional
+`0x30*T` when flag bit `0x02` is active.
+
+One mesh at the serialized maximum of 65,535 vertices contributes only
+`0x44F00 = 282,368` bytes to the SCM-specific term for a one-object/one-mesh
+resource before common and auxiliary terms. Therefore this runtime-size planner
+also does not, by itself, reduce the one-mesh u16 ceiling.
+
+### Game runtime arena and SCM pool route
+
+Startup `0x140030190` requests `0x10400000` bytes through
+`0x1400490D0`, which is the canonical `VirtualAlloc` reserve/commit wrapper.
+That is a 260 MiB top-level block.
+
+The game then initializes a `0x10000000` = 256 MiB master arena at
+`0x1402C60E0..0x1402C6119`.
+
+SCM does **not** allocate its runtime blob from that entire 256 MiB capacity.
+At `0x1400899FB..0x140089A12` it requests selector `-2` through allocator
+router `0x1402C6150`.
+
+Normal selector-`-2` routing selects pool index 1:
+
+- span: `0x500000` = 5 MiB;
+- block size: `0x400` = 1,024 bytes;
+- alignment: 16 bytes;
+- occupancy slots: **5,114**;
+- usable block payload in an empty pool: **5,236,736 bytes = 0x4FE800**.
+
+The allocator rounds a request to
+`ceil(requestBytes / 1024)` blocks and `0x1403374A0` must find one contiguous
+free run. Fragmentation or existing occupants can therefore lower the actual
+available maximum.
+
+There is also a live routing override. When byte `0x140CA8AB1 == 1`, the same
+selector class is forced to pool index 2:
+
+- span: 4 MiB;
+- block size: 512 bytes;
+- alignment: 64 bytes;
+- slots: **8,175**;
+- empty-pool usable payload: **4,185,600 bytes = 0x3FDE00**.
+
+Thus there is no honest single statement such as "SCM has 5 MiB available".
+The strongest current statement is:
+
+> SCM runtime materialization is bounded by a block-pool route whose normal
+> empty-pool contiguous ceiling is 5,236,736 bytes, with a live override route
+> that lowers the corresponding empty-pool ceiling to 4,185,600 bytes.
+
+The final accepted resource must also satisfy the common/texture planner,
+auxiliary validation, current pool occupancy and contiguous-run availability.
+
+Reproducer:
+`scripts/reverse/audit_scm_runtime_allocation_limits.py`
+
+Machine receipt:
+`data/reverse/dmc3-scm-runtime-allocation-limit-20261004.json`
+
+Status: EXE_CONFIRMED_SCM_RUNTIME_ALLOCATION_LIMIT_PATH.
+
 ## Retail reconstructed triangle workload
 
 A reproducible census now applies the same topology-break rule used by
@@ -335,9 +454,9 @@ For Rengine, every future limit entry must carry:
 
 ## Open gates before claiming "maximum DMC3"
 
-1. Reverse the exact allocation/validation path for oversized SCM object/mesh vertex counts.
+1. Close the remaining auxiliary-size validation domain behind 0x1402FE1B0/0x1402FE030 and quantify its contribution for retail PTX companions.
 2. Quantify how much of the shared per-rendered-frame ring is consumed by non-SCM dynamic draws in representative retail frames.
-3. Determine whether any loader/renderer rejects SCM counts before their serialized integer ceiling.
+3. Determine whether any later runtime consumer imposes a vertex-count restriction below the normalizer's now-confirmed full u16 domain.
 4. Close the producer of SCM runtimeObject+0x98, now that the complete canonical EXE is available.
 5. Census all texture dimensions and per-slot texture counts from the complete retail resource population.
 6. Determine practical allocation/residency failure points below the now-closed 16,384-per-axis Texture2D validation ceiling.
