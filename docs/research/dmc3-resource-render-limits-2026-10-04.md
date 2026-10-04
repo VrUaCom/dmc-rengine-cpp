@@ -5,10 +5,11 @@
 **Status:** Current consolidated reverse snapshot  
 **Repository:** `VrUaCom/dmc-rengine-cpp`  
 **Research branch:** `reverse/dmc3-resource-render-limits-20261004`  
-**Research base commit (v21):** `a6a740a27cc125bb92a2dd86e3c8c7458156140d`  
-**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v21`
+**Saved v21 evidence commit:** [cf3c0a6](https://github.com/VrUaCom/dmc-rengine-cpp/commit/cf3c0a6e9045ed9594450409fb9442bf01e55714)  
+**Research base commit (v22):** `cf3c0a6e9045ed9594450409fb9442bf01e55714`  
+**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v22`
 
-**v21 continuation:** Sections 59–64 close SHW ownership and derive subcommand 11/12 workload formulas. Specific neighbor-variable writes were reproduced in 27 cropped machine-code cases. Earlier evidence sections retain their historical intermediate findings; the v21 continuation and current ledger supersede their remaining ownership questions.
+**v22 continuation:** Sections 65–69 recover effect 11/12 initializer defaults, raw parameter admission, the 512×256 startup viewport, cached type 11 regeneration and checksum invalidation. 38 new instruction fixtures pass. Earlier evidence remains as history; later continuation sections and the current ledger supersede intermediate open questions.
 
 ## Canonical executable
 
@@ -76,6 +77,8 @@ The strongest current conclusions are:
 - The remaining generic draw `0x140044CDF` is SHW shadow-volume batching: **72 × (active faces + silhouette-side groups)** ring bytes per invocation.
 - Cropped execution reproduces neighbor-variable writes beyond the 64/32/128 KiB separations for subcommand 11, subcommand 12 and SHW. These are conditional conflict boundaries, not enforced gameplay caps.
 - SHW constructor/planner count fields are sign-extended 16-bit values, and SHW runtime allocation uses the same routed contiguous pool as SCM.
+- Effect 11 initializer shifts are 4/3; the recovered startup compatibility viewport is 512×256. That combination generates 47,600 bytes and completes before the known scalar neighbor.
+- The raw parameter importer permits values beyond that combination. Cached effect 11 also regenerates geometry; its checksum change detector is not an exact capacity guard.
 - The executable has separate dynamic 16-bit and 32-bit index buffers with **159,744 entries each**. A 16-bit index buffer may contain more than 65,535 entries; only each stored index value is limited to `0..65535`.
 - DMC3 HD's recovered DDS/Texture2D path explicitly accepts width and height up to **16,384 × 16,384** before `CreateTexture2D`, and the game explicitly requests **D3D feature level 11_0**.
 - The preserved bounded retail DDS archive already contains **1024×2048 DXT5**, disproving the old assumption that `1024×1024` is a universal DMC3 HD maximum.
@@ -1801,12 +1804,12 @@ Suggested severity policy:
 - **purple/experimental:** EXE allows it statically but original-game stress acceptance remains untested.
 
 
-# 52. Open gates (updated by v21)
+# 52. Open gates (updated by v22)
 
 The current machine ledger leaves the following important gates open:
 
 1. Determine retail input reachability for the three generic producers. SHW ownership of `0x140044CDF`, its workload formula, and the specific neighbor-write boundaries are closed; see sections 59–64.
-2. Determine dynamic execution frequency/order for A+D subcommands 11 and 12 in representative frames.
+2. Determine retail payload values and dynamic execution frequency/order for effects 11/12; initializer defaults, local raw import and cache mechanics are now closed (sections 65–69).
 3. Recover exact static-object extents. The distances below are now proven interference boundaries, but exact array declarations and enforced admission caps remain unproven:
    - `0x140CC1AD0` — candidate 64 KiB
    - `0x140CD1AF0` — candidate 32 KiB
@@ -2036,13 +2039,13 @@ This document is a consolidated snapshot of:
 ```text
 repository: VrUaCom/dmc-rengine-cpp
 branch: reverse/dmc3-resource-render-limits-20261004
-v21 research base: a6a740a27cc125bb92a2dd86e3c8c7458156140d
+v22 research base: cf3c0a6e9045ed9594450409fb9442bf01e55714
 ```
 
 Main current ledger schema:
 
 ```text
-dmc-rengine.dmc3-resource-render-limits.v21
+dmc-rengine.dmc3-resource-render-limits.v22
 ```
 
 Where this document conflicts with older intermediate notes, the current branch ledger and explicit `REJECTED/SUPERSEDED` corrections are authoritative.
@@ -2274,3 +2277,194 @@ Next static work: trace effect-record initializers/serialized parameter admissio
 for types 11/12, inspect cached updater shape stability, and census SHW hulls plus
 light-dependent silhouette counts. Next dynamic work: instrument producer end
 pointers, the protected neighbor variables, and ring `+0x17A0` in retail frames.
+
+---
+
+# 65. Continuation v22 — effect defaults and parameter admission
+
+**Date:** 2026-10-04. **Research base:** `cf3c0a6e9045ed9594450409fb9442bf01e55714`.
+This pass retains the canonical executable hash and promotes the current ledger
+to `dmc-rengine.dmc3-resource-render-limits.v22`. No original-game frame was run.
+
+`0x140315BD0` selects a free record among 16 records of stride `0x280`, then
+calls initializer `0x140316E10`. The initializer zeroes `0x280` bytes and dispatches
+on `effectType-1` through the table at `0x140317398`.
+
+| Effect | Initializer handler | Confirmed initial fields | Initial checksum span |
+|---|---|---|---:|
+| 11 | `0x1403171B7` | `+0x58=4`, `+0x5C=3`, `+0x60=0` | 80 B |
+| 12 | `0x140317218` | `+0x2C=100`, `+0x30=100` | 120 B |
+
+These are EXE initializer defaults, not a retail asset census. The v21 `(100,100)`
+control for effect 12 is now independently connected to an actual initializer.
+
+The parameter importer `0x14031F050` selects a typed handler through
+`0x14031F778` and uses actual lookup `0x14031EC60` to obtain an existing record.
+
+| Effect | Import handler | Source payload → runtime record | Write sites |
+|---|---|---|---|
+| 11 | `0x14031F0E5` | source `+0x1C/+0x20` → record `+0x58/+0x5C` | `0x14031F125/0x14031F12B` |
+| 12 | `0x14031F373` | source `+0x00/+0x04` → record `+0x2C/+0x30` | `0x14031F38D/0x14031F393` |
+
+Both copy complete raw dwords with no local minimum, shift-domain or backing-span
+validation. Fixtures confirm values including zero and `0xFFFFFFFF` survive this
+import. Effect 12's later `>200 ->100` producer normalization remains separate;
+its zero-progress values still pass the importer. Effect 11's shift fields are
+also unbounded here; x86 masking remains relevant for arbitrary raw values.
+
+The recovered stream route `0x14031EE00` resolves a source payload through a
+relative-offset table and reaches importer call `0x14031EFF9`. Calls at
+`0x14031E67D/0x14031E722` provide additional importer routes.
+This closes local static admission provenance. Which payload values occur in
+retail files, and complete source-container validation, remain open.
+
+# 66. Internal viewport provenance — startup is 512×256
+
+Viewport selector `0x140337CD0` reads one of two three-entry pointer tables:
+`0x1405D1B08` and `0x1405D1B50`. Each descriptor stores three u16 dimensions at
+`+0x08/+0x0A/+0x0C`; the selector copies them to the display context at
+`+0x20/+0x22/+0x24`.
+
+| Table | Index | Descriptor | Width | Height | Third dimension |
+|---|---:|---|---:|---:|---:|
+| first | 0 | `0x1405D1AD8` | 512 | 256 | 224 |
+| first | 1 | `0x1405D1AE8` | 512 | 256 | 224 |
+| first | 2 | `0x1405D1AF8` | 512 | 512 | 448 |
+| alternate | 0 | `0x1405D1B20` | 512 | 256 | 224 |
+| alternate | 1 | `0x1405D1B30` | 512 | 256 | 224 |
+| alternate | 2 | `0x1405D1B40` | 512 | 512 | 512 |
+
+Startup call `0x140337C4C` supplies index 1 and selector 0, establishing
+**512×256** on that route. `0x140316360` subsequently copies width/height into
+effect context `+0x15D58/+0x15D5C`. The third dimension is not this grid's height.
+These are compatibility dimensions; they must not be equated with the user's
+HD window/output resolution. Selecting table index 2 in a fixture does not prove
+that retail gameplay enters that mode.
+
+At initializer shifts `4/3`, effect 11's formula gives:
+
+| Internal dimensions | Rows × records per row | Theoretical records | Bytes | Cropped producer result |
+|---|---:|---:|---:|---|
+| 512×256 | 34×35 | 1,190 | 47,600 | Completes before known scalar |
+| 512×512 | 66×35 | 2,310 | 92,400 | Scalar conflict at record 1,639 |
+| 640×360 fixture | 47×43 | 2,021 | 80,840 | Scalar conflict at record 1,639 |
+
+At 512×256, imported shifts `3/3` instead produce 2,278 records / 91,120 bytes
+theoretically and reach the same conflict. Thus the default startup combination
+is below that specific neighbor boundary; accepted raw parameters need not be.
+No universal game-safe ceiling follows from either observation.
+
+# 67. Cached effect 11 regenerates geometry; cache is not a draw-size limiter
+
+The main effect processor begins at `0x1403153C0`. Its cached dispatch table
+`0x140315708` uses `effectType-3`. Type 11 reaches `0x140315676` and calls
+`0x14031A830` at `0x14031567C`; type 12 reaches the no-updater continuation
+`0x14031568E` in this table.
+
+For ordinary nonnegative dimensions and positive strides, the type 11 updater
+writes the same 40-byte records as the initial producer:
+
+```text
+sx = 1 << field58
+sy = 1 << field5C
+bytes = 40 * (floor(height/sy)+2) * (floor(width/sx)+3)
+```
+
+It adds `field20/field24` to phase accumulators `field70/field74` and changes the
+generated values. Phase and drift fixtures confirm these changes do not alter
+the generated record count at fixed dimensions/strides.
+
+The updater again starts at `0x140CC1AD0`. The first scalar overlap is now
+independently proven at instruction **`0x14031AB97`**, record **1,639**, writing
+four bytes to `0x140CD1AD0`. This differs from the initial producer's write site
+`0x14031928F`, while sharing the same record boundary.
+
+The original producer encodes generated byte length divided by four in a
+`0x64` command at `0x1403194E0..0x140319511`. A separate indexed patch slot is
+recorded for the updater. The updater rewrites only that patch command's two
+dwords plus its command qword. It does not update the earlier registry/length
+command or independently register a new generated span.
+
+Fixtures execute the actual count-writer slice and then the actual updater:
+the count command remains unchanged while geometry is regenerated. They use a
+synthetic cache/packet and registry ID, not the complete packet allocation route.
+Changing dimensions or strides behind a still-valid cache can therefore make
+generated extent differ from its cached count. Ordinary parameter changes are
+handled by the invalidation mechanism below; real mode-transition behavior is
+still an open runtime/lifecycle question.
+
+# 68. Cache checksum and its precise assurance boundary
+
+`0x1403162E0` computes a wrapping 32-bit sum of rotated parameter dwords:
+
+```text
+N = floor(record.u16[+0x06] / 4)
+checksum = sum(ROR32(record.u32[+0x18+4*i], i&31), i=0..N-1) mod 2^32
+```
+
+For type 11's initialized 80-byte span this covers `+0x18..+0x67`, including
+both shifts, but excludes accumulators `+0x70/+0x74`. Effect-context width/height
+are also outside this record checksum.
+
+The processor compares the checksum with record `+0x08`. A mismatch sets dirty
+mask `+0x0C=3`. For the current display lane, `0x140316A90` releases the cached
+packet via `0x1402C6260` and clears its pointer at cache `+0x40+8*lane`. The
+current lane's dirty bit is cleared; the other lane remains dirty for a later
+visit. An absent current-lane packet selects rebuilding. A matching checksum and
+present packet selects cache reuse. Both lanes and both effect types are tested.
+
+This is a change detector, not an exact size guard. A deliberate type 11 fixture
+changes shift `+0x58:4->3` and amplitude `+0x18:32->65568`. The two checksum
+contributions cancel exactly: the shift change subtracts `0x10000`, while the
+amplitude change adds `0x10000`. The checksum remains equal and the existing
+cache is reused despite a changed shape parameter.
+
+**Status:** `EXE_CONFIRMED` for this raw-input collision and branch outcome.
+There is no claim that this combination occurs in retail assets or causes a
+retail crash. For an Rengine authoring validator, checksum equality cannot stand
+in for explicit dimensions, strides, byte count and backing-capacity validation.
+
+# 69. v22 verification and remaining gates
+
+**38/38 new machine-code fixtures pass.** The retained v21 receipt contains a
+separate 27 passing cases; the counts are not presented as gameplay tests.
+
+The new fixtures cover initializer defaults (2), viewport table selection (6),
+raw parameter admission (8), cache invalidation (8), a checksum collision (1),
+initial producers (7), and cached effect 11 (6).
+
+External stubs are explicit: initializer memset, viewport state calls, cache
+deallocation, effect 12 RNG, and security-cookie checking. The cached updater's
+depth helper executes its actual no-camera path. Source parameters, cache objects,
+display state and packet storage are controlled fixtures. No original-game frame,
+retail asset corpus, GPU draw, allocation-failure behavior or crash was tested.
+
+Reproduce with Python, `pefile==2024.8.26`, and `unicorn==2.1.4`:
+
+```sh
+python tools/reverse/verify_dmc3_effect_parameter_admission.py \
+  /path/to/canonical/dmc3.exe /path/to/output.json
+```
+
+The adjacent v21 `verify_dmc3_render_producer_boundaries.py` provides the shared
+hash-bound PE fixture helpers and initial producer runners.
+
+Evidence:
+
+- `data/reverse/dmc3-hd-effect-parameter-admission-20261004.json`
+- `data/reverse/dmc3-hd-effect-parameter-verification-20261004.json`
+- `data/reverse/effect-parameter-admission-20261004/*.asm`
+
+Closed: initializer defaults; raw field import; viewport descriptors and startup
+selection; cached effect 11 count/formula/conflict; normal two-lane invalidation;
+the checksum's exact input domain and a reproducible collision.
+
+Still open: retail effect parameter census; full source-container semantics;
+mode/lifecycle transitions and invocation order; exact static object extents;
+SHW hull/light silhouette corpus; actual shared-ring occupancy and original-game
+stress/failure behavior; original PS2 executable limits.
+
+Next useful static target: identify the imported effect stream's resource owner
+and census its real type 11/12 parameter records. Next dynamic target: record
+internal viewport, initial/cached producer end pointers, cached encoded length,
+neighbor scalar/pointers and shared-ring occupancy together in original frames.

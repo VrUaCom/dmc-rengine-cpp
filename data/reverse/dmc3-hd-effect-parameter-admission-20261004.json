@@ -1,0 +1,362 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-effect-parameter-admission.v1",
+  "date": "2026-10-04",
+  "researchBaseCommit": "cf3c0a6e9045ed9594450409fb9442bf01e55714",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "sizeBytes": 6356432,
+    "imageBase": "0x140000000"
+  },
+  "status": "EXE_CONFIRMED",
+  "dispatchTables": [
+    {
+      "name": "initializer",
+      "address": "0x140317398",
+      "rawHex": "7c6e31009d6e3100cb6e31001f6f31006e6f3100c96f31005d703100bf7031000871310036713100b771310018723100727231002073310059733100",
+      "encoding": "u32 image-relative addresses",
+      "indexRule": "effectType-1",
+      "type11Target": "0x1403171b7",
+      "type12Target": "0x140317218"
+    },
+    {
+      "name": "importer",
+      "address": "0x14031f778",
+      "rawHex": "d1f3310084f0310023f531001af4310043f2310091f53100d6f2310048f13100c3f1310074f43100e5f0310073f331001ef63100baf6310033f73100",
+      "encoding": "u32 image-relative addresses",
+      "indexRule": "effectType-1",
+      "type11Target": "0x14031f0e5",
+      "type12Target": "0x14031f373"
+    },
+    {
+      "name": "cachedUpdater",
+      "address": "0x140315708",
+      "rawHex": "5c5631008e5631008e5631008e5631008e5631008e5631008e56310069563100765631008e563100835631008e5631008e5631008e563100",
+      "encoding": "u32 image-relative addresses",
+      "indexRule": "effectType-3",
+      "type11Target": "0x140315676",
+      "type12Target": "0x14031568e"
+    }
+  ],
+  "initialization": {
+    "allocator": "0x140315BD0",
+    "initializer": "0x140316E10",
+    "slotCount": 16,
+    "recordStrideBytes": 640,
+    "zeroedBytes": 640,
+    "type11": {
+      "handler": "0x1403171B7",
+      "shift58": 4,
+      "shift5C": 3,
+      "field60": 0,
+      "checksumBytes": 80
+    },
+    "type12": {
+      "handler": "0x140317218",
+      "field2C": 100,
+      "field30": 100,
+      "checksumBytes": 120
+    },
+    "claimBoundary": "Initializer defaults, not retail parameter statistics"
+  },
+  "admission": {
+    "importer": "0x14031F050",
+    "lookup": "0x14031EC60",
+    "type11": {
+      "handler": "0x14031F0E5",
+      "rawDwordMapping": {
+        "+0x1C": "+0x58",
+        "+0x20": "+0x5C"
+      },
+      "sites": [
+        "0x14031F125",
+        "0x14031F12B"
+      ]
+    },
+    "type12": {
+      "handler": "0x14031F373",
+      "rawDwordMapping": {
+        "+0x00": "+0x2C",
+        "+0x04": "+0x30"
+      },
+      "sites": [
+        "0x14031F38D",
+        "0x14031F393"
+      ]
+    },
+    "localGuard": "No minimum/shift-domain/generated-backing-span validation in these handlers",
+    "streamEntry": "0x14031EE00",
+    "streamCallsite": "0x14031EFF9",
+    "additionalCalls": [
+      "0x14031E67D",
+      "0x14031E722"
+    ],
+    "claimBoundary": "Locally admitted raw values; full source-container semantics and retail occurrence remain open"
+  },
+  "viewport": {
+    "selector": "0x140337CD0",
+    "tables": [
+      {
+        "pointerTableVA": "0x1405d1b08",
+        "items": [
+          {
+            "index": 0,
+            "descriptorVA": "0x1405d1ad8",
+            "rawHex": "010002000100020000020001e0000100",
+            "width": 512,
+            "height": 256,
+            "thirdDimension": 224
+          },
+          {
+            "index": 1,
+            "descriptorVA": "0x1405d1ae8",
+            "rawHex": "010002000100020000020001e0000200",
+            "width": 512,
+            "height": 256,
+            "thirdDimension": 224
+          },
+          {
+            "index": 2,
+            "descriptorVA": "0x1405d1af8",
+            "rawHex": "000002000100000000020002c0010100",
+            "width": 512,
+            "height": 512,
+            "thirdDimension": 448
+          }
+        ]
+      },
+      {
+        "pointerTableVA": "0x1405d1b50",
+        "items": [
+          {
+            "index": 0,
+            "descriptorVA": "0x1405d1b20",
+            "rawHex": "010002000100020000020001e0000100",
+            "width": 512,
+            "height": 256,
+            "thirdDimension": 224
+          },
+          {
+            "index": 1,
+            "descriptorVA": "0x1405d1b30",
+            "rawHex": "010002000100020000020001e0000200",
+            "width": 512,
+            "height": 256,
+            "thirdDimension": 224
+          },
+          {
+            "index": 2,
+            "descriptorVA": "0x1405d1b40",
+            "rawHex": "00000200010000000002000200020100",
+            "width": 512,
+            "height": 512,
+            "thirdDimension": 512
+          }
+        ]
+      }
+    ],
+    "dimensionCopies": {
+      "width": "descriptor+0x08 -> display+0x20",
+      "height": "descriptor+0x0A -> display+0x22",
+      "thirdDimension": "descriptor+0x0C -> display+0x24"
+    },
+    "startup": {
+      "callsite": "0x140337C4C",
+      "index": 1,
+      "selector": 0,
+      "width": 512,
+      "height": 256,
+      "thirdDimension": 224
+    },
+    "effectContextCopy": "0x140316360 -> context+0x15D58/+0x15D5C",
+    "claimBoundary": "Internal compatibility viewport, not HD output resolution; index2 retail reachability not established"
+  },
+  "cachedType11": {
+    "entry": "0x14031A830",
+    "processor": "0x1403153C0",
+    "callsite": "0x14031567C",
+    "formula": "40*(floor(height/(1<<field5C))+2)*(floor(width/(1<<field58))+3)",
+    "formulaDomain": "Nonnegative dimensions, positive signed strides, no overflow",
+    "phaseUpdate": [
+      "field70 += field20",
+      "field74 += field24"
+    ],
+    "phaseChangesRecordCount": false,
+    "conflict": {
+      "base": "0x140CC1AD0",
+      "neighborScalar": "0x140CD1AD0",
+      "recordOrdinal": 1639,
+      "instruction": "0x14031AB97",
+      "writeBytes": 4
+    },
+    "cachedLength": {
+      "writerSlice": "0x1403194E0..0x140319511",
+      "encoding": "sourceBytes>>2 in command payload+0x04",
+      "updaterRewritesLength": false,
+      "updaterReRegistersSpan": false,
+      "patchWrites": "Two dwords and command qword in indexed0x64 patch slot"
+    },
+    "type12InCachedUpdaterTable": "No updater; target0x14031568E",
+    "claimBoundary": "Shape agrees with initial producer at fixed dimensions/strides. Still-valid cache with changed shape is conditional, not a proven retail lifecycle failure"
+  },
+  "cacheInvalidation": {
+    "checksumEntry": "0x1403162E0",
+    "formula": "sum(ROR32(record.u32[0x18+4*i], i&31)) mod2^32, i<floor(record.u16[6]/4)",
+    "type11CoveredSpan": "+0x18..+0x67",
+    "excluded": [
+      "phase70",
+      "phase74",
+      "effectContextDimensions"
+    ],
+    "storedChecksumField": "+0x08",
+    "dirtyMaskField": "+0x0C",
+    "mismatchMask": 3,
+    "laneCacheField": "cache+0x40+8*lane",
+    "clearHelper": "0x140316A90",
+    "freeCall": "0x1402C6260",
+    "newChecksumStore": "0x1403156A7",
+    "ordinaryRule": "Mismatch invalidates current lane and leaves the other lane dirty; absent packet rebuilds",
+    "collisionWitness": {
+      "type": 11,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880235348,
+      "field58Change": [
+        4,
+        3
+      ],
+      "field18Change": [
+        32,
+        65568
+      ],
+      "reached": "0x140315605",
+      "cacheInvalidated": false,
+      "claimBoundary": "Deliberately chosen raw parameter collision; no claim it occurs in retail assets"
+    },
+    "claimBoundary": "Change detector, not exact shape/capacity validation; deliberate raw-input collision is not retail occurrence"
+  },
+  "emulation": {
+    "receipt": "data/reverse/dmc3-hd-effect-parameter-verification-20261004.json",
+    "script": "tools/reverse/verify_dmc3_effect_parameter_admission.py",
+    "passedCases": 38,
+    "helper": "tools/reverse/verify_dmc3_render_producer_boundaries.py",
+    "dependencies": [
+      "pefile==2024.8.26",
+      "unicorn==2.1.4"
+    ],
+    "externalStubs": [
+      "0x140346BEA memset",
+      "0x140332E30 viewport state",
+      "0x1403326C0 viewport state",
+      "0x1402C6260 cache free",
+      "0x140059390 RNG returns0",
+      "0x1403455F0 security cookie returns"
+    ],
+    "actualNoCameraDepthHelper": "0x140316D70 with global0x140CF2330=null",
+    "claimBoundary": "Controlled PE instruction fixtures, no original-game/retail-corpus/GPU execution"
+  },
+  "disassemblyManifest": [
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/record-allocator.asm",
+      "startVA": "0x140315bd0",
+      "endVAExclusive": "0x140315c3a",
+      "codeSha256": "c7deaaf08ae097e770a35e42a7fcf653e7fe9639ffa1115e6b3280c2dffd4c9b",
+      "disassemblySha256": "2e54fb1dea6af597bb5c5b3b1a94d7144102e4413f7702d3e592d70726eb7ada",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/initializer.asm",
+      "startVA": "0x140316e10",
+      "endVAExclusive": "0x140317398",
+      "codeSha256": "791a38373b8d0abfcc19c909029d7c50d02fbe8b44c957388942b785b097537c",
+      "disassemblySha256": "03009bdf63fccad30dcc593fb49bfb0ef0571f5e96c1aaacb46e2d42a0a2548d",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/parameter-importer.asm",
+      "startVA": "0x14031f050",
+      "endVAExclusive": "0x14031f777",
+      "codeSha256": "c6e6903bc0763eff6e676fd5102d24c07db5841c9b011e4065a611255626fc55",
+      "disassemblySha256": "8bc0207b3b4646f9cc92ce628fd2f5ef3d9370b70fd490ed508fe3ca1748567c",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/effect-record-lookup.asm",
+      "startVA": "0x14031ec60",
+      "endVAExclusive": "0x14031eca4",
+      "codeSha256": "8997857c6d70748b538c7463defeef5f17fc58aa157b7410f008340215fde4c1",
+      "disassemblySha256": "f4aab05997da5cf0b7bf21f5754171c67afb6c336d496feafaeab148fe526eba",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/stream-admission.asm",
+      "startVA": "0x14031ee00",
+      "endVAExclusive": "0x14031f044",
+      "codeSha256": "f8f8c4db0f8f054a48c9b50e63967298e02187f6d3aad294ec4cfdcb636edd0b",
+      "disassemblySha256": "2de6bb328092b868d7ff07d899da50421bfe8fa39f34a667f7dfe7f15f8a70f2",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/stream-record-creation.asm",
+      "startVA": "0x14031ea50",
+      "endVAExclusive": "0x14031eb34",
+      "codeSha256": "fa50a5d181f1094009eddb608c91075ca64afda41cc545b6abf317b373787baa",
+      "disassemblySha256": "955158d434ea7506a13784958b6102354c2b2946268577c1e5910db3b98b6670",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/viewport-selector.asm",
+      "startVA": "0x140337cd0",
+      "endVAExclusive": "0x140337de4",
+      "codeSha256": "6e0727b0fd0455d13b5d9c9db18b1fa445af0303cb7b7f2bf906ae637617b94b",
+      "disassemblySha256": "f95e2a12be68b5fe13bace77e8a05f3a97a8cb721a54e8f2a01d9e360a37477b",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/viewport-startup.asm",
+      "startVA": "0x140337bf0",
+      "endVAExclusive": "0x140337cb2",
+      "codeSha256": "4ce0649760e5dafe7dbd2a5224680480cd57e868e82a7a5c1fee85c3b81d8755",
+      "disassemblySha256": "23c45cb9fb67e390386e769dd1a123632a4d774cad2649c27858786b1607f21a",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/checksum.asm",
+      "startVA": "0x1403162e0",
+      "endVAExclusive": "0x14031635c",
+      "codeSha256": "6e7d978993754fa9036e0ccbb42f99afcf54b98bf9c0347cb06704f4f8d13f10",
+      "disassemblySha256": "2026e6bf3084824790a75c70895a1c0d3b32ec49e3bb640b8cdb40a001c9f589",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/cache-lane-clear.asm",
+      "startVA": "0x140316a90",
+      "endVAExclusive": "0x140316ae0",
+      "codeSha256": "4c3898ed6456312bb3142b41d22c51e38f5e10d9e2c78dbdbc49bb236edf5e8b",
+      "disassemblySha256": "a226091bf7720a0c58721a3517a83db9f1bf178a950d61604ce005fb2cb9283c",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/effect-processor.asm",
+      "startVA": "0x1403153c0",
+      "endVAExclusive": "0x1403156c8",
+      "codeSha256": "3131aa3f1854371643d91a27db40738d2d042e3c6fb88bf17fc3d50c8fc79e8b",
+      "disassemblySha256": "b6f9191c1d7cb38d07e8e4dde17d3c4d2753c64ffe65c1d5cb180e01e3865a8d",
+      "scope": "Address slice; not compiler/linker extent authority"
+    },
+    {
+      "path": "data/reverse/effect-parameter-admission-20261004/cached-depth-helper.asm",
+      "startVA": "0x140316d70",
+      "endVAExclusive": "0x140316e0b",
+      "codeSha256": "dbc29bfe641257b69b8a3db2c44a6cf482ef4b7d820a9ac7b7d4d7bb80ee33f5",
+      "disassemblySha256": "1c9e212bb378dfb791a2c0f2cf4c197d342d52b24defbf77c75c2fce991bf1e7",
+      "scope": "Address slice; not compiler/linker extent authority"
+    }
+  ],
+  "openGates": [
+    "Retail type11/12 payload census",
+    "Full source-container semantics",
+    "Mode/lifecycle transition and invocation order",
+    "Exact linker backing extents",
+    "SHW hull/light silhouettes",
+    "Real frame ring occupancy and original-game failure behavior"
+  ]
+}

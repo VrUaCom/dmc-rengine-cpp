@@ -1,0 +1,814 @@
+{
+  "schema": "dmc-rengine.dmc3-effect-parameter-admission-verification.v1",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": "Unmodified EXE instruction fixtures; no original-game frame or retail asset execution",
+  "defaults": [
+    {
+      "type": 11,
+      "checksumLengthBytes": 80,
+      "field2C": 1148846080,
+      "field30": 1150681088,
+      "field58": 4,
+      "field5C": 3,
+      "field60": 0,
+      "stubs": [
+        {
+          "target": "0x140346bea",
+          "operation": "memset",
+          "bytes": 640,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "type": 12,
+      "checksumLengthBytes": 120,
+      "field2C": 100,
+      "field30": 100,
+      "field58": 0,
+      "field5C": 0,
+      "field60": 0,
+      "stubs": [
+        {
+          "target": "0x140346bea",
+          "operation": "memset",
+          "bytes": 640,
+          "value": 0
+        }
+      ]
+    }
+  ],
+  "viewport": [
+    {
+      "index": 0,
+      "alternateTable": false,
+      "width": 512,
+      "height": 256,
+      "thirdDimension": 224,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    },
+    {
+      "index": 1,
+      "alternateTable": false,
+      "width": 512,
+      "height": 256,
+      "thirdDimension": 224,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    },
+    {
+      "index": 2,
+      "alternateTable": false,
+      "width": 512,
+      "height": 512,
+      "thirdDimension": 448,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    },
+    {
+      "index": 0,
+      "alternateTable": true,
+      "width": 512,
+      "height": 256,
+      "thirdDimension": 224,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    },
+    {
+      "index": 1,
+      "alternateTable": true,
+      "width": 512,
+      "height": 256,
+      "thirdDimension": 224,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    },
+    {
+      "index": 2,
+      "alternateTable": true,
+      "width": 512,
+      "height": 512,
+      "thirdDimension": 512,
+      "stubs": [
+        "0x140332e30",
+        "0x1403326c0"
+      ]
+    }
+  ],
+  "admission": [
+    {
+      "type": 11,
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "runtimeOffsets": [
+        88,
+        92
+      ],
+      "input": [
+        4,
+        3
+      ],
+      "admitted": [
+        4,
+        3
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 11,
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "runtimeOffsets": [
+        88,
+        92
+      ],
+      "input": [
+        3,
+        3
+      ],
+      "admitted": [
+        3,
+        3
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 11,
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "runtimeOffsets": [
+        88,
+        92
+      ],
+      "input": [
+        0,
+        31
+      ],
+      "admitted": [
+        0,
+        31
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 11,
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "runtimeOffsets": [
+        88,
+        92
+      ],
+      "input": [
+        4294967295,
+        32
+      ],
+      "admitted": [
+        4294967295,
+        32
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 12,
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "runtimeOffsets": [
+        44,
+        48
+      ],
+      "input": [
+        100,
+        100
+      ],
+      "admitted": [
+        100,
+        100
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 12,
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "runtimeOffsets": [
+        44,
+        48
+      ],
+      "input": [
+        50,
+        50
+      ],
+      "admitted": [
+        50,
+        50
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 12,
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "runtimeOffsets": [
+        44,
+        48
+      ],
+      "input": [
+        0,
+        0
+      ],
+      "admitted": [
+        0,
+        0
+      ],
+      "importerStubs": []
+    },
+    {
+      "type": 12,
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "runtimeOffsets": [
+        44,
+        48
+      ],
+      "input": [
+        4294967295,
+        201
+      ],
+      "admitted": [
+        4294967295,
+        201
+      ],
+      "importerStubs": []
+    }
+  ],
+  "cacheInvalidation": [
+    {
+      "type": 11,
+      "shapeParameterChanged": false,
+      "frameLane": 0,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880235348,
+      "dirtyMaskAfter": 0,
+      "reached": "0x140315605",
+      "cacheClearObserved": false,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": []
+    },
+    {
+      "type": 11,
+      "shapeParameterChanged": false,
+      "frameLane": 1,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880235348,
+      "dirtyMaskAfter": 0,
+      "reached": "0x140315605",
+      "cacheClearObserved": false,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": []
+    },
+    {
+      "type": 11,
+      "shapeParameterChanged": true,
+      "frameLane": 0,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880300884,
+      "dirtyMaskAfter": 2,
+      "reached": "0x1403154fc",
+      "cacheClearObserved": true,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": [
+        "0x10040000"
+      ]
+    },
+    {
+      "type": 11,
+      "shapeParameterChanged": true,
+      "frameLane": 1,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880300884,
+      "dirtyMaskAfter": 1,
+      "reached": "0x1403154fc",
+      "cacheClearObserved": true,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": [
+        "0x10040020"
+      ]
+    },
+    {
+      "type": 12,
+      "shapeParameterChanged": false,
+      "frameLane": 0,
+      "beforeChecksum": 3011971212,
+      "afterChecksum": 3011971212,
+      "dirtyMaskAfter": 0,
+      "reached": "0x140315605",
+      "cacheClearObserved": false,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": []
+    },
+    {
+      "type": 12,
+      "shapeParameterChanged": false,
+      "frameLane": 1,
+      "beforeChecksum": 3011971212,
+      "afterChecksum": 3011971212,
+      "dirtyMaskAfter": 0,
+      "reached": "0x140315605",
+      "cacheClearObserved": false,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": []
+    },
+    {
+      "type": 12,
+      "shapeParameterChanged": true,
+      "frameLane": 0,
+      "beforeChecksum": 3011971212,
+      "afterChecksum": 1938229386,
+      "dirtyMaskAfter": 2,
+      "reached": "0x1403154fc",
+      "cacheClearObserved": true,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": [
+        "0x10040000"
+      ]
+    },
+    {
+      "type": 12,
+      "shapeParameterChanged": true,
+      "frameLane": 1,
+      "beforeChecksum": 3011971212,
+      "afterChecksum": 1938229386,
+      "dirtyMaskAfter": 1,
+      "reached": "0x1403154fc",
+      "cacheClearObserved": true,
+      "otherLanePreserved": true,
+      "freeHelperStubAddresses": [
+        "0x10040020"
+      ]
+    }
+  ],
+  "checksumCollision": [
+    {
+      "type": 11,
+      "beforeChecksum": 3880235348,
+      "afterChecksum": 3880235348,
+      "field58Change": [
+        4,
+        3
+      ],
+      "field18Change": [
+        32,
+        65568
+      ],
+      "reached": "0x140315605",
+      "cacheInvalidated": false,
+      "claimBoundary": "Deliberately chosen raw parameter collision; no claim it occurs in retail assets"
+    }
+  ],
+  "producer11": [
+    {
+      "display": [
+        512,
+        256
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "completed": true,
+      "endDelta": 47600,
+      "knownScalarWrite": null,
+      "formulaBytes": 47600
+    },
+    {
+      "display": [
+        512,
+        512
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "completed": false,
+      "endDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031928f",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "formulaBytes": 92400
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "completed": false,
+      "endDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031928f",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "formulaBytes": 80840
+    },
+    {
+      "display": [
+        512,
+        256
+      ],
+      "shifts": [
+        3,
+        3
+      ],
+      "completed": false,
+      "endDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031928f",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "formulaBytes": 91120
+    }
+  ],
+  "producer12": [
+    {
+      "input": [
+        100,
+        100
+      ],
+      "normalized": [
+        100,
+        100
+      ],
+      "steps": [
+        64,
+        32
+      ],
+      "recordsEntered": 120,
+      "completed": true,
+      "knownNeighborWrite": null,
+      "endDelta": 9600
+    },
+    {
+      "input": [
+        50,
+        50
+      ],
+      "normalized": [
+        50,
+        50
+      ],
+      "steps": [
+        32,
+        16
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    },
+    {
+      "input": [
+        0,
+        0
+      ],
+      "normalized": [
+        0,
+        0
+      ],
+      "steps": [
+        0,
+        0
+      ],
+      "recordsEntered": 410,
+      "completed": false,
+      "knownNeighborWrite": {
+        "ip": "0x14031a153",
+        "address": "0x140cd9af0",
+        "size": 4,
+        "recordOrdinal": 410
+      },
+      "endDelta": 32720
+    }
+  ],
+  "cached11": [
+    {
+      "display": [
+        512,
+        256
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "initialPhase": [
+        0,
+        0
+      ],
+      "drift": [
+        0,
+        0
+      ],
+      "formulaBytes": 47600,
+      "completed": true,
+      "generatedEndDelta": 47600,
+      "knownScalarWrite": null,
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 11900,
+      "cachedSourceBytesUnchanged": 47600,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    },
+    {
+      "display": [
+        512,
+        256
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "initialPhase": [
+        15,
+        7
+      ],
+      "drift": [
+        16,
+        8
+      ],
+      "formulaBytes": 47600,
+      "completed": true,
+      "generatedEndDelta": 47600,
+      "knownScalarWrite": null,
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 11900,
+      "cachedSourceBytesUnchanged": 47600,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        5,
+        5
+      ],
+      "initialPhase": [
+        0,
+        0
+      ],
+      "drift": [
+        0,
+        0
+      ],
+      "formulaBytes": 11960,
+      "completed": true,
+      "generatedEndDelta": 11960,
+      "knownScalarWrite": null,
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 2990,
+      "cachedSourceBytesUnchanged": 11960,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    },
+    {
+      "display": [
+        640,
+        360
+      ],
+      "shifts": [
+        4,
+        4
+      ],
+      "initialPhase": [
+        0,
+        0
+      ],
+      "drift": [
+        0,
+        0
+      ],
+      "formulaBytes": 41280,
+      "completed": true,
+      "generatedEndDelta": 41280,
+      "knownScalarWrite": null,
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 10320,
+      "cachedSourceBytesUnchanged": 41280,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    },
+    {
+      "display": [
+        512,
+        512
+      ],
+      "shifts": [
+        4,
+        3
+      ],
+      "initialPhase": [
+        0,
+        0
+      ],
+      "drift": [
+        0,
+        0
+      ],
+      "formulaBytes": 92400,
+      "completed": false,
+      "generatedEndDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031ab97",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 11900,
+      "cachedSourceBytesUnchanged": 47600,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    },
+    {
+      "display": [
+        512,
+        256
+      ],
+      "shifts": [
+        3,
+        3
+      ],
+      "initialPhase": [
+        0,
+        0
+      ],
+      "drift": [
+        0,
+        0
+      ],
+      "formulaBytes": 91120,
+      "completed": false,
+      "generatedEndDelta": 65520,
+      "knownScalarWrite": {
+        "ip": "0x14031ab97",
+        "address": "0x140cd1ad0",
+        "size": 4,
+        "recordOrdinal": 1639
+      },
+      "inputChecksumUnchanged": true,
+      "cachedEncodedDwordLength": 11900,
+      "cachedSourceBytesUnchanged": 47600,
+      "packetWrites": [
+        {
+          "offset": 20,
+          "size": 4
+        },
+        {
+          "offset": 16,
+          "size": 4
+        },
+        {
+          "offset": 24,
+          "size": 8
+        }
+      ],
+      "patchCommand": "0x64",
+      "externalStubs": [
+        "0x1403455f0"
+      ],
+      "claimBoundary": "Synthetic cache and display; actual count-writer slice followed by updater, not full allocator/packet construction or actual GPU draw"
+    }
+  ],
+  "verification": {
+    "cases": 38,
+    "passed": true
+  }
+}

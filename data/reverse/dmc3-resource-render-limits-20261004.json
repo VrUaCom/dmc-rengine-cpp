@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v21",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v22",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -822,6 +822,49 @@
           "necessaryCondition": "40*rows*recordsPerRow <= 65536",
           "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
         }
+      },
+      "initializerDefaults": {
+        "handler": "0x1403171B7",
+        "shift58": 4,
+        "shift5C": 3,
+        "field60": 0,
+        "checksumBytes": 80
+      },
+      "startupViewport": {
+        "callsite": "0x140337C4C",
+        "index": 1,
+        "selector": 0,
+        "width": 512,
+        "height": 256,
+        "thirdDimension": 224
+      },
+      "cachedUpdaterEvidence": {
+        "entry": "0x14031A830",
+        "processor": "0x1403153C0",
+        "callsite": "0x14031567C",
+        "formula": "40*(floor(height/(1<<field5C))+2)*(floor(width/(1<<field58))+3)",
+        "formulaDomain": "Nonnegative dimensions, positive signed strides, no overflow",
+        "phaseUpdate": [
+          "field70 += field20",
+          "field74 += field24"
+        ],
+        "phaseChangesRecordCount": false,
+        "conflict": {
+          "base": "0x140CC1AD0",
+          "neighborScalar": "0x140CD1AD0",
+          "recordOrdinal": 1639,
+          "instruction": "0x14031AB97",
+          "writeBytes": 4
+        },
+        "cachedLength": {
+          "writerSlice": "0x1403194E0..0x140319511",
+          "encoding": "sourceBytes>>2 in command payload+0x04",
+          "updaterRewritesLength": false,
+          "updaterReRegistersSpan": false,
+          "patchWrites": "Two dwords and command qword in indexed0x64 patch slot"
+        },
+        "type12InCachedUpdaterTable": "No updater; target0x14031568E",
+        "claimBoundary": "Shape agrees with initial producer at fixed dimensions/strides. Still-valid cache with changed shape is conditional, not a proven retail lifecycle failure"
       }
     },
     "subcommand12GeneratedDraw": {
@@ -904,6 +947,12 @@
           "necessaryCondition": "80*records <= 32768",
           "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
         }
+      },
+      "initializerDefaults": {
+        "handler": "0x140317218",
+        "field2C": 100,
+        "field30": 100,
+        "checksumBytes": 120
       }
     },
     "renderProducerBoundaries": {
@@ -965,6 +1014,17 @@
         "arithmetic": "u32 result; formula wraps for negative high-bit counts",
         "claimBoundary": "Planned payload before pool rounding; not total per-frame scratch or GPU-ring occupancy"
       }
+    },
+    "effectParameterAdmission": {
+      "evidence": "data/reverse/dmc3-hd-effect-parameter-admission-20261004.json",
+      "verification": "data/reverse/dmc3-hd-effect-parameter-verification-20261004.json",
+      "status": "EXE_CONFIRMED",
+      "initialDefaultsClosed": true,
+      "localRawAdmissionClosed": true,
+      "cachedType11FormulaClosed": true,
+      "normalLaneInvalidationClosed": true,
+      "exactCapacityGuard": false,
+      "retailOccurrenceClosed": false
     }
   },
   "texture": {
@@ -1037,9 +1097,9 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "Determine runtime execution frequency/order and retail input admission for SHW and subcommands11/12; producer ownership and formulas are now closed",
+    "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
-    "Census SHW hull counts and light-dependent silhouettes; verify cached subcommand11 shape stability and parameter initializers",
+    "Census SHW hull/light silhouettes and real effect11/12 payload values; trace full stream ownership and mode/cache lifecycle",
     "measure exact shared dynamic-ring occupancy/order in representative retail frames",
     "shared rendered-frame ring occupancy and original-game overflow behavior at projected SCM boundaries",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
