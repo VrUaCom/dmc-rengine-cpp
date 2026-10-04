@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v13",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v14",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -122,7 +122,10 @@
         }
       ],
       "status": "EXE_CONFIRMED_SCM_TO_D3D11_DRAW_PATH",
-      "claimBoundary": "Capacities are for an initially empty shared dynamic ring, not stage/game polygon maxima."
+      "claimBoundary": "Capacities are for an initially empty shared dynamic ring, not stage/game polygon maxima.",
+      "standardGsPrimitive": "TRIANGLE_FAN",
+      "primitiveValue": 5,
+      "fanAnchorInitializer": "0x14002B20C"
     },
     "normalizerLimit": {
       "function": "0x1403051B0",
@@ -209,47 +212,19 @@
       "geometryProjection": "((runtimeObject+0x98 & 0x7F8) | 5)",
       "gsPrimProjection": {
         "primitive": 5,
-        "primitiveName": "TRIANGLE_STRIP",
+        "primitiveName": "TRIANGLE_FAN",
         "IIP": true,
         "TME": true,
         "FGE": "source flag 0x00010000 clear",
-        "ABE": "source flags low nibble non-zero"
+        "ABE": "source flags low nibble non-zero",
+        "encodingAuthority": "standard PS2 GS PRIM domain + canonical EXE jump tables 0x14002BA98/0x14002BAB4"
       },
       "status": "EXE_CONFIRMED_SERIALIZED_TO_RUNTIME_GS_PRIM_CONTROL"
     },
     "triangleStripDrawChunking": {
-      "xyzf2Handler": "0x14002D6F6",
-      "compatibilityVertexCount": "0x1405D9680",
-      "rollingWindow": [
-        "0x1405D9620",
-        "0x1405D9628",
-        "0x1405D9630"
-      ],
-      "primitiveDispatcher": "0x14002B160",
-      "primitive": 5,
-      "primitiveName": "TRIANGLE_STRIP",
-      "thresholdVertices": 3,
-      "primitive5Handler": "0x14002B56E",
-      "packedInputStrideBytes": 12,
-      "packedBytesPerDraw": 36,
-      "uploadedVerticesPerDraw": 3,
-      "behavior": "after first two strip vertices, each subsequent drawable XYZF2 vertex emits one 3-vertex triangle draw from the rolling last-three window",
-      "emptyRingTriangleCapacityByOutputStride": [
-        {
-          "outputStrideBytes": 20,
-          "triangles": 65536
-        },
-        {
-          "outputStrideBytes": 28,
-          "triangles": 46811
-        },
-        {
-          "outputStrideBytes": 36,
-          "triangles": 36408
-        }
-      ],
-      "status": "EXE_CONFIRMED_SCM_TRIANGLE_STRIP_ROLLING_DRAW",
-      "claimBoundary": "shared per-rendered-frame ring; capacities assume an empty ring and SCM-only consumption"
+      "status": "REJECTED_SUPERSEDED_NAMING",
+      "reason": "standard GS PRIM=5 is TRIANGLE_FAN; old TRIANGLE_STRIP label was incorrect",
+      "supersededBy": "scm.triangleFanDrawConversion"
     },
     "geometryBudgetEnvelope": {
       "allocator": {
@@ -278,7 +253,7 @@
         "status": "EXE_CONFIRMED_FORMULA_DERIVED_ENVELOPE",
         "claimBoundary": "empty-pool geometry-dense mathematical envelope only; occupancy, fragmentation, textures, auxiliary state and extra mesh/node overhead reduce it"
       },
-      "renderedFrameContinuousStrip": {
+      "renderedFrameContinuousFan": {
         "ringBytes": 3932160,
         "uploadFunction": "0x140043190..0x14004378A",
         "offsetField": "renderer+0x17A0",
@@ -289,24 +264,24 @@
             "bytesPerTriangle": 60,
             "emptyRingTriangles": 65536,
             "maxContinuousSourceVertices": 65535,
-            "maxU16StripBytes": 3931980,
-            "maxU16StripDeltaFromRing": -180
+            "maxU16FanBytes": 3931980,
+            "maxU16FanDeltaFromRing": -180
           },
           {
             "outputStrideBytes": 28,
             "bytesPerTriangle": 84,
             "emptyRingTriangles": 46811,
             "maxContinuousSourceVertices": 46813,
-            "maxU16StripBytes": 5504772,
-            "maxU16StripDeltaFromRing": 1572612
+            "maxU16FanBytes": 5504772,
+            "maxU16FanDeltaFromRing": 1572612
           },
           {
             "outputStrideBytes": 36,
             "bytesPerTriangle": 108,
             "emptyRingTriangles": 36408,
             "maxContinuousSourceVertices": 36410,
-            "maxU16StripBytes": 7077564,
-            "maxU16StripDeltaFromRing": 3145404
+            "maxU16FanBytes": 7077564,
+            "maxU16FanDeltaFromRing": 3145404
           }
         ],
         "status": "EXE_CONFIRMED_CONTRACT_DERIVED_ENVELOPE",
@@ -362,6 +337,46 @@
         "CORPUS_CONFIRMED_HEADROOM_CENSUS"
       ],
       "authoringPolicy": "preserve original allocator budget for parity; reclaim only under an explicit compatibility/runtime patch"
+    },
+    "triangleFanDrawConversion": {
+      "xyzf2Handler": "0x14002D6F6",
+      "compatibilityVertexCount": "0x1405D9680",
+      "currentPreviousWindow": [
+        "0x1405D9620",
+        "0x1405D9628",
+        "0x1405D9630"
+      ],
+      "fanAnchor": [
+        "0x1405D9638",
+        "0x1405D9658",
+        "0x1405D9678"
+      ],
+      "fanAnchorInitializer": "0x14002B20C..0x14002B24A",
+      "primitiveDispatcher": "0x14002B160",
+      "primitive": 5,
+      "primitiveName": "TRIANGLE_FAN",
+      "thresholdVertices": 3,
+      "primitive5Handler": "0x14002B56E",
+      "packedInputStrideBytes": 12,
+      "packedBytesPerDraw": 36,
+      "uploadedVerticesPerDraw": 3,
+      "behavior": "after the first two fan vertices, each additional drawable XYZF2 vertex emits one 3-vertex triangle draw from fixed anchor + current + previous",
+      "emptyRingTriangleCapacityByOutputStride": [
+        {
+          "outputStrideBytes": 20,
+          "triangles": 65536
+        },
+        {
+          "outputStrideBytes": 28,
+          "triangles": 46811
+        },
+        {
+          "outputStrideBytes": 36,
+          "triangles": 36408
+        }
+      ],
+      "status": "EXE_CONFIRMED_SCM_TRIANGLE_FAN_DRAW_CONVERSION",
+      "claimBoundary": "shared per-rendered-frame ring; capacities assume an empty ring and SCM-only consumption"
     }
   },
   "d3d11": {
@@ -559,5 +574,19 @@
     "original-game geometry stress test",
     "original-game authored DDS stress test",
     "simultaneous stage residency budget"
+  ],
+  "corrections": [
+    {
+      "id": "scm-hd-primitive5-name",
+      "previous": "TRIANGLE_STRIP",
+      "corrected": "TRIANGLE_FAN",
+      "status": "REJECTED_SUPERSEDED",
+      "evidence": [
+        "standard PS2 GS PRIM encoding",
+        "canonical jump table 0x14002BA98",
+        "primitive-5 anchor setup 0x14002B20C",
+        "primitive-5 handler 0x14002B56E"
+      ]
+    }
   ]
 }
