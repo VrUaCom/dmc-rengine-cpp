@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v7",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v8",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -179,6 +179,20 @@
       },
       "status": "EXE_CONFIRMED_SCM_RUNTIME_ALLOCATION_LIMIT_PATH",
       "claimBoundary": "Occupancy, fragmentation, common/texture sizing, auxiliary validation and live pool routing can reduce effective capacity."
+    },
+    "ptxPreflightReservationGate": {
+      "builder": "0x1402FE1B0",
+      "validator": "0x1402FE030",
+      "recordBuilder": "0x140336E90",
+      "secondaryEligibility": "0x140330FF0",
+      "poolBase": "0x140D5FB70",
+      "reservationField": "pool+0xCB14 = 0x140D6C684",
+      "reservationProducer": "0x140331D90",
+      "reservationFormula": "uint32(blocks << 5)",
+      "terminalComparison": "active primary/eligible-secondary PTX span count <= ceil_signed(pool[+0xCB14]/32)",
+      "normalDomainReduction": "active PTX span count <= configured reservation blocks",
+      "status": "EXE_CONFIRMED_PTX_RESERVATION_GATE",
+      "geometryLimit": false
     }
   },
   "d3d11": {
@@ -262,6 +276,17 @@
       "mode1Target": "0x140337FA0",
       "status": "EXE_CONFIRMED_NORMAL_RENDERED_FRAME_RESET",
       "claimBoundary": "Alternate runtime states can skip/change dispatch; ordinary mode-1 rendered loop resets the rings at the start of each rendered iteration."
+    },
+    "dynamicIndexBufferClarification": {
+      "u16ElementCount": 159744,
+      "u16ElementBytes": 2,
+      "u16BufferBytes": 319488,
+      "u16ValueDomain": [
+        0,
+        65535
+      ],
+      "statement": "16-bit index width limits each stored index value, not the number of index elements in the buffer.",
+      "status": "EXE_CONFIRMED_BUFFER_CAPACITY"
     }
   },
   "texture": {
@@ -296,6 +321,31 @@
       "maxHeight": 16384,
       "status": "EXE_CONFIRMED",
       "scope": "descriptor-wrapped DDS / non-TM2 PTX fallback to D3D11 Texture2D; practical allocation/residency may fail below this guard"
+    },
+    "preservedV6ArchiveCensus": {
+      "archive": "DMC 3 RENGINE (6).zip",
+      "archiveSha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+      "ddsPaths": 243,
+      "uniqueDdsSha256": 154,
+      "uniqueCompressionCounts": {
+        "DXT1": 60,
+        "DXT5": 94
+      },
+      "uniqueDimensionCompressionCombinations": 15,
+      "observedMinWidth": 128,
+      "observedMinHeight": 64,
+      "observedMaxWidth": 1024,
+      "observedMaxHeight": 2048,
+      "maxPixelAreaSpecimen": {
+        "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/plwp_grenade/plwp_grenade_000/plwp_grenade_000_000.dds",
+        "sha256": "00f03a616da7e8ae2a44f5a9a386a21b705ff74118a64bd72734504db23e40c1",
+        "width": 1024,
+        "height": 2048,
+        "mipCount": 12,
+        "compression": "DXT5",
+        "bytes": 2796368
+      },
+      "status": "CORPUS_CONFIRMED_BOUNDED_ARCHIVE"
     }
   },
   "ptxRuntime": {
@@ -309,7 +359,6 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "auxiliary SCM runtime-size validation domain 0x1402FE1B0/0x1402FE030",
     "non-SCM consumption of shared per-rendered-frame dynamic ring",
     "later consumers below normalizer full-u16 vertex domain",
     "runtimeObject+0x98 producer",
