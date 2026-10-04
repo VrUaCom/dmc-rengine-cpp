@@ -197,15 +197,54 @@ all participating resource budgets and caller semantics.
 
 Status: EXE_CONFIRMED.
 
-## Texture-slot / DDS framing
+## Texture-slot / DDS framing and EXE-backed Texture2D ceiling
 
-DMC3 HD texture slots use descriptor + standard DDS framing. The evidenced descriptor stores width and height in 16-bit halves and the parser currently accepts dimensions up to 0xffff structurally. This is a descriptor encoding domain, not an acceptance/safety claim.
+DMC3 HD texture slots use descriptor + standard DDS framing. The evidenced slot
+descriptor stores width and height in 16-bit halves; that 0xffff-per-axis encoding
+domain is only a serialized representation ceiling.
 
-The old Dmc3DdsSafety product envelope (64..1024 per dimension) must NOT be documented as the universal DMC3 HD maximum. Audit of the same historical v6 retail corpus used by the texture work found a real DXT5 DDS at 1024x2048. Therefore a single max_dimension=1024 policy is narrower than the observed HD corpus.
+The historical Dmc3DdsSafety authoring envelope (64..1024 per dimension) is also
+not an engine ABI ceiling. The preserved retail corpus contains a real
+1024x2048 DXT5 image, so 1024x1024 is classified only as a PRODUCT_SAFETY_LIMIT.
 
-Action: retain the existing conservative authoring guard until a dedicated writer-policy change is tested, but classify 1024x1024 as a PRODUCT_SAFETY_LIMIT, not an engine ABI maximum.
+Fresh canonical-EXE reverse now closes the real descriptor-wrapped DDS -> D3D11
+Texture2D path used by the non-TM2 PTX fallback:
 
-Status of 1024x2048 specimen: CORPUS_CONFIRMED. Original-game runtime acceptance of newly-authored textures at/above this size remains open.
+0x1403365B0 PTX parser
+ -> 0x140046510 installs/uses texture-resource vtable 0x1404C5388
+ -> vtable +0x10 = 0x140046AF0 GPU realization
+ -> 0x1400499C0 / 0x140049BA0 DDS loader
+ -> 0x140049490 D3D resource creation helper
+ -> dimension-3 branch 0x1400495DC
+ -> device vtable +0x28 at 0x140049642 = ID3D11Device::CreateTexture2D
+ -> optional device vtable +0x38 = CreateShaderResourceView.
+
+The embedded DDS loader performs explicit checks before resource creation:
+- mip count <= 0x0F = 15 at 0x140049D51;
+- for the Texture2D branch, array size <= 0x800 = 2,048 at 0x140049D97;
+- width <= 0x4000 = 16,384 at 0x140049DA4;
+- height <= 0x4000 = 16,384 at 0x140049DB0.
+
+Therefore the strongest current static statement is:
+
+**DMC3 HD's recovered PTX descriptor-wrapped DDS path accepts the Texture2D
+dimension domain up to 16,384 x 16,384 at its explicit pre-CreateTexture2D
+validation layer.**
+
+This is an EXE-side acceptance ceiling, not a promise that an arbitrary
+16,384-square authored DXT texture is practical or will survive all memory,
+bundle, residency and GPU-allocation constraints. The effective maximum remains
+the minimum of this dimension guard, serialized DDS/PTX framing, compressed byte
+size, available GPU/system memory and concurrent residency.
+
+For ordinary legacy-header DXT1/DXT5 DMC3 textures, the array-size branch is not
+the primary authoring domain; it is retained as a recovered generic DDS-loader
+constraint rather than advertised as a DMC3 texture-array feature.
+
+Statuses:
+- 1024x2048 retail specimen: CORPUS_CONFIRMED;
+- 16,384-per-axis Texture2D pre-create ceiling: EXE_CONFIRMED;
+- successful authored original-game acceptance at 16,384 x 16,384: OPEN.
 
 ## PTX runtime budgets
 
@@ -238,7 +277,7 @@ For Rengine, every future limit entry must carry:
 3. Determine whether any loader/renderer rejects SCM counts before their serialized integer ceiling.
 4. Close the producer of SCM runtimeObject+0x98, now that the complete canonical EXE is available.
 5. Census all texture dimensions and per-slot texture counts from the complete retail resource population.
-6. Trace D3D11 texture creation failures/guards and maximum mip/resource dimensions in the canonical executable.
+6. Determine practical allocation/residency failure points below the now-closed 16,384-per-axis Texture2D validation ceiling.
 7. Stress-test authored geometry at increasing counts in the original game.
 8. Stress-test authored DDS dimensions separately from retail-observed dimensions.
 9. Measure simultaneous stage resource residency: geometry + textures + effects, not isolated file maxima.
