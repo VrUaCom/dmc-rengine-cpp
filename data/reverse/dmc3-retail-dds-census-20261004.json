@@ -1,0 +1,61 @@
+{
+  "schema": "dmc-rengine.dmc3-retail-dds-census.v1",
+  "date": "2026-10-04",
+  "source": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "size": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+  },
+  "population": {
+    "validOccurrences": 409,
+    "standaloneDdsFiles": 243,
+    "uniqueSha256": 154,
+    "uniqueTotalBytes": 24872432,
+    "uniqueAverageBytes": 161509.2987012987
+  },
+  "compression": {
+    "DXT1": 60,
+    "DXT5": 94
+  },
+  "dimensions": {
+    "128x64": 6,
+    "128x128": 17,
+    "256x128": 13,
+    "256x256": 46,
+    "256x512": 11,
+    "512x256": 4,
+    "512x512": 53,
+    "1024x1024": 3,
+    "1024x2048": 1
+  },
+  "mipCounts": {
+    "8": 23,
+    "9": 59,
+    "10": 68,
+    "11": 3,
+    "12": 1
+  },
+  "maximum": {
+    "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/plwp_grenade/plwp_grenade_000/plwp_grenade_000_000.dds",
+    "width": 1024,
+    "height": 2048,
+    "compression": "DXT5",
+    "mipLevels": 12,
+    "bytes": 2796368,
+    "sha256": "00f03a616da7e8ae2a44f5a9a386a21b705ff74118a64bd72734504db23e40c1",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "extractionTree": {
+    "immediateDdsParentDirectories": 77,
+    "maximumSiblingTextureCount": 17,
+    "maximumSiblingSetAggregateDdsBytes": 3541440,
+    "maximumAggregatePath": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_001",
+    "note": "Sibling-set count is extraction-tree evidence, not a runtime maximum."
+  },
+  "comparison": {
+    "observedMaxAxis": 2048,
+    "canonicalHdLoaderMax2DAxis": 16384,
+    "rengineCurrentProductSafetyMaxAxis": 1024
+  },
+  "claimBoundary": "Bound to this exact historical archive. Parent containers plus extracted descendants cause occurrence duplication; unique image population is SHA-deduplicated. Complete-game/NBZ census remains open."
+}
