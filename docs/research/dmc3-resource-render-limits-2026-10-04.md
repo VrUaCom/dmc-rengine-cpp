@@ -526,6 +526,48 @@ must preserve that budget unless a separate compatibility patch intentionally
 changes the allocation policy.
 
 
+
+## Generic draw helper 0x1400457CD — bounded by an 11-bit source count
+
+One of the four previously generic dynamic-ring callsites is now closed.
+
+At `0x140045631`, the renderer reads:
+
+```text
+N = (state+0x160) & 0x7FF
+```
+
+so `0 <= N <= 2047`. A zero value skips the draw.
+
+The selected draw mode is derived from `source+0x04`:
+
+- source mode 0 -> draw mode 1;
+- source mode 1 -> draw mode 3;
+- all other values -> draw mode 5.
+
+Helper `0x140043110` has a six-entry jump table and, for the modes used here,
+returns:
+
+```text
+mode 1 -> 2*N vertices
+mode 3 -> 3*N vertices
+mode 5 -> 4*N vertices
+```
+
+The callsite uses vertex flags `0x40000002`, whose recovered dynamic output
+stride is 16 bytes. Therefore the exact per-invocation ring envelopes are:
+
+| mode | vertex formula | max vertices | max ring bytes |
+|---:|---:|---:|---:|
+| 1 | `2*N` | 4,094 | 65,504 |
+| 3 | `3*N` | 6,141 | 98,256 |
+| 5 | `4*N` | 8,188 | **131,008** |
+
+Status: **EXE_CONFIRMED_BOUNDED_DYNAMIC_DRAW**.
+
+This reduces the unresolved direct draw-wrapper population to three callsites:
+`0x14003F4C8`, `0x140040344`, and `0x140044CDF`.
+
 ## Compatibility layout stride code and static draw-call ring census
 
 A fresh whole-EXE pass closes the meaning of compatibility global
@@ -605,6 +647,31 @@ Their exact per-frame occupancy depends on caller-supplied iteration/count state
 Status:
 **EXE_CONFIRMED_LAYOUT_STRIDE_MAPPING +
 EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS**.
+
+
+
+### 0x140044CDF temporary scratch span — strong structural candidate
+
+The batching helper `0x1400446F0` writes 0x48-byte groups beginning at
+`0x140BEB3F0`. Each group contributes six 12-byte vertices, and an outer item
+produces one mandatory group plus up to three conditional groups.
+
+A whole-image referenced-global census finds no referenced global inside the
+interval after `0x140BEB44C` until `0x140C0B3F0`, and:
+
+```text
+0x140C0B3F0 - 0x140BEB3F0 = 0x20000 = 131,072 bytes
+```
+
+This is consistent with a dedicated 128 KiB static scratch region beginning at
+`0x140BEB3F0`. If that inferred region boundary is the intended object extent,
+it can hold 1,820 complete 0x48-byte groups = 10,920 generated vertices, using
+131,040 bytes and leaving 32 bytes.
+
+This is currently **STRUCTURAL_CANDIDATE**, not a promoted hard cap: no explicit
+bounds check or size-bearing initializer for this exact scratch object has yet
+been recovered. Rengine must not use 10,920 as an engine limit until that final
+ownership/extent evidence is found.
 
 
 ## Shared dynamic-ring caller census
