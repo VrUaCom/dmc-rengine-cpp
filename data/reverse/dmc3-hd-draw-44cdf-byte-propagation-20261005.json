@@ -1,0 +1,37 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-draw-44cdf-byte-propagation.v1",
+  "canonicalExe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "imageBase": "0x140000000"
+  },
+  "producer": "0x1400446F0",
+  "drawCallsite": "0x140044CDF",
+  "scratchBase": "0x140BEB3F0",
+  "observations": [
+    "r15 starts at scratchBase",
+    "each emitted group writes 0x48 bytes and advances r15 by 0x48",
+    "each emitted group increments r12d by 6",
+    "terminal draw computes r9 = 12*r12d",
+    "therefore draw byte count equals generated scratch bytes"
+  ],
+  "exact": {
+    "groupBytes": 72,
+    "verticesPerGroup": 6,
+    "maxGroupsPerOuterItem": 4,
+    "maxBytesPerOuterItem": 288,
+    "maxVerticesPerOuterItem": 24,
+    "outerCountField": "input+0x18"
+  },
+  "candidate": {
+    "scratchExtentBytes": 131072,
+    "worstCaseItemsFitting": 455,
+    "status": "STRUCTURAL_CANDIDATE",
+    "reason": "no explicit bound/initializer; scratch base has multiple compatibility-handler references"
+  },
+  "status": "EXE_CONFIRMED_EXACT_BYTE_PROPAGATION",
+  "open": [
+    "upstream clamp/domain of input+0x18",
+    "authoritative scratch object extent"
+  ]
+}
