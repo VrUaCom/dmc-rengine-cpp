@@ -1,0 +1,83 @@
+{
+  "schema": "dmc-rengine.scm-vertex60-planner-headroom.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
+  },
+  "planner": {
+    "function": "0x1402FDD10",
+    "sequence": [
+      "movzwl mesh+0x00",
+      "add 0x3B",
+      "idiv 0x3C",
+      "imul 0x80"
+    ],
+    "perDomainMeshFormula": "0x40 + 0x80*ceil(vertexCount/60)",
+    "domains": 2
+  },
+  "constructor": {
+    "managerConstructor": "0x140303C10 / 0x140303CF0",
+    "runtimeMeshBuilder": "0x1402F9F20",
+    "commandBuilder": "0x140309C60",
+    "perDomainMeshFormula": "0x40 + 0x80",
+    "geometryPointerWrite": "0x14030A6A3",
+    "geometryPointerRead": "0x140304672",
+    "geometryCommand": "0x5B00001C",
+    "geometryBlockBytes": 128
+  },
+  "derivedHeadroomFormula": "0x100*(ceil(vertexCount/60)-1)",
+  "wholeImageContradictionSweep": {
+    "exactAdd59Divide60SequenceOutsidePlanner": 0,
+    "indexedRuntimeMesh100ScmReaderCount": 1,
+    "indexedRuntimeMesh100ScmReader": "0x140304672"
+  },
+  "corpus": {
+    "archiveName": "DMC 3 RENGINE (6).zip",
+    "archiveSha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "uniqueScm": 67,
+    "nonzero": 61,
+    "zero": 6,
+    "aggregateBytes": 610816,
+    "medianBytes": 1792,
+    "meanBytes": 9116.66,
+    "top": [
+      {
+        "path": "st001_002.scm",
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+        "vertices": 23049,
+        "meshes": 77,
+        "headroomBytes": 87808
+      },
+      {
+        "path": "m20_b00_004_000.scm",
+        "vertices": 19162,
+        "meshes": 29,
+        "headroomBytes": 77056
+      },
+      {
+        "path": "m20_s00_004_032.scm",
+        "vertices": 15599,
+        "meshes": 14,
+        "headroomBytes": 65024
+      },
+      {
+        "path": "st445_005_040.scm",
+        "vertices": 14098,
+        "meshes": 7,
+        "headroomBytes": 58880
+      },
+      {
+        "path": "st445_002.scm",
+        "vertices": 15536,
+        "meshes": 72,
+        "headroomBytes": 57088
+      }
+    ]
+  },
+  "status": [
+    "EXE_CONFIRMED_PLANNER_HEADROOM",
+    "CORPUS_CONFIRMED_HEADROOM_CENSUS"
+  ],
+  "claimBoundary": "Headroom is part of the original requested runtime allocation. It is not proved safe to remove for binary/runtime compatibility."
+}
