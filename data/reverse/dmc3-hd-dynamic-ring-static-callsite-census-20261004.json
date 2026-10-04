@@ -1,0 +1,97 @@
+{
+  "schema": "dmc-rengine.hd-dynamic-ring-static-callsite-census.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "drawWrapper": "0x140043F90",
+  "dynamicUploader": "0x140043190",
+  "layoutStride": {
+    "global": "0x1405D95F4",
+    "producer": "0x14002B284..0x14002B2D2",
+    "mappings": [
+      {
+        "flags": "0x102",
+        "quarter": 5,
+        "stride": 20
+      },
+      {
+        "flags": "0x42",
+        "quarter": 7,
+        "stride": 28
+      },
+      {
+        "flags": "0x142",
+        "quarter": 9,
+        "stride": 36
+      }
+    ],
+    "uploaderIndependentFormula": "base(12/16)+bit0x100*8+bit0x40*16+bit0x20000*4"
+  },
+  "primitiveByteFormulas": [
+    "8*quarter = 2*stride",
+    "12*quarter = 3*stride",
+    "16*quarter = 4*stride"
+  ],
+  "directCallsiteCount": 49,
+  "fullyStaticCount": 40,
+  "runtimeDerivedCount": 9,
+  "patterns": [
+    {
+      "flags": "0x102",
+      "mode": 5,
+      "bytes": 80,
+      "count": 18
+    },
+    {
+      "flags": "0x102",
+      "mode": 3,
+      "bytes": 60,
+      "count": 17
+    },
+    {
+      "flags": "0x142",
+      "mode": 5,
+      "bytes": 144,
+      "count": 1
+    },
+    {
+      "flags": "0x102",
+      "mode": 4,
+      "bytes": 60,
+      "count": 1
+    },
+    {
+      "flags": "0x42",
+      "mode": 4,
+      "bytes": 84,
+      "count": 1
+    },
+    {
+      "flags": "0x102",
+      "mode": 4,
+      "bytes": 80,
+      "count": 1
+    },
+    {
+      "flags": "0x142",
+      "mode": 5,
+      "bytes": 96,
+      "count": 1
+    }
+  ],
+  "singleExecutionSumFixedBytes": 2924,
+  "runtimeDerivedCallsites": [
+    "0x14002B407",
+    "0x14002B555",
+    "0x14002BA5B",
+    "0x14003D8A7",
+    "0x14003F395",
+    "0x14003F4C8",
+    "0x140040344",
+    "0x140044CDF",
+    "0x1400457CD"
+  ],
+  "status": "EXE_CONFIRMED_STATIC_CALLSITE_ARGUMENT_CENSUS",
+  "claimBoundary": "Static callsite count is not dynamic execution count. Per-frame occupancy remains open until caller loop/order closure or runtime instrumentation."
+}
