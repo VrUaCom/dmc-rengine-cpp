@@ -886,6 +886,101 @@ These are HD runtime resource budgets and must not be conflated with PS2 GS limi
 
 Status: EXE_CONFIRMED.
 
+
+## PS2 hardware envelope — separate from HD runtime
+
+The original PlayStation 2 hardware domain is now recorded separately from the
+HD Collection executable. These are hardware/register constraints, not claims
+about DMC3's original PS2 allocator.
+
+### GS local memory and register domains
+
+Cross-check authority:
+- PCSX2 `PCSX2/pcsx2@81526d4dc7cc70e4ae75abb35a789417456c6d43`,
+  `pcsx2/GS/GSRegs.h` and `pcsx2/GS/GSState.cpp`;
+- PS2 Developer Wiki hardware/memory-map documentation.
+
+Confirmed GS structure:
+- local GS video memory: **4 MiB = 4,194,304 bytes**;
+- `TEX0.TBP0`: 14 bits, block address domain;
+- `TEX0.TBW`: 6 bits;
+- `TEX0.PSM`: 6 bits;
+- `TEX0.TW` / `TH`: 4-bit log2 fields;
+- GS specification maximum used by PCSX2: **TW/TH = 10**, therefore
+  **1024 x 1024** maximum specified texture dimensions;
+- the raw bitfields can encode larger exponents, but that is not the valid GS
+  texture-size specification and must not be advertised as hardware support;
+- `CLAMP.MINU/MAXU/MINV/MAXV` are 10-bit fields, domain **0..1023**.
+
+The 10-bit GS CLAMP domain directly matches the 10-bit REGION_REPEAT fields
+already recovered from SCM. This is strong architectural evidence that those
+serialized SCM lanes preserve the original PS2 GS material ABI.
+
+PCSX2 additionally documents a narrower **MTBA automatic mip-base** condition:
+for 32-bit swizzled texture formats the maximum automatic MTBA size is 512,
+while 16-bit and ordinary 8/4-bit formats may reach 1024. This is a mip-address
+generation constraint, not a replacement for the general TEX0 1024x1024
+dimension ceiling.
+
+### Why 1024x1024 does not mean a practical 1024x1024 DMC3 texture budget
+
+Ignoring swizzle/alignment/CLUT/mip overhead, a 1024x1024 image requires:
+
+- 32 bpp: 4,194,304 bytes — the **entire GS local memory**;
+- 16 bpp: 2,097,152 bytes;
+- 8 bpp: 1,048,576 bytes plus palette state;
+- 4 bpp: 524,288 bytes plus palette state.
+
+The GS local memory must also hold framebuffer(s), depth buffer, texture
+working sets and other render targets. Therefore **1024x1024 is an addressing /
+format ceiling, not a realistic simultaneous-residency promise**.
+
+A full mip chain further increases the raw texel footprint by roughly one third
+before GS layout/alignment effects. Streaming from main RAM can change
+residency over time but does not enlarge the physical 4 MiB GS local-memory
+window.
+
+### EE / VU memory context
+
+PS2 memory-map evidence:
+- EE main RAM: **32 MiB**;
+- VU0 instruction memory: 4 KiB;
+- VU0 data memory: 4 KiB;
+- VU1 instruction memory: **16 KiB**;
+- VU1 data memory: **16 KiB**;
+- EE scratchpad RAM: **16 KiB**.
+
+These limits explain why PS2 engines stream geometry through DMA/VIF/VU/GIF
+rather than requiring an entire scene to fit in VU memory. VU1's 16 KiB data
+memory is a working-set / micro-batch constraint, **not a whole-scene polygon
+count**.
+
+### Throughput is not geometry capacity
+
+Published GS peak figures include approximately:
+- 2.352 Gpixel/s untextured peak fill;
+- 1.2 Gpixel/s with texturing;
+- 75 million/s small-polygon peak;
+- lower rates for larger textured/Z/alpha/fogged primitives.
+
+These are idealized throughput figures. They do not specify how many polygons
+may exist in one DMC3 stage, mesh, resource or frame. Resource size is instead
+bounded by game data structures, EE/main-memory allocation, VU/DMA batching,
+GS 4 MiB residency and frame-time workload.
+
+### Evidence boundary for original DMC3 PS2
+
+No original DMC3 PS2 `SLUS/SLES/ELF` executable is present in the currently
+connected project sources. Consequently:
+
+- PS2 **hardware** limits above are structurally confirmed;
+- HD `dmc3.exe` legacy-GS compatibility semantics are EXE-confirmed;
+- an exact **DMC3 PS2 game allocator / mesh / texture runtime maximum remains
+  OPEN** until the original PS2 executable is acquired and reversed.
+
+Do not use the HD D3D11 16,384x16,384 DDS guard as a PS2 texture limit.
+Do not use the PS2 1024x1024 GS ceiling as an HD texture limit.
+
 ## PS2 GS vs DMC3 HD
 
 The original PS2 renderer and the HD Collection D3D11 renderer are separate limit domains. Legacy GS texture-register encoding and VRAM constraints cannot be used as the HD DDS maximum, and HD DDS specimens cannot be projected backward as proof of PS2 capability.
