@@ -570,11 +570,11 @@ consumption for that draw.
 The canonical EXE has 49 direct callsites to `0x140043F90`.
 
 A bounded local constant-propagation pass resolves flags/mode/byte-count
-completely at **40/49** callsites. Fixed signatures are:
+completely at **42/49** callsites after closing two formerly runtime-looking branches. Three additional compatibility callsites are bounded to exact layout-dependent byte sets, leaving only four genuinely generic runtime-count helpers. Fixed signatures are:
 
 | flags | mode | ring bytes / invocation | direct callsites |
 |---:|---:|---:|---:|
-| `0x102` | 5 | 80 | 18 |
+| `0x102` | 5 | 80 | 20 |
 | `0x102` | 3 | 60 | 17 |
 | `0x142` | 5 | 144 | 1 |
 | `0x102` | 4 | 60 | 1 |
@@ -582,16 +582,25 @@ completely at **40/49** callsites. Fixed signatures are:
 | `0x102` | 4 | 80 | 1 |
 | `0x142` | 5 | 96 | 1 |
 
-If every one of those 40 fixed callsites executed exactly once, they would add
-2,924 bytes to the shared ring. **This is not a per-frame occupancy claim**:
+If every one of those 42 fixed callsites executed exactly once, they would add
+3,084 bytes to the shared ring. **This is not a per-frame occupancy claim**:
 many callsites are inside loops/conditional render paths and may execute zero,
 one or many times per rendered frame.
 
-The remaining 9 direct callsites have runtime-derived byte counts and/or
-runtime-derived layout state. They include the compatibility primitive cluster
-and generic draw helpers. Their occupancy must be determined from caller
-iteration counts or runtime instrumentation rather than by pretending each
-static callsite executes once.
+Three compatibility primitive callsites are not single constants but are fully bounded by the recovered layout state:
+
+- `0x14002B407`: mode 1, **40 / 56 / 72 bytes**;
+- `0x14002B555`: mode 3, **60 / 84 / 108 bytes**;
+- `0x14002BA5B`: mode 5, **80 / 112 / 144 bytes**.
+
+The two newly closed fixed sites are:
+
+- `0x14003D8A7`: the draw is reachable only on the `ESI==0` branch, reducing `r9=ESI+0x50` and mode `ESI+5` to **80 bytes, mode 5, flags 0x102**;
+- `0x14003F395`: `r13d` is unconditionally set to 1 before the draw and is not rewritten, reducing the call to **80 bytes, mode 5, flags 0x102**.
+
+Only four direct callsites retain genuinely runtime-derived counts:
+`0x14003F4C8`, `0x140040344`, `0x140044CDF`, and `0x1400457CD`.
+Their exact per-frame occupancy depends on caller-supplied iteration/count state.
 
 Status:
 **EXE_CONFIRMED_LAYOUT_STRIDE_MAPPING +
