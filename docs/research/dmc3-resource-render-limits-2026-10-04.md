@@ -384,6 +384,108 @@ Status: EXE_CONFIRMED.
 
 
 
+
+## SCM `ceil(vertexCount/60)` term — planner headroom, not draw batching
+
+The previously ambiguous `ceil(meshVertexCount / 60)` allocation term is now
+closed against the complete canonical executable.
+
+### Planner
+
+`0x1402FDD10` computes, for each mesh and for each of two runtime/frame
+domains:
+
+```text
++0x40
++0x80 * ceil(meshVertexCount / 60)
+```
+
+The exact ceiling division is:
+
+```text
+(vertexCount + 0x3B) / 0x3C
+```
+
+A whole-image instruction sweep finds this exact `+59 / 60` operation only in
+the SCM size planner.
+
+### Constructor
+
+The complete SCM construction sequence is:
+
+```text
+0x1402F9570
+ -> 0x1402F1DB0
+ -> 0x1402FA360
+ -> 0x14030D040 / 0x14030D430
+ -> 0x1402F9120
+ -> 0x1402F92B0
+ -> 0x140302F10
+ -> 0x1402F9F20
+ -> 0x140309C60
+ -> align16
+ -> manager+0xF0 = actual constructed bytes
+```
+
+Neither `0x1402F9F20` nor the other construction stages reproduce the
+`/60` mesh loop.
+
+For each mesh in each of the two command domains, `0x140309C60` creates:
+
+```text
+one 0x40 material command block
+one 0x80 geometry command block
+```
+
+The geometry block is a fixed `0x5B00001C` descriptor carried by a 7-qword
+inline command. The runtime mesh stores its two frame-domain pointers at
+`+0x100/+0x108`.
+
+A whole-image indexed-field census finds:
+- SCM write: `0x14030A6A3 -> runtimeMesh+0x100+frame*8`;
+- SCM read: `0x140304672 <- runtimeMesh+0x100+frame*8`;
+- no SCM consumer deriving `base + chunkIndex*0x80` from that field.
+
+Therefore the extra planner reservation for a mesh is:
+
+```text
+plannerHeadroom(mesh)
+ = 2 * 0x80 * (ceil(vertexCount/60) - 1)
+ = 0x100 * (ceil(vertexCount/60) - 1)
+```
+
+for `vertexCount > 0`.
+
+It is allocator headroom reserved beyond the command blocks actually constructed
+by this HD path. It must not be described as a 60-vertex D3D11 draw batch.
+
+### Bounded retail-corpus projection
+
+Across the 67 unique SCM payloads inside the exact historical
+`DMC 3 RENGINE (6).zip` archive:
+
+- 61/67 have non-zero planner headroom;
+- 6/67 have zero headroom;
+- aggregate headroom: 610,816 bytes;
+- median: 1,792 bytes/file;
+- mean: about 9,116.66 bytes/file;
+- maximum: **87,808 bytes** in `st001_002.scm`
+  (23,049 vertices, 77 meshes).
+
+Other high observations:
+- `m20_b00_004_000.scm`: 77,056 bytes;
+- `m20_s00_004_032.scm`: 65,024 bytes;
+- `st445_005_040.scm`: 58,880 bytes;
+- `st445_002.scm`: 57,088 bytes.
+
+Status:
+**EXE_CONFIRMED_PLANNER_HEADROOM + CORPUS_CONFIRMED_HEADROOM_CENSUS**.
+
+This does not mean the reserved memory can automatically be reclaimed safely by
+Rengine. The original allocator contract requests it, so binary/runtime parity
+must preserve that budget unless a separate compatibility patch intentionally
+changes the allocation policy.
+
 ## Shared dynamic-ring caller census
 
 A whole-image direct-call census closes the ownership question for the HD
