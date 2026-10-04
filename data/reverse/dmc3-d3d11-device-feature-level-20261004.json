@@ -1,0 +1,35 @@
+{
+  "schema": "dmc-rengine.d3d11-device-feature-level.v1",
+  "date": "2026-10-04",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "import": {
+    "name": "D3D11CreateDeviceAndSwapChain",
+    "iat": "0x14034F650",
+    "thunk": "0x1403453EA"
+  },
+  "callsite": {
+    "address": "0x140042ADD",
+    "featureLevelStackInit": "0x1400429FC",
+    "pFeatureLevels": "stack local",
+    "featureLevelsCount": 1,
+    "value": "0xB000",
+    "symbolic": "D3D_FEATURE_LEVEL_11_0",
+    "pFeatureLevelOutput": "0x140BEB3E8",
+    "sdkVersion": 7
+  },
+  "textureRelation": {
+    "exeGuard": {
+      "width": 16384,
+      "height": 16384
+    },
+    "d3d11FeatureLevel11ResourceLimit": {
+      "texture2DU": 16384,
+      "texture2DV": 16384
+    },
+    "conclusion": "canonical loader guard matches requested FL11 Texture2D dimension domain"
+  },
+  "status": "EXE_CONFIRMED_D3D_FEATURE_LEVEL_11_0",
+  "claimBoundary": "resource-dimension/API ceiling only; successful allocation at maximal dimensions depends on memory/residency"
+}
