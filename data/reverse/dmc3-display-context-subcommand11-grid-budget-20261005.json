@@ -1,0 +1,73 @@
+{
+  "schema": "dmc-rengine.dmc3-display-context-subcommand11-grid-budget.v1",
+  "date": "2026-10-05",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
+  },
+  "displayContext": {
+    "pointer": "0x140D6D300",
+    "object": "0x140D6D310",
+    "setup": "0x140337CD0",
+    "startupCaller": "0x140337C47..0x140337C4C",
+    "normalDescriptor": "0x1405D1AE8",
+    "normalDescriptorWords": [
+      1,
+      2,
+      1,
+      2,
+      512,
+      256,
+      224,
+      2
+    ],
+    "copiedLanes": {
+      "+0x08": "display+0x20",
+      "+0x0A": "display+0x22",
+      "+0x0C": "display+0x24"
+    },
+    "normalValues": {
+      "display20": 512,
+      "display22": 256,
+      "display24": 224
+    },
+    "otherEncodedTriples": [
+      [
+        512,
+        256,
+        224
+      ],
+      [
+        512,
+        512,
+        448
+      ],
+      [
+        512,
+        512,
+        512
+      ]
+    ]
+  },
+  "subcommand11": {
+    "producer": "0x140318EC0",
+    "type": 11,
+    "outputBase": "0x140CC1AD0",
+    "recordBytes": 40,
+    "xBound": "rendererState+0x15D58 <- display+0x20",
+    "yBound": "rendererState+0x15D5C <- display+0x22",
+    "xStep": "1 << record+0x58",
+    "yStep": "1 << record+0x5C",
+    "normalPositiveStepFormula": "records=(floor(256/Ystep)+2)*(floor(512/Xstep)+3); bytes=40*records",
+    "propagatedDrawCallsite": "0x14003F4C8",
+    "hardBoundRemaining": "type11 record+0x58/+0x5C source/validation domain"
+  },
+  "correction": {
+    "candidate64KiB": "STRUCTURAL_CANDIDATE_ONLY",
+    "reason": "local producer formula can exceed 64 KiB for small shift values; address-gap evidence is not a hard bound"
+  },
+  "status": [
+    "EXE_CONFIRMED_DISPLAY_MODE_DESCRIPTOR",
+    "EXE_CONFIRMED_SUBCOMMAND11_GRID_FORMULA"
+  ]
+}
