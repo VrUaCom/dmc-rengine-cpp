@@ -1,0 +1,441 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-demo-effect-source-construction.v1",
+  "date": "2026-10-05",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000",
+    "sizeBytes": 6356432
+  },
+  "researchBaseCommit": "bd23cd4bafc1f7cf5117141586fb8fe3b23385e5",
+  "status": "EXE_CONFIRMED",
+  "scope": "Canonical EXE static slices plus original-code Unicorn fixtures. External CRT/heap/pool/security are explicit stubs. No original game/GPU execution.",
+  "parserFamily": {
+    "loader": "0x1402D5EB0..0x1402D6086",
+    "table": "0x1405CED80",
+    "indirectCall": "0x1402D6048",
+    "routes": [
+      {
+        "index": 28,
+        "target": "0x1402DA750",
+        "role": "Frame/No/Arg clip parser"
+      },
+      {
+        "index": 31,
+        "target": "0x1402DA9D0",
+        "role": "Effect clip parser: Id/Param"
+      },
+      {
+        "index": 16,
+        "target": "0x1402DAD60",
+        "role": "ChangeType/SrcValue/DistValue parser"
+      }
+    ],
+    "correction": "v25 incorrectly attributed effect Id/Param handling to 0x1402DA750; actual handler is adjacent 0x1402DA9D0.",
+    "actualTokenizer": "0x140326CA0",
+    "actualTokenHelper": "0x1402D6420",
+    "idMapperCall": "0x1402DAC79 -> 0x14031E730",
+    "parameterBuilderCall": "0x1402DAD0F -> 0x14031B2D0",
+    "pathBoundary": "The /demo/%s/%s string/domain is prior evidence; these fixtures do not execute file loading or prove archive-to-runtime routing."
+  },
+  "sourceConstruction": {
+    "builder": "0x14031B2D0",
+    "clipTypeOffset": "0x64",
+    "payloadPointerOffset": "0x58",
+    "allocator": "0x14031E0B0",
+    "heapDescriptorOffset": "0x38",
+    "initializer": "0x14031E190",
+    "typedDispatchTable": "0x14031E06C",
+    "typedDispatchIndex": "type+1",
+    "allocationDispatchTable": "0x14031E154",
+    "defaultDispatchTable": "0x14031E53C",
+    "allocationDefaultIndex": "type-1",
+    "types": {
+      "HTH": {
+        "type": 11,
+        "bytes": 48,
+        "allocateSizeVA": "0x14031E0EC",
+        "defaultHandlerVA": "0x14031E1E5",
+        "textHandlerRange": [
+          "0x14031B52A",
+          "0x14031B8C8"
+        ],
+        "defaults": {
+          "0x00": "float32 1000",
+          "0x04": "float32 1100",
+          "0x08": "u32 0x40808080",
+          "0x0C": 16,
+          "0x10": 16,
+          "0x14": 8,
+          "0x18": 8,
+          "0x1C": 4,
+          "0x20": 3,
+          "0x24": 0,
+          "0x28": "u8 0"
+        }
+      },
+      "RDN": {
+        "type": 12,
+        "bytes": 40,
+        "allocateSizeVA": "0x14031E101",
+        "defaultHandlerVA": "0x14031E2DC",
+        "textHandlerRange": [
+          "0x14031C2FA",
+          "0x14031C5F6"
+        ],
+        "defaults": {
+          "0x00": 100,
+          "0x04": 100,
+          "0x08": "u32 0x10808080",
+          "0x0C": 1,
+          "0x10": 4,
+          "0x14": 0,
+          "0x18": "u32 0x80000000",
+          "0x1C": "u32 0x80FFFFFF",
+          "0x20": "u8 0"
+        }
+      }
+    },
+    "tailPolicy": "Only explicitly written default fields are claimed; untouched allocation tail/padding retains synthetic fill in fixtures.",
+    "fieldMapping": [
+      {
+        "tag": "HTH",
+        "type": 11,
+        "token": "DetailH",
+        "stringVA": "0x140507D78",
+        "sourceOffset": "0x1C",
+        "writeVA": "0x14031B7D9",
+        "runtimeOffset": "0x58",
+        "importVA": "0x14031F125"
+      },
+      {
+        "tag": "HTH",
+        "type": 11,
+        "token": "DetailV",
+        "stringVA": "0x140507D80",
+        "sourceOffset": "0x20",
+        "writeVA": "0x14031B829",
+        "runtimeOffset": "0x5C",
+        "importVA": "0x14031F12B"
+      },
+      {
+        "tag": "RDN",
+        "type": 12,
+        "token": "ScaleX",
+        "stringVA": "0x140507DF4",
+        "sourceOffset": "0x00",
+        "writeVA": "0x14031C409",
+        "runtimeOffset": "0x2C",
+        "importVA": "0x14031F38D"
+      },
+      {
+        "tag": "RDN",
+        "type": 12,
+        "token": "ScaleY",
+        "stringVA": "0x140507DFC",
+        "sourceOffset": "0x04",
+        "writeVA": "0x14031C459",
+        "runtimeOffset": "0x30",
+        "importVA": "0x14031F393"
+      }
+    ],
+    "atoiImportIAT": "0x14034F420",
+    "admission": "These four text fields are converted by atoi and stored as raw 32-bit lanes, then copied by 0x14031F050; no minimum, shift-step or output-capacity guard is present on the recovered route.",
+    "domainBoundary": "Fixtures cover integer inputs within INT_MIN..INT_MAX; CRT overflow is excluded. Later producer normalization is separate."
+  },
+  "packedSelection": {
+    "routes": [
+      {
+        "start": "0x14023B98A",
+        "stopBeforeBinder": "0x14023B9C3",
+        "rootRegister": "r14"
+      },
+      {
+        "start": "0x14023CB8E",
+        "stopBeforeBinder": "0x14023CBC7",
+        "rootRegister": "r13"
+      }
+    ],
+    "descriptor": "[root+0x18]",
+    "headerPointer": "[descriptor+0x18]",
+    "payloadPointer": "[descriptor+0x20]",
+    "zeroHeaderBranch": "If header.u16==0 require payload.u32[4]>=3, select payload.u32[0x10] (zero-based offset-table index 2), return payload+offset when nonzero, otherwise null.",
+    "nonzeroHeaderBranch": "Pass payload directly without the count/third-offset gate.",
+    "manager": "actor+0x1B0A0",
+    "afterBinding": "Binder return is ignored; both routes subsequently call admission 0x14031EE00 with index 0.",
+    "containerBoundary": "Third offset-table entry is proven, but PAC/PNST/NBZ slot identity and packed materializer are not."
+  },
+  "binder": {
+    "function": "0x14031EDB0",
+    "nonNullGates": [
+      "signed low16(resource.u32[4]) > 0",
+      "resource.u32[4] >= 1 (unsigned)",
+      "resource.u32[8] != 0",
+      "computed firstRecord pointer != null",
+      "firstRecord.u8[6] == 1"
+    ],
+    "notADwordMaximum": "65537 is accepted in the fixture because low16 is 1; this is not a universal dword <=32767 restriction.",
+    "nonNullFailure": "Clears manager+0xF8 after storing low16 count.",
+    "nullInput": "Returns false before writes; previous manager+0xF8 and count survive.",
+    "conditionalRetainedStream": "A valid empty synthetic stream remains admissible after null rebind. Original retail reachability, lifetime, freed-memory use and crash behavior are not claimed."
+  },
+  "verification": {
+    "receipt": "data/reverse/dmc3-hd-demo-effect-source-verification-20261005.json",
+    "script": "tools/reverse/verify_dmc3_demo_effect_source.py",
+    "cases": 42,
+    "passed": true,
+    "groups": {
+      "parameters": 15,
+      "clips": 4,
+      "resourceSelection": 10,
+      "binder": 9,
+      "nullRebind": 1,
+      "parserDispatch": 3
+    },
+    "fullClipFixtureBoundary": "Actual #Clip Id HTH/RDN Param parser and importer execute with synthetic clip-pool allocation and existing runtime lookup slot; serialization/materialization is not included."
+  },
+  "disassemblyManifest": [
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/frame-clip-parser.asm",
+      "startVA": "0x1402da750",
+      "endVAExclusive": "0x1402da9d0",
+      "codeSha256": "cefe68a95123ae03994a0242d5792ef341ca41f129f90a7c1dbd561af2403c6a",
+      "dumpSha256": "0aeb39c0c164568bb5820a64f15a52882edb6c30b8c52d33855e8210780d24c6"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/effect-clip-parser.asm",
+      "startVA": "0x1402da9d0",
+      "endVAExclusive": "0x1402dad4e",
+      "codeSha256": "b910b36be0ac09bf7c6f51d9797ff354f36eaab7a4b367ed3ac84d445207c56c",
+      "dumpSha256": "efdcc0a554e64387150c2bc3b1674c461eb384b8c7300751dfd98d35899a0a9e"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/value-change-parser.asm",
+      "startVA": "0x1402dad60",
+      "endVAExclusive": "0x1402db10e",
+      "codeSha256": "939447cdc8dea8420724c0c88c1cc4d568ebef475e880214b26b81e965de3ef5",
+      "dumpSha256": "f0d8b1c20e74c41bc458c0f28f0b781cc3a625326b1bf22adc55f34a8f7f9199"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/typed-builder-entry.asm",
+      "startVA": "0x14031b2d0",
+      "endVAExclusive": "0x14031b331",
+      "codeSha256": "6235dcac014166e02fd6e7f70d9ae4322bed56b89f047a9851f8caf181682a94",
+      "dumpSha256": "2b026d3f27c357cfc9d94bab764845405602aa7e0fd7efe6bb1d64ae4851d134"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/hth-text-handler.asm",
+      "startVA": "0x14031b52a",
+      "endVAExclusive": "0x14031b8c8",
+      "codeSha256": "8226511a7d5c761720062ad534f25b606d7dba5fd2f74d1df1d58b1dc0aa3327",
+      "dumpSha256": "51da472fa51f788e73b039a61ab30a66d22b074ccf42b873f059db0ab1c06b99"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/rdn-text-handler.asm",
+      "startVA": "0x14031c2fa",
+      "endVAExclusive": "0x14031c5f6",
+      "codeSha256": "5b54794421f91c53f25c8f7628a6c96458ecc6c86b06bfebd4438842ee72ad50",
+      "dumpSha256": "cdcbf655154cafc2551882df488de5eb3b39a0f9f06e29621581f9bc3f48bec5"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/source-allocator.asm",
+      "startVA": "0x14031e0b0",
+      "endVAExclusive": "0x14031e154",
+      "codeSha256": "d7959d2015c0a4ad61b3a51c3f7c15fb4dd0a6123663b60b743ec2bab45265b2",
+      "dumpSha256": "5e4f821572ee9e7cd09f54f7811683258d80951ce95535174739235726672587"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/source-defaults.asm",
+      "startVA": "0x14031e190",
+      "endVAExclusive": "0x14031e53c",
+      "codeSha256": "816f6f05be5e47e0196683d3a83e4a20324c198ce83648c28a36345c8a1ae1a6",
+      "dumpSha256": "b97fffca6428d2ce35e0501d62ea64983e14477ab6aff81376372bf0c75a2519"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/tokenizer.asm",
+      "startVA": "0x140326ca0",
+      "endVAExclusive": "0x140326d16",
+      "codeSha256": "cced11a7abf084df194f8db701f097d09d50a82f4073a4a161f52972902d8cf5",
+      "dumpSha256": "caf912e05e0384f37906d2c1185d7e4ccf20823e2311022098180c327ff39068"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/token-helper.asm",
+      "startVA": "0x1402d6420",
+      "endVAExclusive": "0x1402d6443",
+      "codeSha256": "d43c434f757eb5af289b3fd2b51ed01c71b2abc1c252aa2f9f5ae313b5bf8ab1",
+      "dumpSha256": "a9ea43071a94b5a9e3ef487e0a1c5faf11c9b372ae51395a8ef659889dda66c9"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/loader-parser-dispatch.asm",
+      "startVA": "0x1402d5eb0",
+      "endVAExclusive": "0x1402d6086",
+      "codeSha256": "ee9f255d77f25574fd741264b8a955358f3b6635968971be1a5616f2e7e2600f",
+      "dumpSha256": "74effdbf83266d9394e63735b048b7ccfff18c9fb4b4546ba18b2b4dfc678c79"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/packed-selector-a.asm",
+      "startVA": "0x14023b98a",
+      "endVAExclusive": "0x14023b9c8",
+      "codeSha256": "0552e1a03e5643dd90e79c50acf45017abeb8eb4876fc106feaf03c73fd6f5e7",
+      "dumpSha256": "c6400889c551e77408b12acdb40ef97c25ab7850ded55bfacbef240f7994f11e"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/packed-selector-b.asm",
+      "startVA": "0x14023cb8e",
+      "endVAExclusive": "0x14023cbda",
+      "codeSha256": "0a5b9ac23e0d3b2655dbff2a722a15e9e3c17ee0642f1bd0d40ec60c25711b40",
+      "dumpSha256": "a5642a5dd9cdd5a1f40a3d2844f1eb5bdc982509ce0208fea93884f7b5877489"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/stream-binder.asm",
+      "startVA": "0x14031edb0",
+      "endVAExclusive": "0x14031edf1",
+      "codeSha256": "1ed184225f0b0fa91e2117048800ff5ef6caa709be162e791cb0c693c912ff89",
+      "dumpSha256": "3fd2ed3d3a36d00ad966568fa52e33121dec43ae9cc778cd2a12dc7ce4cbfbd6"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/stream-admission.asm",
+      "startVA": "0x14031ee00",
+      "endVAExclusive": "0x14031eeb0",
+      "codeSha256": "4cc12d9f8b0e3a745c63cf0125760af3e57f019738d6072e07914a8868f02c1e",
+      "dumpSha256": "3118156136eaad64abda212dd46c5b9300c47ea0bc17c2dff5aea6b6d350a756"
+    },
+    {
+      "path": "data/reverse/demo-effect-source-construction-20261005/parameter-importer.asm",
+      "startVA": "0x14031f050",
+      "endVAExclusive": "0x14031f778",
+      "codeSha256": "272ce2ca08ae3b5515f431bf4673a7f6f25678c654f42551389ab697d1157894",
+      "dumpSha256": "dc525185d915bab686574c6ff420a5c527f748d1c65cf829be25a53d86dc50fc"
+    }
+  ],
+  "dispatchTables": [
+    {
+      "name": "typedParser",
+      "va": "0x14031e06c",
+      "count": 17,
+      "entryFormat": "I",
+      "indexRule": "type+1; entries are image-relative RVAs",
+      "sha256": "33fee3df7d4b640c7f31a579feafaae76c36d8db6cbffb2349db181b19e76060",
+      "rawHex": "23b5310045e03100f6c5310031b331001acf310046c8310049bd310086d2310089bf3100c8b8310009bb3100d8ca31002ab53100fac231005bd73100f7db310051de3100",
+      "targetsVA": [
+        "0x14031b523",
+        "0x14031e045",
+        "0x14031c5f6",
+        "0x14031b331",
+        "0x14031cf1a",
+        "0x14031c846",
+        "0x14031bd49",
+        "0x14031d286",
+        "0x14031bf89",
+        "0x14031b8c8",
+        "0x14031bb09",
+        "0x14031cad8",
+        "0x14031b52a",
+        "0x14031c2fa",
+        "0x14031d75b",
+        "0x14031dbf7",
+        "0x14031de51"
+      ]
+    },
+    {
+      "name": "sourceAllocation",
+      "va": "0x14031e154",
+      "count": 15,
+      "entryFormat": "I",
+      "indexRule": "type-1; entries are image-relative RVAs",
+      "sha256": "45692c98a673fde55c1159d39a21839ef01911d422da9b3e37d10e5383677fcc",
+      "rawHex": "08e131002be1310016e131000fe13100f3e031001de13100fae03100f3e03100f3e03100fae03100ece0310001e1310024e13100f3e031002be13100",
+      "targetsVA": [
+        "0x14031e108",
+        "0x14031e12b",
+        "0x14031e116",
+        "0x14031e10f",
+        "0x14031e0f3",
+        "0x14031e11d",
+        "0x14031e0fa",
+        "0x14031e0f3",
+        "0x14031e0f3",
+        "0x14031e0fa",
+        "0x14031e0ec",
+        "0x14031e101",
+        "0x14031e124",
+        "0x14031e0f3",
+        "0x14031e12b"
+      ]
+    },
+    {
+      "name": "sourceDefaults",
+      "va": "0x14031e53c",
+      "count": 15,
+      "entryFormat": "I",
+      "indexRule": "type-1; entries are image-relative RVAs",
+      "sha256": "52d837fd9a37732f9ca9daf525e4e787336f6bf6c8920056dc78b4d3b2a45e42",
+      "rawHex": "1ee33100b9e13100d3e3310040e331006be231001ce43100abe2310035e2310050e2310079e33100e5e13100dce231007de43100d8e4310013e53100",
+      "targetsVA": [
+        "0x14031e31e",
+        "0x14031e1b9",
+        "0x14031e3d3",
+        "0x14031e340",
+        "0x14031e26b",
+        "0x14031e41c",
+        "0x14031e2ab",
+        "0x14031e235",
+        "0x14031e250",
+        "0x14031e379",
+        "0x14031e1e5",
+        "0x14031e2dc",
+        "0x14031e47d",
+        "0x14031e4d8",
+        "0x14031e513"
+      ]
+    },
+    {
+      "name": "loaderParsers",
+      "va": "0x1405ced80",
+      "count": 32,
+      "entryFormat": "Q",
+      "indexRule": "loader index; entries are absolute VAs",
+      "sha256": "14f7fb1346660e3ba39d75bfbeee198518518ed1f6518d7c5bc063e656cc7ad6",
+      "rawHex": "50ad2d4001000000904f2d400100000090552d400100000020572d400100000050ad2d4001000000c0522d400100000050ad2d400100000020512d400100000050ad2d400100000050ad2d400100000050ad2d400100000050ad2d400100000050ad2d400100000080542d400100000050ad2d400100000050ad2d400100000060ad2d400100000020652d4001000000e0832d4001000000b0962d400100000050ad2d400100000010722d400100000050ad2d4001000000606a2d4001000000007a2d400100000080a42d4001000000406f2d400100000050ad2d400100000050a72d4001000000c0812d4001000000c0812d4001000000d0a92d4001000000",
+      "targetsVA": [
+        "0x1402dad50",
+        "0x1402d4f90",
+        "0x1402d5590",
+        "0x1402d5720",
+        "0x1402dad50",
+        "0x1402d52c0",
+        "0x1402dad50",
+        "0x1402d5120",
+        "0x1402dad50",
+        "0x1402dad50",
+        "0x1402dad50",
+        "0x1402dad50",
+        "0x1402dad50",
+        "0x1402d5480",
+        "0x1402dad50",
+        "0x1402dad50",
+        "0x1402dad60",
+        "0x1402d6520",
+        "0x1402d83e0",
+        "0x1402d96b0",
+        "0x1402dad50",
+        "0x1402d7210",
+        "0x1402dad50",
+        "0x1402d6a60",
+        "0x1402d7a00",
+        "0x1402da480",
+        "0x1402d6f40",
+        "0x1402dad50",
+        "0x1402da750",
+        "0x1402d81c0",
+        "0x1402d81c0",
+        "0x1402da9d0"
+      ]
+    }
+  ],
+  "nextFrontier": [
+    "Exact source clip serialization and packed materialization into the stream consumed by 0x14031EE00",
+    "Exact outer container/resource identity of the selected third offset-table entry",
+    "Bounded packed RDN corpus and actual demo invocation/lifetime",
+    "Authoritative generated-buffer backing bounds and original per-frame/GPU behavior"
+  ]
+}

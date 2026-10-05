@@ -1,15 +1,17 @@
 # DMC3 HD / PS2 — Resource & Rendering Limits Full Reverse
 
 **Project:** DMC Rengine  
-**Date:** 2026-10-04  
+**Date:** 2026-10-05  
 **Status:** Current consolidated reverse snapshot  
 **Repository:** `VrUaCom/dmc-rengine-cpp`  
 **Research branch:** `reverse/dmc3-resource-render-limits-20261004`  
 **Saved v21 evidence commit:** [cf3c0a6](https://github.com/VrUaCom/dmc-rengine-cpp/commit/cf3c0a6e9045ed9594450409fb9442bf01e55714)  
-**Research base commit (v22):** `cf3c0a6e9045ed9594450409fb9442bf01e55714`  
-**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v22`
+**Research base commit (v26):** `bd23cd4bafc1f7cf5117141586fb8fe3b23385e5`  
+**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v26`
 
-**v22 continuation:** Sections 65–69 recover effect 11/12 initializer defaults, raw parameter admission, the 512×256 startup viewport, cached type 11 regeneration and checksum invalidation. 38 new instruction fixtures pass. Earlier evidence remains as history; later continuation sections and the current ledger supersede intermediate open questions.
+**v26 continuation:** Sections 73–74 close the HTH/RDN text constructor, both packed selectors and binder edge semantics. 42 original-code fixtures pass. Exact packed materialization and retail runtime reachability remain open. The newer v23–v25 sections and SHW topology bound are preserved.
+
+**Historical v22 continuation:** Sections 65–69 recover effect 11/12 initializer defaults, raw parameter admission, the 512×256 startup viewport, cached type 11 regeneration and checksum invalidation. 38 new instruction fixtures pass. Earlier evidence remains as history; later continuation sections and the current ledger supersede intermediate open questions.
 
 ## Canonical executable
 
@@ -2662,12 +2664,13 @@ Binder `0x14031EDB0` performs:
 
 ```text
 if resource == null:
-    fail
+    fail without changing previous manager pointer/count
 
 manager+0xF8 = resource
 manager.u16+0x00 = resource.u16+0x04
 
-require resource.dword+0x04 >= 1
+require signed low16(resource.dword+0x04) > 0
+require resource.dword+0x04 >= 1 (unsigned)
 require resource.dword+0x08 != 0
 firstRecord = resource + resource.dword+0x08
 require firstRecord.byte+0x06 == 1
@@ -2687,11 +2690,7 @@ The two direct stream-admission callsites in the complete executable are:
 Both initialize the same manager object at caller `+0x1B0A0` through binder
 calls `0x14023B9C3` / `0x14023CBC7` immediately before admission.
 
-Separately, parser `0x1402DA750` initializes the canonical TXT parser helpers
-`0x140322CB0/0x140322CA0`, consumes `Clip`, `SetFrame`, `SkipFrame`,
-`CutFrame`, `ClipScale`, `ChangeType`, `Life`, `Id` and `Param`,
-and uses the `/demo/%s/%s` resource domain. Its `Id` path calls the recovered
-effect-tag mapper `0x14031E730`.
+**v26 correction:** `0x1402DA750` uses the `0x140322CB0/0x140322CA0` helper family for Frame/No/Arg clips. The adjacent **`0x1402DA9D0`** is the effect clip parser; its `Id` path calls `0x14031E730` and its `Param` path calls `0x14031B2D0`. The `/demo/%s/%s` domain is prior contextual evidence; the v26 fixtures do not execute filesystem loading. See sections 73–74 for the exact dispatch and proof boundary.
 
 Therefore the `+0xF8` stream consumed by `0x14031EE00` is no longer an
 anonymous auxiliary stream: it belongs to the **demo clip screen-effect**
@@ -3202,3 +3201,104 @@ Therefore:
 - retail SHW expansion maxima above: **CORPUS_CONFIRMED**;
 - dedicated 128 KiB scratch extent: **PRESERVED AS STRUCTURAL_CANDIDATE ONLY**;
 - 10,920 vertices / 1,820 groups: **REJECTED as an engine-limit claim**.
+
+
+
+---
+
+# 73. Continuation v26 — actual HTH/RDN source construction and packed selection
+
+This pass traces one EXE source-construction route upstream of the already recovered runtime importer. It does not close the serializer that connects a text clip object to the packed stream consumed by the demo manager.
+
+## 73.1 Correct parser and loader dispatch
+
+Loader `0x1402D5EB0..0x1402D6086` dispatches through the absolute pointer table at `0x1405CED80`, using the indirect call at `0x1402D6048`.
+
+| Loader index | Parser | Role |
+|---|---|---|
+| 28 | `0x1402DA750` | Frame/No/Arg clip parser |
+| 31 | `0x1402DA9D0` | Effect clip parser, including `Id` and `Param` |
+| 16 | `0x1402DAD60` | Separate ChangeType/SrcValue/DistValue parser |
+
+The v25 attribution of `Id/Param` to `0x1402DA750` was incorrect and is corrected in the owner evidence and main ledger. Effect parser `0x1402DA9D0` calls mapper `0x14031E730` at `0x1402DAC79` and typed parameter builder `0x14031B2D0` at `0x1402DAD0F`. Tokenizer `0x140326CA0` and token helper `0x1402D6420` execute as original code in the fixtures.
+
+## 73.2 Source allocation and defaults
+
+`0x14031B2D0` reads clip type at `+0x64`, calls source allocator `0x14031E0B0`, calls initializer `0x14031E190`, and uses the 17-entry RVA table at `0x14031E06C` with **index = type+1**. The allocator/default tables use **type-1**. These different indexing rules are preserved explicitly.
+
+| Type | Source bytes | Source defaults relevant to geometry | Text handler |
+|---|---:|---|---|
+| HTH / 11 | 48 (`0x30`) | DetailH=4, DetailV=3; AmpH/V=16, SpeedH/V=8 | `0x14031B52A..0x14031B8C8` |
+| RDN / 12 | 40 (`0x28`) | ScaleX=100, ScaleY=100 | `0x14031C2FA..0x14031C5F6` |
+
+The payload pointer is installed at clip `+0x58`; heap descriptor is clip `+0x38`. Full explicit defaults and code/table hashes are in the new evidence. Allocation tail/padding is not assumed to be initialized. These are source-payload sizes, distinct from the existing `0x280` runtime effect slot.
+
+## 73.3 Raw integer text fields reach the runtime importer
+
+| Text field | Source lane | Source write | Runtime lane | Runtime import |
+|---|---|---|---|---|
+| HTH DetailH | `+0x1C` | `0x14031B7D9` | `+0x58` | `0x14031F125` |
+| HTH DetailV | `+0x20` | `0x14031B829` | `+0x5C` | `0x14031F12B` |
+| RDN ScaleX | `+0x00` | `0x14031C409` | `+0x2C` | `0x14031F38D` |
+| RDN ScaleY | `+0x04` | `0x14031C459` | `+0x30` | `0x14031F393` |
+
+All four go through CRT `atoi` at IAT `0x14034F420`. The recovered constructor writes raw 32-bit values; it does not enforce a minimum, producer shift-step bound, or generated-output capacity. The existing importer `0x14031F050` preserves these lanes.
+
+Fixtures include defaults, the retail HTH pair `(6,3)`, zero, negative values, boundary integer values, and full `# Clip Id HTH/RDN Param ... # End` input. In particular, **HTH `(0,-1)`** and **RDN `(1,3)`** survive both the actual text parser and actual runtime importer. The full-clip fixtures use a synthetic clip pool and an existing synthetic runtime lookup slot; they do not serialize or materialize a packed archive resource. Later producer normalization, including the RDN upper normalization already recovered, remains a separate stage. `atoi` overflow outside the signed 32-bit domain is excluded from fixture claims.
+
+## 73.4 Both demo callsites select the third offset-table entry
+
+Slices `0x14023B98A..0x14023B9C3` and `0x14023CB8E..0x14023CBC7` use root registers `r14` and `r13` respectively:
+
+```text
+descriptor = [root+0x18]
+header = [descriptor+0x18]
+payload = [descriptor+0x20]
+
+if header.u16 == 0:
+    require payload.u32[4] >= 3
+    offset = payload.u32[0x10]
+    selected = payload+offset if offset != 0 else null
+else:
+    selected = payload
+```
+
+`+0x10` is **zero-based offset-table index 2 / the third entry** when entries begin at `+8`. The exact outer PAC/PNST/NBZ container identity is not established. Both call binder `0x14031EDB0` with manager at actor `+0x1B0A0`; binder return is ignored, and admission `0x14031EE00` is subsequently called with index 0.
+
+## 73.5 Binder signed-low-word gate and null rebind behavior
+
+Binder also requires the **signed low 16 bits** of the resource count to be positive. In the controlled fixture, counts `1`, `32767` and **`65537`** pass; `0`, `32768`, `65535` and `65536` fail. This is not a dword maximum of 32767. It additionally requires unsigned count >=1, nonzero first offset, a non-null computed first-record pointer and first record byte `+6 == 1`.
+
+For a **non-null invalid resource**, the binder clears manager `+0xF8`. For a **null resource**, it returns false before writes and preserves the previous pointer/count. A sequence of actual valid binding, actual null rebinding, and actual empty-stream admission confirms that a retained valid synthetic stream can still be consumed. This is conditional state preservation; no retail reachability, freed-memory use, use-after-free or crash is claimed.
+
+# 74. v26 validation and current frontier
+
+**42/42** assertion-checked original-code fixtures pass:
+
+| Group | Cases |
+|---|---:|
+| Typed HTH/RDN parameter constructor plus runtime import | 15 |
+| Full effect clip text plus runtime import | 4 |
+| Two packed selectors | 10 |
+| Binder count/offset/type gates | 9 |
+| Null rebind with retained empty-stream admission | 1 |
+| Actual loader indirect dispatch to three parsers | 3 |
+
+Canonical EXE hash is checked before execution. Original machine code is unchanged; CRT conversion/comparison, heap descriptor reset/free, allocation, clip pool and security-cookie helper are explicit fixture stubs recorded in the receipt. Tokenizer, typed constructor, source defaults, mapper, importer, selectors, binder and admission execute as original code in their respective cases. Each fixture has an instruction budget and checks the intended terminal address. These are synthetic fixtures, not original Windows game frames or GPU execution.
+
+Artifacts:
+
+- `tools/reverse/verify_dmc3_demo_effect_source.py`
+- `data/reverse/dmc3-hd-demo-effect-source-construction-20261005.json`
+- `data/reverse/dmc3-hd-demo-effect-source-verification-20261005.json`
+- `data/reverse/demo-effect-source-construction-20261005/*.asm`
+- corrected `data/reverse/dmc3-hd-demo-effect-stream-owner-20261005.json`
+- main ledger `dmc-rengine.dmc3-resource-render-limits.v26`
+
+Replay requires `pefile==2024.8.26`, `unicorn==2.1.4` and the exact canonical EXE:
+
+```bash
+python3 tools/reverse/verify_dmc3_demo_effect_source.py /path/to/dmc3.exe /path/to/receipt.json
+```
+
+Next frontier: recover the source clip serialization/materializer into the selected packed entry; identify its exact outer container/resource; census packed RDN records and actual demo invocation/lifetime. Authoritative generated-buffer backing bounds and shared-ring occupancy still require additional evidence, including original runtime frames. The earlier v23 topology-derived SHW bound remains the strongest bound for that verified closed corpus; older appended all-visible projections remain historical looser estimates and do not replace it.

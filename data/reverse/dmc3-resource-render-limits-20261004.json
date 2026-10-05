@@ -1,6 +1,6 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v24",
-  "date": "2026-10-04",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v26",
+  "date": "2026-10-05",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
@@ -1504,6 +1504,28 @@
       },
       "zeroStepHazard": "field2C 0..1 or field30 0..3 can derive zero step; no local repair recovered",
       "status": "EXE_CONFIRMED_EFFECT_SLOT_PARAMETER_DEFAULTS_AND_MUTATION_PATH"
+    },
+    "demoEffectSourceConstruction": {
+      "evidence": "data/reverse/dmc3-hd-demo-effect-source-construction-20261005.json",
+      "verification": "data/reverse/dmc3-hd-demo-effect-source-verification-20261005.json",
+      "status": "EXE_CONFIRMED",
+      "sourceBuilder": "0x14031B2D0",
+      "sourceSizes": {
+        "HTH": 48,
+        "RDN": 40
+      },
+      "sourceDefaultDetail": [
+        4,
+        3
+      ],
+      "sourceDefaultScale": [
+        100,
+        100
+      ],
+      "rawTextIntegerAdmissionClosed": true,
+      "exactPackedMaterializerClosed": false,
+      "retailRuntimeReachabilityClosed": false,
+      "validationCases": 42
     }
   },
   "texture": {
@@ -1577,7 +1599,7 @@
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
     "recover authoritative backing allocation/guard for type-11 0x140CC1AD0 and type-12 0x140CD1AF0 generated buffers; address-gap sizes are not hard bounds",
-    "trace the source-object producer for 0x14031F050 parameter blocks to determine whether higher-level effect/script data validation constrains type-11/type-12 updates",
+    "close source-clip serialization/packed materialization into 0x14031EE00 and investigate other source routes; one HTH/RDN text constructor now admits raw integer lanes without lower/capacity guards",
     "recover authoritative backing extent/bounds for 0x140BEB3F0 SHW expansion scratch; address-gap inference is insufficient",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
@@ -1711,9 +1733,12 @@
     "streamAdmission": "0x14031EE00",
     "managerOffset": "caller+0x1B0A0",
     "streamPointerOffset": "manager+0xF8",
-    "textParser": "0x1402DA750",
+    "textParser": "0x1402DA9D0",
     "domain": "/demo/%s/%s",
-    "status": "EXE_CONFIRMED_DEMO_CLIP_EFFECT_STREAM_OWNER"
+    "status": "EXE_CONFIRMED_DEMO_CLIP_EFFECT_STREAM_OWNER",
+    "relatedFrameParser": "0x1402DA750",
+    "packedOffsetTableIndex": 2,
+    "nullBinderPreservesState": true
   },
   "shw": {
     "renderCountBudget": {
@@ -1790,5 +1815,13 @@
     "updateDispatcher": "0x14031F050",
     "updateJumpTable": "0x14031F778",
     "status": "EXE_CONFIRMED"
+  },
+  "continuationV26": {
+    "baseCommit": "bd23cd4bafc1f7cf5117141586fb8fe3b23385e5",
+    "evidence": "data/reverse/dmc3-hd-demo-effect-source-construction-20261005.json",
+    "supersedes": [
+      "v25 effect-parser attribution to 0x1402DA750",
+      "binder gate description omitting signed low16 and null-state preservation"
+    ]
   }
 }

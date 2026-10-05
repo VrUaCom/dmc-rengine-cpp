@@ -1,0 +1,1595 @@
+{
+  "schema": "dmc-rengine.dmc3-demo-effect-source-verification.v1",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": "Unmodified EXE code with explicit CRT/heap/pool/security stubs; controlled inputs, no retail corpus or original-game frames",
+  "dependencies": {
+    "pefile": "2024.8.26",
+    "unicorn": "2.1.4"
+  },
+  "parameters": [
+    {
+      "kind": 11,
+      "text": "# End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        4,
+        3
+      ],
+      "sourcePayloadHex": "00007a4400808944808080401000000010000000080000000800000004000000030000000000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        4,
+        3
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH 4 DetailV 3 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        4,
+        3
+      ],
+      "sourcePayloadHex": "00007a4400808944808080401000000010000000080000000800000004000000030000000000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        4,
+        3
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "4",
+          "resultU32": 4
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "3",
+          "resultU32": 3
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH 6 DetailV 3 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        6,
+        3
+      ],
+      "sourcePayloadHex": "00007a4400808944808080401000000010000000080000000800000006000000030000000000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        6,
+        3
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "6",
+          "resultU32": 6
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "3",
+          "resultU32": 3
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH 0 DetailV 0 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        0,
+        0
+      ],
+      "sourcePayloadHex": "00007a4400808944808080401000000010000000080000000800000000000000000000000000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        0,
+        0
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "0",
+          "resultU32": 0
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "0",
+          "resultU32": 0
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH -1 DetailV -1 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        4294967295,
+        4294967295
+      ],
+      "sourcePayloadHex": "00007a44008089448080804010000000100000000800000008000000ffffffffffffffff0000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        4294967295,
+        4294967295
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-1",
+          "resultU32": 4294967295
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-1",
+          "resultU32": 4294967295
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH 31 DetailV 32 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        31,
+        32
+      ],
+      "sourcePayloadHex": "00007a440080894480808040100000001000000008000000080000001f000000200000000000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        31,
+        32
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "31",
+          "resultU32": 31
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "32",
+          "resultU32": 32
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 11,
+      "text": "DetailH -2147483648 DetailV 2147483647 # End",
+      "sourceOffsets": [
+        28,
+        32
+      ],
+      "sourceValuesU32": [
+        2147483648,
+        2147483647
+      ],
+      "sourcePayloadHex": "00007a4400808944808080401000000010000000080000000800000000000080ffffff7f0000000000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        2147483648,
+        2147483647
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-2147483648",
+          "resultU32": 2147483648
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "2147483647",
+          "resultU32": 2147483647
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "# End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        100,
+        100
+      ],
+      "sourcePayloadHex": "64000000640000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        100,
+        100
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 100 ScaleY 100 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        100,
+        100
+      ],
+      "sourcePayloadHex": "64000000640000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        100,
+        100
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "100",
+          "resultU32": 100
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "100",
+          "resultU32": 100
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 0 ScaleY 0 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        0,
+        0
+      ],
+      "sourcePayloadHex": "00000000000000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        0,
+        0
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "0",
+          "resultU32": 0
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "0",
+          "resultU32": 0
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 1 ScaleY 3 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        1,
+        3
+      ],
+      "sourcePayloadHex": "01000000030000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        1,
+        3
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "1",
+          "resultU32": 1
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "3",
+          "resultU32": 3
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 2 ScaleY 4 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        2,
+        4
+      ],
+      "sourcePayloadHex": "02000000040000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        2,
+        4
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "2",
+          "resultU32": 2
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "4",
+          "resultU32": 4
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 201 ScaleY 201 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        201,
+        201
+      ],
+      "sourcePayloadHex": "c9000000c90000008080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        201,
+        201
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "201",
+          "resultU32": 201
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "201",
+          "resultU32": 201
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX -1 ScaleY -1 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        4294967295,
+        4294967295
+      ],
+      "sourcePayloadHex": "ffffffffffffffff8080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        4294967295,
+        4294967295
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-1",
+          "resultU32": 4294967295
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-1",
+          "resultU32": 4294967295
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    },
+    {
+      "kind": 12,
+      "text": "ScaleX 2147483647 ScaleY -2147483648 # End",
+      "sourceOffsets": [
+        0,
+        4
+      ],
+      "sourceValuesU32": [
+        2147483647,
+        2147483648
+      ],
+      "sourcePayloadHex": "ffffff7f000000808080801001000000040000000000000000000080ffffff8000a5a5a5a5a5a5a5",
+      "runtimeValuesU32": [
+        2147483647,
+        2147483648
+      ],
+      "sourceParserSuccess": true,
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "2147483647",
+          "resultU32": 2147483647
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-2147483648",
+          "resultU32": 2147483648
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ]
+    }
+  ],
+  "clips": [
+    {
+      "tag": "HTH",
+      "kind": 11,
+      "text": "# Clip Id HTH Param DetailH 6 DetailV 3 # End",
+      "runtimeValuesU32": [
+        6,
+        3
+      ],
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031e730",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140323fb0",
+          "operation": "fixture clip pool returns zeroed clip with type=-1"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "ClipScale"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "ClipScale"
+        },
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "6",
+          "resultU32": 6
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "3",
+          "resultU32": 3
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ],
+      "scope": "Actual text parser and importer, synthetic clip pool/runtime slot"
+    },
+    {
+      "tag": "HTH",
+      "kind": 11,
+      "text": "# Clip Id HTH Param DetailH 0 DetailV -1 # End",
+      "runtimeValuesU32": [
+        0,
+        4294967295
+      ],
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031e730",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140323fb0",
+          "operation": "fixture clip pool returns zeroed clip with type=-1"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "ClipScale"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "ClipScale"
+        },
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 48,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailH",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "0",
+          "resultU32": 0
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeH"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "DetailV",
+          "right": "AmplitudeV"
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "-1",
+          "resultU32": 4294967295
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ],
+      "scope": "Actual text parser and importer, synthetic clip pool/runtime slot"
+    },
+    {
+      "tag": "RDN",
+      "kind": 12,
+      "text": "# Clip Id RDN Param ScaleX 100 ScaleY 100 # End",
+      "runtimeValuesU32": [
+        100,
+        100
+      ],
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031e730",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140323fb0",
+          "operation": "fixture clip pool returns zeroed clip with type=-1"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "ClipScale"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "ClipScale"
+        },
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "100",
+          "resultU32": 100
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "100",
+          "resultU32": 100
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ],
+      "scope": "Actual text parser and importer, synthetic clip pool/runtime slot"
+    },
+    {
+      "tag": "RDN",
+      "kind": 12,
+      "text": "# Clip Id RDN Param ScaleX 1 ScaleY 3 # End",
+      "runtimeValuesU32": [
+        1,
+        3
+      ],
+      "executedEntries": [
+        "0x1402d6420",
+        "0x14031b2d0",
+        "0x14031e0b0",
+        "0x14031e190",
+        "0x14031e730",
+        "0x14031f050",
+        "0x140326ca0"
+      ],
+      "stubs": [
+        {
+          "target": "0x140323fb0",
+          "operation": "fixture clip pool returns zeroed clip with type=-1"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Id",
+          "right": "ClipScale"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SetFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "SkipFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "CutFrame"
+        },
+        {
+          "iat": "0x14034f600",
+          "operation": "strcmp fixture",
+          "left": "Param",
+          "right": "ClipScale"
+        },
+        {
+          "target": "0x140337710",
+          "operation": "fixture heap descriptor reset/free no-op"
+        },
+        {
+          "target": "0x1402c6150",
+          "operation": "fixture allocation",
+          "bytes": 40,
+          "fill": 165
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "1",
+          "resultU32": 1
+        },
+        {
+          "iat": "0x14034f420",
+          "operation": "atoi fixture",
+          "text": "3",
+          "resultU32": 3
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        },
+        {
+          "target": "0x1403455f0",
+          "operation": "security-cookie return"
+        }
+      ],
+      "scope": "Actual text parser and importer, synthetic clip pool/runtime slot"
+    }
+  ],
+  "resourceSelection": [
+    {
+      "sliceStart": "0x14023b98a",
+      "stopBeforeBinder": "0x14023b9c3",
+      "packedSelector": true,
+      "tableCount": 2,
+      "thirdEntryOffset": 256,
+      "selectedVA": "0x0"
+    },
+    {
+      "sliceStart": "0x14023b98a",
+      "stopBeforeBinder": "0x14023b9c3",
+      "packedSelector": true,
+      "tableCount": 3,
+      "thirdEntryOffset": 0,
+      "selectedVA": "0x0"
+    },
+    {
+      "sliceStart": "0x14023b98a",
+      "stopBeforeBinder": "0x14023b9c3",
+      "packedSelector": true,
+      "tableCount": 3,
+      "thirdEntryOffset": 256,
+      "selectedVA": "0x10001700"
+    },
+    {
+      "sliceStart": "0x14023b98a",
+      "stopBeforeBinder": "0x14023b9c3",
+      "packedSelector": true,
+      "tableCount": 8,
+      "thirdEntryOffset": 512,
+      "selectedVA": "0x10001800"
+    },
+    {
+      "sliceStart": "0x14023b98a",
+      "stopBeforeBinder": "0x14023b9c3",
+      "packedSelector": false,
+      "tableCount": 0,
+      "thirdEntryOffset": 0,
+      "selectedVA": "0x10001600"
+    },
+    {
+      "sliceStart": "0x14023cb8e",
+      "stopBeforeBinder": "0x14023cbc7",
+      "packedSelector": true,
+      "tableCount": 2,
+      "thirdEntryOffset": 256,
+      "selectedVA": "0x0"
+    },
+    {
+      "sliceStart": "0x14023cb8e",
+      "stopBeforeBinder": "0x14023cbc7",
+      "packedSelector": true,
+      "tableCount": 3,
+      "thirdEntryOffset": 0,
+      "selectedVA": "0x0"
+    },
+    {
+      "sliceStart": "0x14023cb8e",
+      "stopBeforeBinder": "0x14023cbc7",
+      "packedSelector": true,
+      "tableCount": 3,
+      "thirdEntryOffset": 256,
+      "selectedVA": "0x10001700"
+    },
+    {
+      "sliceStart": "0x14023cb8e",
+      "stopBeforeBinder": "0x14023cbc7",
+      "packedSelector": true,
+      "tableCount": 8,
+      "thirdEntryOffset": 512,
+      "selectedVA": "0x10001800"
+    },
+    {
+      "sliceStart": "0x14023cb8e",
+      "stopBeforeBinder": "0x14023cbc7",
+      "packedSelector": false,
+      "tableCount": 0,
+      "thirdEntryOffset": 0,
+      "selectedVA": "0x10001600"
+    }
+  ],
+  "binder": [
+    {
+      "countU32": 0,
+      "low16Signed": 0,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": false,
+      "streamPointer": "0x0"
+    },
+    {
+      "countU32": 1,
+      "low16Signed": 1,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": true,
+      "streamPointer": "0x10002000"
+    },
+    {
+      "countU32": 32767,
+      "low16Signed": 32767,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": true,
+      "streamPointer": "0x10002000"
+    },
+    {
+      "countU32": 32768,
+      "low16Signed": -32768,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": false,
+      "streamPointer": "0x0"
+    },
+    {
+      "countU32": 65535,
+      "low16Signed": -1,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": false,
+      "streamPointer": "0x0"
+    },
+    {
+      "countU32": 65536,
+      "low16Signed": 0,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": false,
+      "streamPointer": "0x0"
+    },
+    {
+      "countU32": 65537,
+      "low16Signed": 1,
+      "offset": 32,
+      "kindByte": 1,
+      "accepted": true,
+      "streamPointer": "0x10002000"
+    },
+    {
+      "countU32": 1,
+      "low16Signed": 1,
+      "offset": 0,
+      "kindByte": 1,
+      "accepted": false,
+      "streamPointer": "0x0"
+    },
+    {
+      "countU32": 1,
+      "low16Signed": 1,
+      "offset": 32,
+      "kindByte": 2,
+      "accepted": false,
+      "streamPointer": "0x0"
+    }
+  ],
+  "nullRebind": [
+    {
+      "sequence": "valid bind -> null rebind -> actual empty-stream admission",
+      "nullBindReturned": false,
+      "previousPointerPreserved": true,
+      "previousCountPreserved": true,
+      "admissionReturnedU32": 0,
+      "executedEntries": [
+        "0x14031ee00"
+      ],
+      "stubs": [],
+      "scope": "Synthetic retained valid resource; not retail reachability or stale freed memory"
+    }
+  ],
+  "parserDispatch": [
+    {
+      "index": 28,
+      "target": "0x1402da750",
+      "sliceStart": "0x1402d6032",
+      "scope": "Actual indirect call setup; synthetic controller/load state"
+    },
+    {
+      "index": 31,
+      "target": "0x1402da9d0",
+      "sliceStart": "0x1402d6032",
+      "scope": "Actual indirect call setup; synthetic controller/load state"
+    },
+    {
+      "index": 16,
+      "target": "0x1402dad60",
+      "sliceStart": "0x1402d6032",
+      "scope": "Actual indirect call setup; synthetic controller/load state"
+    }
+  ],
+  "verification": {
+    "cases": 42,
+    "passed": true
+  }
+}
