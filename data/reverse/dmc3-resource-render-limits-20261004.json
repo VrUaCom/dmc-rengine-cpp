@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v21",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v22",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -727,7 +727,9 @@
         "writeBytes": 4,
         "necessaryCondition": "A+E <= 1820",
         "claimBoundary": "Specific neighboring-variable write conflicts under synthetic cropped EXE inputs; no local capacity guard. Exact static-object extents, retail reachability, and original-game failure behavior remain unproven."
-      }
+      },
+      "engineLimitClaim": "REJECTED",
+      "reason": "next referenced-global address inside large .data BSS virtual span is not authoritative ownership/extent evidence"
     },
     "customAdCommandProtocol": {
       "handlers": {
@@ -1356,7 +1358,8 @@
       "inferredScratchExtent": {
         "bytes": 131072,
         "status": "STRUCTURAL_CANDIDATE",
-        "warning": "Referenced-global interval is not ownership proof; base is shared/referenced by legacy compatibility handlers."
+        "warning": "Referenced-global interval is not ownership proof; base is shared/referenced by legacy compatibility handlers.",
+        "engineLimitClaim": "REJECTED"
       }
     }
   },
@@ -1430,7 +1433,7 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "close upstream producer/clamp of 0x1400446F0 input+0x18 and promote/reject the candidate 0x20000 scratch extent",
+    "recover authoritative backing extent/bounds for 0x140BEB3F0 SHW expansion scratch; address-gap inference is insufficient",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
     "measure real per-frame SHW light-dependent active/silhouette counts and invocation order; bounded retail topology worst-case is now closed",
@@ -1566,5 +1569,70 @@
     "textParser": "0x1402DA750",
     "domain": "/demo/%s/%s",
     "status": "EXE_CONFIRMED_DEMO_CLIP_EFFECT_STREAM_OWNER"
+  },
+  "shw": {
+    "renderCountBudget": {
+      "runtimeBuilder": "0x14031FD30",
+      "runtimeUpdate": "0x1403204F0",
+      "drawHelper": "0x1400446F0",
+      "sourceCountFields": {
+        "vertexCount": {
+          "offset": "record+0x00",
+          "physicalBits": 16,
+          "runtimeLoad": "movsx",
+          "positiveRuntimeMax": 32767
+        },
+        "triangleCount": {
+          "offset": "record+0x02",
+          "physicalBits": 16,
+          "runtimeLoad": "movsx",
+          "positiveRuntimeMax": 32767
+        }
+      },
+      "countChain": "SHW record+0x02 -> runtimeHull+0x08 -> frame descriptor+0x18 -> 0x1400446F0 outer loop",
+      "expansion": {
+        "groupsPerActiveTriangle": "1 + zero(selector0) + zero(selector1) + zero(selector2)",
+        "range": [
+          1,
+          4
+        ],
+        "verticesPerGroup": 6,
+        "bytesPerGroup": 72
+      },
+      "corpus": {
+        "archive": "DMC 3 RENGINE (6).zip",
+        "archiveSha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+        "paths": 16,
+        "uniqueSha256": 16,
+        "hulls": 158,
+        "vertices": 1882,
+        "triangles": 3104,
+        "maxHullVertexCount": 60,
+        "maxHullTriangleCount": 116,
+        "maxHullAllVisible": {
+          "path": "em035_023.shw",
+          "sha256": "b51e70ce704205f0a4b00fdf5418db718ac800e5c508b366eb69c5ae6e93c5d6",
+          "hull": 0,
+          "vertices": 60,
+          "triangles": 116,
+          "generatedGroups": 464,
+          "generatedVertices": 2784,
+          "generatedBytes": 33408
+        },
+        "maxFileAllVisible": {
+          "path": "em035_022.shw",
+          "sha256": "dc7884346b35c76a83c246b07bb5e616b8ea48f60dc591e2b4b549ef7e7da598",
+          "hulls": 5,
+          "triangles": 162,
+          "generatedGroups": 648,
+          "generatedVertices": 3888,
+          "generatedBytes": 46656
+        }
+      },
+      "status": [
+        "EXE_CONFIRMED_SHW_TRIANGLE_COUNT_TO_RENDER_LOOP",
+        "CORPUS_CONFIRMED_SHW_RENDER_EXPANSION"
+      ]
+    }
   }
 }
