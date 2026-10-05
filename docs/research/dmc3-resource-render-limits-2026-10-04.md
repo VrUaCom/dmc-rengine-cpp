@@ -2773,3 +2773,129 @@ Correction to the earlier candidate wording:
 - 10,920 generated vertices / 1,820 groups: **not an engine limit**;
 - hard maximum remains open until the upstream producer of `input+0x18` or an
   explicit scratch bound is recovered.
+
+
+## SHW triangle-count provenance and render expansion budget
+
+A canonical-EXE pass closes the upstream count used by
+`0x1400446F0`.
+
+### Serialized -> runtime -> render-count chain
+
+SHW runtime builder `0x14031FD30` reads each record:
+
+```text
+source +0x00 -> movsx WORD -> runtimeHull+0x04  (vertex count)
+source +0x02 -> movsx WORD -> runtimeHull+0x08  (triangle count)
+```
+
+The use of `movsx` is significant: the canonical HD runtime interprets these
+two physical 16-bit lanes as signed values when building the SHW runtime
+record. Positive runtime counts therefore occupy the domain `0..32767`, not
+the full unsigned `0..65535` range.
+
+During SHW runtime update `0x1403204F0`, the code loads:
+
+```text
+eax = runtimeHull+0x08
+rcx = runtimeHull+(frame-domain 0x88/0x90) descriptor
+descriptor+0x18 = eax
+```
+
+at `0x1403205F0..0x140320600`.
+
+The compatibility packet interpreter later invokes `0x1400446F0` for the
+SHW `0x58` render path. That helper uses `descriptor+0x18` as its outer
+iteration count.
+
+Therefore the count chain is now closed:
+
+```text
+SHW record +0x02
+ -> signed 16-bit triangle_count
+ -> runtimeHull+0x08
+ -> runtime render descriptor+0x18
+ -> 0x1400446F0 outer triangle loop
+```
+
+Status:
+**EXE_CONFIRMED_SHW_TRIANGLE_COUNT_TO_RENDER_LOOP**.
+
+### Expansion semantics
+
+For each active SHW triangle, `0x1400446F0` emits one mandatory
+`0x48`-byte / six-vertex group and up to three additional groups depending
+on the three per-triangle selector lanes. Thus:
+
+```text
+groupsPerActiveTriangle = 1 + zero(selector0) + zero(selector1) + zero(selector2)
+range = 1..4
+
+generatedVertices = 6 * groups
+generatedBytes = 72 * groups
+```
+
+Dynamic rejection/culling may remove a triangle entirely, so the all-visible
+source-selector projection is a deterministic static upper bound for a given
+retail hull.
+
+### Bounded SHW corpus
+
+The exact historical archive
+`DMC 3 RENGINE (6).zip`
+(SHA-256 `7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f`)
+contains:
+
+- 16 SHW paths;
+- 16 unique SHW payloads;
+- 158 hull records;
+- 1,882 serialized vertices;
+- 3,104 serialized triangles;
+- maximum observed hull vertex count: **60**;
+- maximum observed hull triangle count: **116**.
+
+All observed counts are positive and far below the signed-16 runtime boundary.
+
+Largest all-visible per-hull render expansion:
+
+`em035_023.shw`, hull 0
+(SHA-256 `b51e70ce704205f0a4b00fdf5418db718ac800e5c508b366eb69c5ae6e93c5d6`):
+
+- 60 vertices;
+- 116 triangles;
+- all 60 transform selectors are zero;
+- 464 generated groups;
+- **2,784 generated vertices**;
+- **33,408 generated/ring bytes**.
+
+Largest aggregate all-visible projection for one SHW file in the bounded
+archive:
+
+`em035_022.shw`
+(SHA-256 `dc7884346b35c76a83c246b07bb5e616b8ea48f60dc591e2b4b549ef7e7da598`):
+
+- 5 hulls;
+- 162 triangles;
+- 648 generated groups;
+- **3,888 generated vertices**;
+- **46,656 generated/ring bytes**.
+
+The per-file figure assumes each hull is submitted once and all source-visible
+triangles survive dynamic rejection; it is a corpus-side upper projection, not
+a measured frame occupancy.
+
+### 128 KiB scratch candidate demotion
+
+The earlier `0x20000` gap after `0x140BEB3F0` is not sufficient to prove
+a dedicated 128 KiB scratch object. The base lies in the large virtual/BSS
+portion of the executable's `.data` section and is referenced by multiple
+legacy compatibility paths. The exact SHW count provenance now shows that a
+true hard limit must come from an explicit bounds check, initializer, or
+upstream allocation contract, not merely the next referenced global address.
+
+Therefore:
+
+- exact SHW count/expansion path: **EXE_CONFIRMED**;
+- retail SHW expansion maxima above: **CORPUS_CONFIRMED**;
+- dedicated 128 KiB scratch extent: **PRESERVED AS STRUCTURAL_CANDIDATE ONLY**;
+- 10,920 vertices / 1,820 groups: **REJECTED as an engine-limit claim**.
