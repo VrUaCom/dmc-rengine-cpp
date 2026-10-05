@@ -1,0 +1,79 @@
+{
+  "schema": "dmc-rengine.dmc3-shw-render-count-budget.v1",
+  "date": "2026-10-05",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
+  },
+  "executableEvidence": {
+    "builder": {
+      "function": "0x14031FD30",
+      "sourceVertexLoad": "0x14031FDD8 movsx WORD [sourceHull+0x00] -> runtimeHull+0x04",
+      "sourceTriangleLoad": "0x14031FDDF movsx WORD [sourceHull+0x02] -> runtimeHull+0x08"
+    },
+    "updater": {
+      "function": "0x1403204F0",
+      "countLoad": "0x1403205F0 eax = runtimeHull+0x08",
+      "descriptorLoad": "0x1403205F8 rcx = runtimeHull+(frame-domain 0x88/0x90)",
+      "countWrite": "0x140320600 descriptor+0x18 = eax"
+    },
+    "renderer": {
+      "function": "0x1400446F0",
+      "countField": "descriptor+0x18",
+      "countMeaning": "SHW triangle_count",
+      "groupsPerActiveTriangle": "1..4 based on three selector-zero tests",
+      "verticesPerGroup": 6,
+      "bytesPerGroup": 72
+    }
+  },
+  "runtimeDomain": {
+    "sourceFieldsPhysically16Bit": true,
+    "interpretedSignedByBuilder": true,
+    "positiveCountDomain": [
+      0,
+      32767
+    ]
+  },
+  "corpus": {
+    "archive": "DMC 3 RENGINE (6).zip",
+    "archiveSha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "shwPaths": 16,
+    "uniqueSha256": 16,
+    "hulls": 158,
+    "totalVertices": 1882,
+    "totalTriangles": 3104,
+    "maxObservedHull": {
+      "vertices": 60,
+      "triangles": 116
+    },
+    "maxAllVisibleHull": {
+      "path": "em035_023.shw",
+      "sha256": "b51e70ce704205f0a4b00fdf5418db718ac800e5c508b366eb69c5ae6e93c5d6",
+      "hull": 0,
+      "vertices": 60,
+      "triangles": 116,
+      "groups": 464,
+      "generatedVertices": 2784,
+      "generatedBytes": 33408
+    },
+    "maxAllVisibleFile": {
+      "path": "em035_022.shw",
+      "sha256": "dc7884346b35c76a83c246b07bb5e616b8ea48f60dc591e2b4b549ef7e7da598",
+      "hulls": 5,
+      "triangles": 162,
+      "groups": 648,
+      "generatedVertices": 3888,
+      "generatedBytes": 46656
+    }
+  },
+  "correction": {
+    "oldScratchExtentCandidateBytes": 131072,
+    "currentStatus": "STRUCTURAL_CANDIDATE_ONLY",
+    "engineLimitClaim": "REJECTED",
+    "reason": "next referenced global is not an authoritative boundary inside .data virtual/BSS space; exact upstream count is now known independently"
+  },
+  "status": [
+    "EXE_CONFIRMED_SHW_TRIANGLE_COUNT_TO_RENDER_LOOP",
+    "CORPUS_CONFIRMED_SHW_RENDER_EXPANSION"
+  ]
+}
