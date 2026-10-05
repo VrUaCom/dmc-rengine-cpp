@@ -1,0 +1,415 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-demo-clip-runtime.v1",
+  "date": "2026-10-05",
+  "status": "EXE_CONFIRMED",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000",
+    "sizeBytes": 6356432
+  },
+  "researchBaseCommit": "ced0161e29daaac14669dd5b3f6d40ef116df95c",
+  "scope": "Original-code static reconstruction and 45 assertion-checked synthetic fixtures. No original game/GPU execution or retail failure reachability claim.",
+  "classIdentity": {
+    "constructor": "0x1403233F0",
+    "vtableVA": "0x1405085B8",
+    "vtableRawHex": "90e6314001000000d0e531400100000080e5314001000000803832400100000030ea244001000000",
+    "vtableSha256": "1818ca1497cd99bb727e7ab08804f8e710b03946965b8860ae5eaa81ce71cc20",
+    "entries": [
+      {
+        "offset": "0x0",
+        "target": "0x14031e690"
+      },
+      {
+        "offset": "0x8",
+        "target": "0x14031e5d0"
+      },
+      {
+        "offset": "0x10",
+        "target": "0x14031e580"
+      },
+      {
+        "offset": "0x18",
+        "target": "0x140323880"
+      },
+      {
+        "offset": "0x20",
+        "target": "0x14024ea30"
+      }
+    ],
+    "completeObjectLocatorVA": "0x140520790",
+    "completeObjectLocatorRawHex": "010000000000000000000000808d5d00b807520090075200",
+    "typeDescriptorVA": "0x1405d8d80",
+    "typeDescriptorName": ".?AVCScrEfcClip@@",
+    "callbacks": {
+      "activate": "0x14031E690",
+      "update": "0x14031E5D0",
+      "stop": "0x14031E580",
+      "lifeAccessor": "0x140323880"
+    }
+  },
+  "originalPoolFixture": {
+    "initialize": "0x140323930",
+    "createClip": "0x140323FB0",
+    "syntheticSelector": 15,
+    "constructorDispatchEntryVA": "0x1403242D4",
+    "constructorDispatchTarget": "0x140324130",
+    "constructorCall": "0x140324138 -> 0x1403233F0",
+    "descriptorCountVA": "0x1405D10D0",
+    "descriptorCount": 50,
+    "descriptorObjectSizeVA": "0x1405D10D8",
+    "descriptorObjectBytes": 112,
+    "descriptorNameBytes": "Sound",
+    "boundary": "Selector 15 is supplied by fixtures to exercise the real CScrEfcClip constructor. The Sound descriptor label is observed raw; production selector/third-argument provenance and retail use are unresolved. It is not promoted as a 50-effect game-wide limit.",
+    "constructorDispatchTable": {
+      "va": "0x140324298",
+      "rawHex": "92403200c4403200d7403200ea4032005e423200fd4032005e4232000a4132001d413200d6413200434132005e4232008641320028423200c341320030413200",
+      "sha256": "f06481ff79bd735cfc62a8874e08a30fbca50f9485467db9db3aa328086a9853",
+      "targetsVA": [
+        "0x140324092",
+        "0x1403240c4",
+        "0x1403240d7",
+        "0x1403240ea",
+        "0x14032425e",
+        "0x1403240fd",
+        "0x14032425e",
+        "0x14032410a",
+        "0x14032411d",
+        "0x1403241d6",
+        "0x140324143",
+        "0x14032425e",
+        "0x140324186",
+        "0x140324228",
+        "0x1403241c3",
+        "0x140324130"
+      ]
+    }
+  },
+  "sourceToRuntime": {
+    "path": "actual #Clip Id/Param parser -> actual pool clip allocation/constructor -> original scheduler -> real CScrEfcClip vtable -> actual lookup creation -> actual global runtime-slot allocation/initializer -> actual importer",
+    "ownerLookup": "0x1402C8430: owner = [[clip+0x20]]",
+    "managerOffset": "owner+0x3F60",
+    "sourceTypeOffset": "clip+0x64",
+    "sourcePayloadPointer": "clip+0x58",
+    "parserPoolAndController": "Synthetic but well-formed fixture state; heap/CRT/security stubs explicit in receipt.",
+    "noSerializerRequiredForThisPath": true,
+    "routeBoundary": "No serializer connecting this direct object route to the packed resource route has been established; such a link is not assumed."
+  },
+  "scheduler": {
+    "functionRange": [
+      "0x140323CF0",
+      "0x140323EBC"
+    ],
+    "time": "owner.float[0x18] + owner.float[0x1C]",
+    "stateLane": "clip.u32[0x08]",
+    "population": "pool.u32[0x18]",
+    "entryPointer": "pool+0x40; per-entry stride 0x20",
+    "virtualSites": {
+      "activate": "0x140323E54: [vtable+0x00]",
+      "update": "0x140323DE8: [vtable+0x08]",
+      "stop": "0x140323DD9: [vtable+0x10]",
+      "life": "0x140323E25 / 0x140323DB9: [vtable+0x18]"
+    },
+    "observedStates": {
+      "1": "pending activation",
+      "2": "activation callback accepted",
+      "3": "temporal window ended/stopped",
+      "4": "activation callback returned false"
+    },
+    "stateNamesAreBehavioralLabels": true,
+    "startThreshold": "clip.float[0x10] + clip.float[0x14] * clip.float[0x1C]",
+    "endThreshold": "clip.float[0x10] + lifeAccessor()*clip.float[0x1C] - clip.float[0x18]*clip.float[0x1C]",
+    "endExclusiveForActiveUpdate": true,
+    "proofFixture": "current times 0,1,2,6 with actual parsed ClipScale=1 and Life=5; pending -> accepted -> updates -> stopped"
+  },
+  "activationAndUpdate": {
+    "activationScaleGate": {
+      "field": "clip.float[0x1C]",
+      "thresholdVA": "0x1404E01E8",
+      "thresholdBits": "0x38d1b717",
+      "thresholdFloat32": 9.999999747378752e-05,
+      "finiteRule": "abs(scale) >= threshold; finite positive/negative boundary fixtures only. This is not a DetailH/DetailV/ScaleX/ScaleY geometry guard."
+    },
+    "activation": "Resets remaining Life at clip+0x30 from +0x34; creates lookup if missing; imports payload even when matching lookup already exists; ignores importer return and returns true after the nonnegative lookup path.",
+    "update": "Decrements remaining Life using original rate helper 0x140326960 and clip scale. With an existing matching lookup, returns without reimporting. With no lookup, creates/imports if allocation wrapper return is nonnegative; the activation scale-minimum check is absent here.",
+    "controlledSourceMutation": "Changing source payload alone does not reimport during normal existing-lookup update. Explicit activation reimports into the same runtime slot.",
+    "updateFixtureBoundary": "Missing-lookup direct update tests use a controlled original-stop sequence; production scheduling reachability of that sequence is not claimed."
+  },
+  "capacities": {
+    "lookupEntries": 20,
+    "lookupKindTable": "manager+0x04 (i16)",
+    "lookupSelectorByteTable": "manager+0x100 (u8)",
+    "runtimePointerTable": "manager+0x58 (u64)",
+    "runtimeSlots": 16,
+    "runtimeSlotBytes": 640,
+    "globalRuntimeBank": "0x140CD9B80",
+    "runtimeAllocator": "0x140315BD0",
+    "lookupAllocator": "0x14031EA50",
+    "slotAvailability": "Slot byte+0 must be zero. Allocator returns null when all 16 are nonzero.",
+    "sharedOwnership": "Both direct clip callbacks and packed admission allocate through the same global bank; two-manager fixtures allocate consecutive slots.",
+    "boundary": "These are record/slot capacities, not polygon caps, draw counts, or total effects per frame."
+  },
+  "allocationFailure": {
+    "lookupFull": "0x14031EA50 returns -1; direct activation returns false; scheduler stores state 4; no import occurs.",
+    "runtimeFull": "0x140315BD0 returns null, but 0x14031EA50 stores the requested kind plus null pointer and returns a nonnegative lookup index without rollback.",
+    "directTextPath": "R9b=0 at both callback importer callsites; null target is checked, importer returns -1. Activation ignores the result and returns true; scheduler stores state 2 despite no materialized runtime slot.",
+    "failedEntryPersistence": "Freeing a bank slot synthetically does not trigger retry while the kind/null lookup persists. Original stop removes the lookup; a subsequent original activation can allocate/import.",
+    "packedPath": "Admission callsite 0x14031EFF9 uses R9b=1. For type 11/12 this bypasses the null-target check. Admission also reaches import after negative lookup-create return.",
+    "packedControlledFaults": [
+      {
+        "type": 11,
+        "writeVA": "0x14031F0FB",
+        "targetVA": "0x2C",
+        "bytes": 4
+      },
+      {
+        "type": 12,
+        "writeVA": "0x14031F38D",
+        "targetVA": "0x2C",
+        "bytes": 4
+      }
+    ],
+    "faultDomainsTested": [
+      "full 16-slot runtime bank",
+      "full 20-entry lookup without matching type"
+    ],
+    "faultBoundary": "Expected unmapped writes are observed only in Unicorn with controlled exhaustion. No retail crash, exploit, original-game reachability or frequency is established."
+  },
+  "retirement": {
+    "stop": "0x14031E580 -> 0x14031ED00/0x14031ED10 -> 0x140316C20",
+    "effects": [
+      "lookup kind becomes -1",
+      "runtime word+0x04 gains bit 0x0004",
+      "runtime word+0x0C becomes 3",
+      "runtime type byte remains nonzero immediately after stop"
+    ],
+    "boundary": "Counter 3 is a recorded value, not a proven three-frame release duration. Immediate stop does not make the bank slot available."
+  },
+  "loaderArgumentBoundary": {
+    "dispatch": "0x1402D6032..0x1402D604C",
+    "targetIndex": 31,
+    "actualR8AtTarget": "0x1405CED80",
+    "parserUsesR8AsPool": true,
+    "fixtureR8": "valid synthetic pool",
+    "status": "EXE_CONFIRMED_ARGUMENT_OBSERVATION_WITH_OPEN_REACHABILITY",
+    "conclusion": "The v26 indirect-target checks and v27 full text fixtures are different entry contexts. Their evidence does not establish that the generic loader supplies a valid pool. This remains a provenance/reachability gate; no original game bug is promoted."
+  },
+  "directImporterCallCensus": {
+    "algorithm": "Capstone linear executable-section decode with skipdata; exact direct call immediate target. Indirect callers are not enumerated.",
+    "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "sections": [
+      {
+        "name": ".text",
+        "startVA": "0x140001000",
+        "bytes": 3464704
+      }
+    ],
+    "directCalls": [
+      {
+        "callVA": "0x14031e67d",
+        "bytes": "e8ce090000"
+      },
+      {
+        "callVA": "0x14031e722",
+        "bytes": "e829090000"
+      },
+      {
+        "callVA": "0x14031eff9",
+        "bytes": "e852000000"
+      }
+    ]
+  },
+  "verification": {
+    "script": "tools/reverse/verify_dmc3_demo_clip_runtime.py",
+    "receipt": "data/reverse/dmc3-hd-demo-clip-runtime-verification-20261005.json",
+    "cases": 45,
+    "groups": {
+      "routes": 8,
+      "lastFreeSlot": 2,
+      "lifecycle": 2,
+      "missingLookupUpdate": 4,
+      "scaleGate": 14,
+      "exhaustion": 4,
+      "recovery": 2,
+      "packedAdmission": 6,
+      "sharedBank": 2,
+      "dispatchArgument": 1
+    },
+    "passed": true,
+    "expectedFaultCases": 4,
+    "boundaries": [
+      "Original code except explicit heap/CRT/security fixture hooks",
+      "Full parser path starts with a valid synthetic pool/controller",
+      "Source payload copy into packed record is synthetic",
+      "No original GPU/frame execution"
+    ]
+  },
+  "disassemblyManifest": [
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/pool-initialize.asm",
+      "startVA": "0x140323930",
+      "endVAExclusive": "0x1403239da",
+      "codeSha256": "211db180237ebc12f6f7fcd4193defc990025ac97aa6491fa97b222ca5029546",
+      "dumpSha256": "f7f345230922966db1dae8171a7718727dc240ccef8b11c499d16834ef5f3f22"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/pool-create-clip.asm",
+      "startVA": "0x140323fb0",
+      "endVAExclusive": "0x140324295",
+      "codeSha256": "9eee055d5abe82a5bb97446a67844b911eaeece35f5eab6fb2f4ad2b180ed5aa",
+      "dumpSha256": "faa667f40cf8a92a81ef7867fe373dd74144a7940f57e4b48f0cc2c708220662"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/effect-clip-constructor.asm",
+      "startVA": "0x1403233f0",
+      "endVAExclusive": "0x140323463",
+      "codeSha256": "bf8df19c68b3bbf8731664a08388dd550783d9f31a760671f1ea9783210bf583",
+      "dumpSha256": "84573d7b0497f50ab85e747478b982b3ea0a6727199df386f4ae6e147d1d03b5"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/heap-descriptor-construct.asm",
+      "startVA": "0x1403376f0",
+      "endVAExclusive": "0x140337705",
+      "codeSha256": "3214ae867ea69beee18f1e159d52929467ffdc232cd332d653cb8522689c218a",
+      "dumpSha256": "65bfeadcd79d2e7995438bec35170ed72dee9843657fca33163cd1e3eeacc658"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/list-descriptor-construct.asm",
+      "startVA": "0x140329200",
+      "endVAExclusive": "0x14032920b",
+      "codeSha256": "06333eef75398cc88d83d7f31df4f01d89cb3307fea68609abcfd715c96c083d",
+      "dumpSha256": "a38d1f853aa8bf96454eb7ce88d301bb8aa064719acb3633afdb0a69b7908db2"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/effect-clip-parser.asm",
+      "startVA": "0x1402da9d0",
+      "endVAExclusive": "0x1402dad4e",
+      "codeSha256": "b910b36be0ac09bf7c6f51d9797ff354f36eaab7a4b367ed3ac84d445207c56c",
+      "dumpSha256": "ba7a8481be8a7ef3a801635cb403a7730e52a9c9e22b231e65d704edf5f5c296"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/pool-scheduler.asm",
+      "startVA": "0x140323cf0",
+      "endVAExclusive": "0x140323ebc",
+      "codeSha256": "76cf9d371ca6daeab391b2e7b69d3947127ef0ce5f2579ccbabd8b48f999b59f",
+      "dumpSha256": "d970f163a3bd9990a7762689d8aff339b88a22a16225566903078c49aa038ff5"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/activation-callback.asm",
+      "startVA": "0x14031e690",
+      "endVAExclusive": "0x14031e72f",
+      "codeSha256": "661fadaa30bb70654dcdaa7f561f9be23197957c9f990c18e5afa96e12b60e56",
+      "dumpSha256": "621588c22759ab51e4ff5db25282c36ab6735a1909f63317812589ca6e23ae64"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/update-callback.asm",
+      "startVA": "0x14031e5d0",
+      "endVAExclusive": "0x14031e688",
+      "codeSha256": "dd40eb78ea6c35fe52910892f3aa25d085c04f8a87cd03ff186501c953cb1c8e",
+      "dumpSha256": "0d4938bcea8235bd418db8674e0a75d981c15e1e92b001797b07f61d0b37d17c"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/stop-callback.asm",
+      "startVA": "0x14031e580",
+      "endVAExclusive": "0x14031e5c7",
+      "codeSha256": "0a8a227903a58ac538e524a1d6c3b887f1148c89b441dc917d9df510723564fa",
+      "dumpSha256": "5bbdef121126bfa92afdb6162232f202a3b5a3a28605192e0edd7c1cea62e4e7"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/owner-lookup.asm",
+      "startVA": "0x1402c8430",
+      "endVAExclusive": "0x1402c8438",
+      "codeSha256": "3e1a1b879a0b26cf7caa63863f6c91537bfdb16c29fc2974905b4935af0e5375",
+      "dumpSha256": "6ff52a93b458f95a282492e4d3c4dd12146925a89431b51f4a04e2ba18028952"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/lookup-find.asm",
+      "startVA": "0x14031ea00",
+      "endVAExclusive": "0x14031ea34",
+      "codeSha256": "2eeb28beb93ddcd1e06101ed2a51e962591f5b60f56fafb9323b2f1decbe576e",
+      "dumpSha256": "f87a1b660b8038328c2541cfdc6efc87c2d321dd49b15d94f6d705e320833e5c"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/lookup-target.asm",
+      "startVA": "0x14031ec60",
+      "endVAExclusive": "0x14031eca4",
+      "codeSha256": "8997857c6d70748b538c7463defeef5f17fc58aa157b7410f008340215fde4c1",
+      "dumpSha256": "4d14cd95f91eecea77d5bdf93ceeeb727095a29ea62da8afd6db93b188982e1f"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/lookup-create.asm",
+      "startVA": "0x14031ea40",
+      "endVAExclusive": "0x14031eb34",
+      "codeSha256": "c3b1aa38b8ef71d9beec76be3aae5579eb58bc9ed778a004b71459076a0cc0ef",
+      "dumpSha256": "39f3ca07b15ac122a0b7628da3f6861221ccc976d1d19bb6592fe73944765fbc"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/runtime-slot-allocator.asm",
+      "startVA": "0x140315bd0",
+      "endVAExclusive": "0x140315c3a",
+      "codeSha256": "c7deaaf08ae097e770a35e42a7fcf653e7fe9639ffa1115e6b3280c2dffd4c9b",
+      "dumpSha256": "3f8b7eb33a2b16909687eb3076a3011670d7583c1f78a1b37824f73b0fc1b78a"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/runtime-initializer.asm",
+      "startVA": "0x140316e10",
+      "endVAExclusive": "0x140317398",
+      "codeSha256": "791a38373b8d0abfcc19c909029d7c50d02fbe8b44c957388942b785b097537c",
+      "dumpSha256": "4f87fb77625a4ae5c673e6819f712dadc543c1d31381bcd4ffb9c0787a623175"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/parameter-importer.asm",
+      "startVA": "0x14031f050",
+      "endVAExclusive": "0x14031f778",
+      "codeSha256": "272ce2ca08ae3b5515f431bf4673a7f6f25678c654f42551389ab697d1157894",
+      "dumpSha256": "3e78de7fd8da1c355ffe29b3659ed060b00a74bb58bee6ddd86987a170eba213"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/lookup-remove.asm",
+      "startVA": "0x14031ed00",
+      "endVAExclusive": "0x14031eda8",
+      "codeSha256": "6f3647277ba0c7b1145e59f353d745c2a3ff44c1c0f359ce01b37d469b463a83",
+      "dumpSha256": "3984f120133d52be8480ab7eb98c7e6f7c2af9efcddc86ea222a35da16d53bdc"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/runtime-retirement.asm",
+      "startVA": "0x140316c20",
+      "endVAExclusive": "0x140316c45",
+      "codeSha256": "ba3bcf49c55db4e6fa8b8e0d444fca9cca6e939a0157183c9f05107d99613c4a",
+      "dumpSha256": "2d44e992a5503ad13cda7366bf154a9c21779a67508feac427e850055ee22fce"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/rate-product.asm",
+      "startVA": "0x140326960",
+      "endVAExclusive": "0x1403269eb",
+      "codeSha256": "cd89e089a676ba0378f97f6c98b1461ce45c7bb3cf469b6f144fb22020dfa691",
+      "dumpSha256": "925fe017e96797764bf5ae772e0cd46199f490f1cf69259e59b22e8fea53b4c9"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/stream-binder.asm",
+      "startVA": "0x14031edb0",
+      "endVAExclusive": "0x14031edf1",
+      "codeSha256": "1ed184225f0b0fa91e2117048800ff5ef6caa709be162e791cb0c693c912ff89",
+      "dumpSha256": "3272f30a716f4b9f1d44339b8546c6ff5e66a788391cea9dcfbadfe69ed55274"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/full-stream-admission.asm",
+      "startVA": "0x14031ee00",
+      "endVAExclusive": "0x14031f044",
+      "codeSha256": "f8f8c4db0f8f054a48c9b50e63967298e02187f6d3aad294ec4cfdcb636edd0b",
+      "dumpSha256": "79f2aafb30e67da1df300fcdd64fc1cb7ff8b8c73e8545e88f7995884f628d51"
+    },
+    {
+      "path": "data/reverse/demo-clip-runtime-20261005/loader-dispatch-arguments.asm",
+      "startVA": "0x1402d602b",
+      "endVAExclusive": "0x1402d604c",
+      "codeSha256": "d5296af5404315739084a7a94fc5aa332eb9b2a15c354c9387491099eab47f73",
+      "dumpSha256": "134958ee37110e6a3ac96222ae21417b0b3cf35d3a28f60a67483deef43c1fd4"
+    }
+  ],
+  "nextFrontier": [
+    "Resolve actual text loader R8/pool provenance and production pool selector",
+    "Identify exact outer third-entry packed container/materializer",
+    "Determine retail allocation/exhaustion/lifetime behavior and original slot-release timing",
+    "Recover authoritative generated-buffer backing bounds and actual rendered-frame budgets"
+  ]
+}

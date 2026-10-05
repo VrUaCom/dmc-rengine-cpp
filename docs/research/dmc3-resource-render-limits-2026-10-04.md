@@ -5,11 +5,14 @@
 **Status:** Current consolidated reverse snapshot  
 **Repository:** `VrUaCom/dmc-rengine-cpp`  
 **Research branch:** `reverse/dmc3-resource-render-limits-20261004`  
+**Saved v26 evidence commit:** [ced0161](https://github.com/VrUaCom/dmc-rengine-cpp/commit/ced0161e29daaac14669dd5b3f6d40ef116df95c)  
 **Saved v21 evidence commit:** [cf3c0a6](https://github.com/VrUaCom/dmc-rengine-cpp/commit/cf3c0a6e9045ed9594450409fb9442bf01e55714)  
-**Research base commit (v26):** `bd23cd4bafc1f7cf5117141586fb8fe3b23385e5`  
-**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v26`
+**Research base commit (v27):** `ced0161e29daaac14669dd5b3f6d40ef116df95c`  
+**Main machine ledger schema:** `dmc-rengine.dmc3-resource-render-limits.v27`
 
-**v26 continuation:** Sections 73–74 close the HTH/RDN text constructor, both packed selectors and binder edge semantics. 42 original-code fixtures pass. Exact packed materialization and retail runtime reachability remain open. The newer v23–v25 sections and SHW topology bound are preserved.
+**v27 continuation:** Sections 75–78 recover the CScrEfcClip constructor/vtable, original scheduler, direct source-to-runtime route and shared bank exhaustion behavior. **45 new original-code fixtures pass**, including four expected synthetic null-target writes. Original retail reachability and loader pool provenance remain open.
+
+**Historical v26 continuation:** Sections 73–74 close the HTH/RDN text constructor, both packed selectors and binder edge semantics. 42 original-code fixtures pass. Exact packed materialization and retail runtime reachability remain open. The newer v23–v25 sections and SHW topology bound are preserved.
 
 **Historical v22 continuation:** Sections 65–69 recover effect 11/12 initializer defaults, raw parameter admission, the 512×256 startup viewport, cached type 11 regeneration and checksum invalidation. 38 new instruction fixtures pass. Earlier evidence remains as history; later continuation sections and the current ledger supersede intermediate open questions.
 
@@ -3302,3 +3305,141 @@ python3 tools/reverse/verify_dmc3_demo_effect_source.py /path/to/dmc3.exe /path/
 ```
 
 Next frontier: recover the source clip serialization/materializer into the selected packed entry; identify its exact outer container/resource; census packed RDN records and actual demo invocation/lifetime. Authoritative generated-buffer backing bounds and shared-ring occupancy still require additional evidence, including original runtime frames. The earlier v23 topology-derived SHW bound remains the strongest bound for that verified closed corpus; older appended all-visible projections remain historical looser estimates and do not replace it.
+
+
+---
+
+# 75. Continuation v27 — CScrEfcClip direct runtime route and actual scheduler
+
+The proposed text-to-packed serialization link in the previous frontier is **not required for the direct clip-object route now recovered**. Two observed paths converge at the same importer; no serializer edge between them is established.
+
+```mermaid
+flowchart TD
+    T["Text clip object"] --> C["Virtual callbacks"]
+    P["Packed resource"] --> A["Stream admission"]
+    C --> I["Parameter importer"]
+    A --> I
+```
+
+## 75.1 Binary class identity and real construction
+
+Constructor `0x1403233F0` installs vtable `0x1405085B8`. Its original RTTI TypeDescriptor at `0x1405D8D80` is **`.?AVCScrEfcClip@@`**.
+
+| Vtable offset | Target | Recovered role |
+|---|---|---|
+| `+0x00` | `0x14031E690` | Activation |
+| `+0x08` | `0x14031E5D0` | Update |
+| `+0x10` | `0x14031E580` | Stop |
+| `+0x18` | `0x140323880` | Life accessor |
+
+New full-route fixtures execute **actual pool initialization `0x140323930`, actual clip creation `0x140323FB0`, actual class constructor, text parser, original scheduler, original lookup allocator, original global-slot allocator, original runtime initializer and original importer**. This removes the v26 synthetic clip-pool and pre-existing runtime-slot shortcuts.
+
+The fixture supplies pool selector **15**; the original constructor dispatch selects `0x140324130 -> 0x1403233F0`. The associated static descriptor has count 50 and object size 112 bytes, with raw name bytes `Sound`. That label/selector relationship and the production selector are unresolved. No 50-effect game-wide cap is claimed. Controller, pool selection and selected scheduler population are synthetic; heap allocation/descriptor plumbing, CRT and security-cookie helper remain explicit stubs.
+
+`0x1402C8430` obtains the owner as `[[clip+0x20]]`; callbacks use the manager at **owner `+0x3F60`**. Their source arguments are clip type `+0x64` and source payload pointer `+0x58`. They call importer `0x14031F050` directly, without a packed serializer.
+
+## 75.2 Actual scheduler and clip states
+
+Pool scheduler `0x140323CF0..0x140323EBC` uses owner time `float+0x18 + float+0x1C`, pool population `u32+0x18`, and 0x20-byte pool entries. It performs original indirect virtual calls:
+
+| Callsite | Virtual lane | Operation |
+|---|---|---|
+| `0x140323E54` | `+0x00` | Activate |
+| `0x140323DE8` | `+0x08` | Update |
+| `0x140323DD9` | `+0x10` | Stop at temporal end |
+| `0x140323E25` / `0x140323DB9` | `+0x18` | Obtain Life |
+
+Behavioral state labels for clip `u32+0x08` are: **1 pending, 2 callback accepted, 3 stopped/end reached, 4 activation rejected**. State 2 is deliberately not called “effect materialized”.
+
+Start threshold is `clip.float[0x10] + clip.float[0x14]*clip.float[0x1C]`. End threshold is `clip.float[0x10] + Life*clip.float[0x1C] - clip.float[0x18]*clip.float[0x1C]`. With parsed `ClipScale=1`, `Life=5`, and default skip/cut values, fixtures at times **0, 1, 2, 6** activate, update twice and stop at the end. These are controlled scheduler times, not measured game frames.
+
+## 75.3 Activation imports; ordinary existing-lookup update does not
+
+Activation `0x14031E690` checks the absolute finite clip scale against float32 constant `0x1404E01E8` (`0x38D1B717`, approximately 0.0001). Positive and negative boundary cases pass; zero and sub-threshold magnitudes fail. This gate controls clip scale and **does not validate DetailH/DetailV or ScaleX/ScaleY geometry parameters**.
+
+Activation resets remaining Life `+0x30` from Life `+0x34`, creates a lookup if absent, and calls the importer even if a matching entry already exists.
+
+Update `0x14031E5D0` uses the original rate-product helper `0x140326960` to decrement remaining Life. **When lookup already exists, it returns without reimporting source parameters.** Controlled source edits therefore leave the runtime lanes unchanged during an ordinary update. Explicit activation imports those changed lanes into the same slot. When lookup is missing, update can create/import; it does not repeat the activation scale-minimum gate. The missing-lookup direct-update fixtures do not claim that their controlled stop/update sequence occurs in retail scheduling.
+
+# 76. Shared bank capacities, acceptance failure and retirement
+
+## 76.1 Twenty lookup entries and sixteen physical runtime slots
+
+| Domain | Capacity | Storage / allocator |
+|---|---:|---|
+| Manager lookup | 20 | kind i16 table `+4`, pointer table `+0x58`, selector-byte table `+0x100`; `0x14031EA50` |
+| Shared runtime bank | 16 slots × 640 B | global `0x140CD9B80`; `0x140315BD0` |
+
+The runtime allocator searches for a slot whose first byte is zero. All sixteen nonzero means allocation returns null. Last-free-slot fixtures confirm allocation of ordinal **15**. Two-manager fixtures demonstrate that direct text callbacks and packed admission allocate consecutive slots from the same bank. These capacities are not polygon caps, frame draw counts or simultaneous-stage budgets.
+
+## 76.2 Callback acceptance can leave a null runtime record
+
+With all 20 lookup entries occupied and no matching type, lookup creation returns -1, activation returns false and scheduler writes state 4.
+
+With all 16 bank slots occupied but a free lookup entry, `0x14031EA50` **stores the requested kind and a null runtime pointer, then returns a nonnegative lookup index**. It does not roll back the entry. Direct activation calls the importer with `R9b=0`; the importer returns -1 for the null target. The activation callback ignores that result and returns true, so the scheduler writes **state 2 while no runtime effect was materialized**.
+
+A controlled subsequent release of one bank slot does not make activation retry allocation: the matching kind/null entry still exists. Original stop removes the lookup; a subsequent original activation can allocate and import. Slot release in this recovery fixture is synthetic, not execution of the original renderer's retirement mechanism.
+
+## 76.3 Stop marks retirement, not immediate availability
+
+`0x14031E580 -> 0x14031ED00/0x14031ED10 -> 0x140316C20` removes the lookup kind, sets runtime word `+4` bit `0x0004`, and writes **3** to word `+0x0C`. The runtime type byte remains nonzero immediately after stop, so the slot remains unavailable to the bank allocator. The value 3 is confirmed; a three-frame release duration is not yet proven.
+
+# 77. Packed admission uses a different null-target policy
+
+Direct importer census over the canonical executable's executable section recovers three direct callsites:
+
+| Callsite | Owner path | `R9b` |
+|---|---|---:|
+| `0x14031E67D` | Text clip update | 0 |
+| `0x14031E722` | Text clip activation | 0 |
+| `0x14031EFF9` | Packed stream admission | 1 |
+
+The census covers direct calls found by linear executable-section decoding; it does not enumerate all indirect calls.
+
+For HTH/RDN import handlers, the nonzero flag skips the null-target check. Packed admission also proceeds to import when lookup creation returns a negative value. In controlled full-bank and full-lookup fixtures, the exact attempted write is:
+
+| Type | Instruction | Target | Size |
+|---|---|---|---:|
+| HTH / 11 | `0x14031F0FB` | `0x2C` from null runtime target | 4 B |
+| RDN / 12 | `0x14031F38D` | `0x2C` from null runtime target | 4 B |
+
+The verifier intentionally expects and records four unmapped-write faults in Unicorn, one per type and exhaustion domain. Available-capacity positive controls execute the actual binder, full admission function, allocator, initializer and importer successfully. Their packed resource is synthetic: it copies source bytes produced by the actual text constructor into the recovered record layout. **The copy is not a recovered original serializer.**
+
+This establishes a local unchecked failure contract. It does **not** establish retail exhaustion reachability, a crash in the original Windows game, a security exploit, or occurrence frequency. Those require separate evidence.
+
+# 78. v27 validation and provenance gates
+
+**45/45 new assertion-checked fixtures pass**, including four expected synthetic unmapped-write faults:
+
+| Group | Cases |
+|---|---:|
+| Full text/pool/constructor/scheduler/runtime routes | 8 |
+| Last free bank slot | 2 |
+| Scheduler lifecycle and source reimport distinction | 2 |
+| Missing-lookup original update | 4 |
+| Finite clip-scale activation boundary | 14 |
+| Lookup/bank exhaustion through scheduler | 4 |
+| Null-entry persistence and controlled recovery | 2 |
+| Packed admission positive/expected-fault controls | 6 |
+| Two-manager shared-bank witnesses | 2 |
+| Original loader argument observation | 1 |
+
+The EXE hash is checked first. Original parser, pool/class constructors, scheduler, vtable callbacks, rate helper, lookup routines, runtime allocator/initializer, binder, admission and importer execute in their respective cases. Heap allocation/reset, CRT conversion/comparison/memset and security-cookie helper are explicit receipt stubs. A runtime initializer's 640-byte memset is the CRT stub; the initializer's own writes/dispatch remain original. Every ordinary fixture enforces an instruction budget and terminal address; four expected faults are checked for exact write address/instruction/size.
+
+**Loader provenance remains open:** the actual generic dispatch slice at `0x1402D6032..0x1402D604C`, index 31, arrives at the effect parser with **R8=`0x1405CED80`**, the dispatch table base. The effect parser uses its R8 argument as a pool. Full text fixtures deliberately supply a valid synthetic pool instead. The earlier target-dispatch check and full text-construction check therefore do not establish a valid production loader-to-pool chain. This observation is preserved as a provenance/reachability gate; it is not promoted to an original-game bug.
+
+Artifacts:
+
+- `tools/reverse/verify_dmc3_demo_clip_runtime.py`
+- `data/reverse/dmc3-hd-demo-clip-runtime-20261005.json`
+- `data/reverse/dmc3-hd-demo-clip-runtime-verification-20261005.json`
+- `data/reverse/demo-clip-runtime-20261005/*.asm`
+- main ledger `dmc-rengine.dmc3-resource-render-limits.v27`
+
+Replay requires `pefile==2024.8.26`, `unicorn==2.1.4` and the canonical EXE:
+
+```bash
+python3 tools/reverse/verify_dmc3_demo_clip_runtime.py /path/to/dmc3.exe /path/to/receipt.json
+```
+
+Next frontier is actual loader third-argument/pool provenance and production pool selector, exact outer third-entry packed materializer/container, retail shared-bank allocation/lifetime and original retirement release timing. Generated-buffer backing bounds and real per-frame ring budgets also remain open. No presumed text-to-packed serializer link is required to justify the direct route now recovered.

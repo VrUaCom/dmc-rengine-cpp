@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v26",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v27",
   "date": "2026-10-05",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -1526,6 +1526,22 @@
       "exactPackedMaterializerClosed": false,
       "retailRuntimeReachabilityClosed": false,
       "validationCases": 42
+    },
+    "demoClipRuntime": {
+      "evidence": "data/reverse/dmc3-hd-demo-clip-runtime-20261005.json",
+      "verification": "data/reverse/dmc3-hd-demo-clip-runtime-verification-20261005.json",
+      "status": "EXE_CONFIRMED",
+      "class": "CScrEfcClip",
+      "scheduler": "0x140323CF0",
+      "lookupEntries": 20,
+      "sharedRuntimeSlots": 16,
+      "slotBytes": 640,
+      "actualSourceToRuntimeFixtureClosed": true,
+      "productionLoaderPoolProvenanceClosed": false,
+      "directActivationCanAcceptNullRuntime": true,
+      "packedExhaustionNullTargetWriteFixtureClosed": true,
+      "retailExhaustionReachabilityClosed": false,
+      "validationCases": 45
     }
   },
   "texture": {
@@ -1599,7 +1615,7 @@
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
     "recover authoritative backing allocation/guard for type-11 0x140CC1AD0 and type-12 0x140CD1AF0 generated buffers; address-gap sizes are not hard bounds",
-    "close source-clip serialization/packed materialization into 0x14031EE00 and investigate other source routes; one HTH/RDN text constructor now admits raw integer lanes without lower/capacity guards",
+    "resolve actual text-loader R8/pool provenance and production pool selector; direct CScrEfcClip object-to-runtime route is fixture-closed and does not require a packed serializer; relationship to packed materialization remains unproven",
     "recover authoritative backing extent/bounds for 0x140BEB3F0 SHW expansion scratch; address-gap inference is insufficient",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
@@ -1612,7 +1628,8 @@
     "original-game authored DDS stress test",
     "simultaneous stage residency budget",
     "acquire and reverse original DMC3 PS2 SLUS/SLES/ELF for game-specific PS2 allocator limits",
-    "close exact outer PAC/PNST/NBZ slot/container materializing the demo clip effect-stream resource and census packed RDN/type-12 records"
+    "close exact outer PAC/PNST/NBZ slot/container materializing the demo clip effect-stream resource and census packed RDN/type-12 records",
+    "determine retail shared 16-slot bank exhaustion and null-entry recovery; measure original runtime retirement/release timing, without promoting synthetic faults to retail crashes"
   ],
   "corrections": [
     {
@@ -1814,7 +1831,11 @@
     "managerScan": "0x140316430",
     "updateDispatcher": "0x14031F050",
     "updateJumpTable": "0x14031F778",
-    "status": "EXE_CONFIRMED"
+    "status": "EXE_CONFIRMED",
+    "globalPool": "0x140CD9B80",
+    "allocator": "0x140315BD0",
+    "lookupEntriesPerManager": 20,
+    "allocationFailureEvidence": "data/reverse/dmc3-hd-demo-clip-runtime-20261005.json"
   },
   "continuationV26": {
     "baseCommit": "bd23cd4bafc1f7cf5117141586fb8fe3b23385e5",
@@ -1822,6 +1843,15 @@
     "supersedes": [
       "v25 effect-parser attribution to 0x1402DA750",
       "binder gate description omitting signed low16 and null-state preservation"
+    ]
+  },
+  "continuationV27": {
+    "baseCommit": "ced0161e29daaac14669dd5b3f6d40ef116df95c",
+    "evidence": "data/reverse/dmc3-hd-demo-clip-runtime-20261005.json",
+    "refines": [
+      "v26 source-to-runtime fixture now includes actual pool/clip construction, scheduler and runtime allocation",
+      "No assumed text-clip-to-packed serializer link",
+      "Activation acceptance is not materialized-runtime success"
     ]
   }
 }
