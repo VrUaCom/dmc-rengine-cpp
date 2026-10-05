@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v22",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v23",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -782,7 +782,7 @@
         "remainderBytes": 16,
         "status": "STRUCTURAL_CANDIDATE"
       },
-      "status": "EXE_CONFIRMED_GENERATED_BYTE_PROPAGATION",
+      "status": "EXE_CONFIRMED_SUBCOMMAND11_GRID_FORMULA",
       "workloadEvidence": {
         "status": "EXE_CONFIRMED",
         "producer": "0x140318EC0",
@@ -867,7 +867,22 @@
         },
         "type12InCachedUpdaterTable": "No updater; target0x14031568E",
         "claimBoundary": "Shape agrees with initial producer at fixed dimensions/strides. Still-valid cache with changed shape is conditional, not a proven retail lifecycle failure"
-      }
+      },
+      "displayBoundsSource": "0x140316360 <- displayContext+0x20/+0x22",
+      "normalXBound": 512,
+      "normalYBound": 256,
+      "xStepField": "type11 record+0x58",
+      "yStepField": "type11 record+0x5C",
+      "positiveStepFormula": {
+        "xStep": "1 << record+0x58",
+        "yStep": "1 << record+0x5C",
+        "outerRows": "floor(256/Ystep)+2",
+        "innerRecordsPerRow": "floor(512/Xstep)+2",
+        "extraEdgeRecordsPerRow": 1,
+        "totalRecords": "(floor(256/Ystep)+2)*(floor(512/Xstep)+3)",
+        "generatedBytes": "0x28*totalRecords"
+      },
+      "remainingHardBound": "serialized/runtime validity domain of type11 record+0x58/+0x5C"
     },
     "subcommand12GeneratedDraw": {
       "producer": "0x140319D60",
@@ -1361,6 +1376,40 @@
         "warning": "Referenced-global interval is not ownership proof; base is shared/referenced by legacy compatibility handlers.",
         "engineLimitClaim": "REJECTED"
       }
+    },
+    "displayModeContext": {
+      "globalPointer": "0x140D6D300",
+      "staticObject": "0x140D6D310",
+      "setupFunction": "0x140337CD0",
+      "directStartupCall": "0x140337C47..0x140337C4C",
+      "startupArgs": {
+        "index": 1,
+        "alternateTable": false
+      },
+      "normalDescriptor": "0x1405D1AE8",
+      "normalBounds": {
+        "lane20": 512,
+        "lane22": 256,
+        "lane24": 224
+      },
+      "encodedDescriptorTriples": [
+        [
+          512,
+          256,
+          224
+        ],
+        [
+          512,
+          512,
+          448
+        ],
+        [
+          512,
+          512,
+          512
+        ]
+      ],
+      "status": "EXE_CONFIRMED_DISPLAY_MODE_DESCRIPTOR"
     }
   },
   "texture": {
@@ -1433,6 +1482,8 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
+    "recover source/validation domain of type-12 record+0x2C/+0x30 and prove non-zero step invariant",
+    "recover source/validation domain of type-11 record+0x58/+0x5C; viewport-side subcommand-11 bounds are now closed",
     "recover authoritative backing extent/bounds for 0x140BEB3F0 SHW expansion scratch; address-gap inference is insufficient",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
