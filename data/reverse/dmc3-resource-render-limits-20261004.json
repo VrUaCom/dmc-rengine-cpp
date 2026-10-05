@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-resource-render-limits.v23",
+  "schema": "dmc-rengine.dmc3-resource-render-limits.v24",
   "date": "2026-10-04",
   "canonicalExecutable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -882,7 +882,13 @@
         "totalRecords": "(floor(256/Ystep)+2)*(floor(512/Xstep)+3)",
         "generatedBytes": "0x28*totalRecords"
       },
-      "remainingHardBound": "serialized/runtime validity domain of type11 record+0x58/+0x5C"
+      "remainingHardBound": "serialized/runtime validity domain of type11 record+0x58/+0x5C",
+      "defaultSlotParameters": {
+        "shiftX": 4,
+        "shiftY": 3
+      },
+      "defaultGeneratedBytes": 47600,
+      "hardBoundStatus": "OPEN_ABOVE_DEFAULT_RUNTIME_MUTABLE"
     },
     "subcommand12GeneratedDraw": {
       "producer": "0x140319D60",
@@ -970,7 +976,14 @@
         "field2C": 100,
         "field30": 100,
         "checksumBytes": 120
-      }
+      },
+      "defaultSlotParameters": {
+        "field2C": 100,
+        "field30": 100
+      },
+      "defaultGeneratedBytes": 9600,
+      "defaultRenderedVertices": 480,
+      "hardBoundStatus": "OPEN_ABOVE_DEFAULT_RUNTIME_MUTABLE"
     },
     "renderProducerBoundaries": {
       "evidence": "data/reverse/dmc3-hd-render-producer-boundaries-20261004.json",
@@ -1410,6 +1423,87 @@
         ]
       ],
       "status": "EXE_CONFIRMED_DISPLAY_MODE_DESCRIPTOR"
+    },
+    "type11ParameterDomain": {
+      "initializer": "0x1403171B7",
+      "defaults": {
+        "shiftX": 4,
+        "shiftY": 3,
+        "xStep": 16,
+        "yStep": 8
+      },
+      "normalDisplay": {
+        "xBound": 512,
+        "yBound": 256
+      },
+      "defaultBudget": {
+        "rows": 34,
+        "recordsPerRow": 35,
+        "records": 1190,
+        "generatedBytes": 47600
+      },
+      "update": {
+        "dispatcher": "0x14031F050",
+        "case": "0x14031F0E5",
+        "sourceToSlot": {
+          "source+0x1C": "slot+0x58",
+          "source+0x20": "slot+0x5C"
+        },
+        "localClamp": false
+      },
+      "extremeProjection": {
+        "effectiveShiftX": 0,
+        "effectiveShiftY": 0,
+        "records": 132870,
+        "generatedBytes": 5314800,
+        "classification": "malformed/extreme projection; not supported authoring maximum"
+      },
+      "status": "EXE_CONFIRMED_EFFECT_SLOT_PARAMETER_DEFAULTS_AND_MUTATION_PATH"
+    },
+    "type12ParameterDomain": {
+      "initializer": "0x140317218",
+      "defaults": {
+        "field2C": 100,
+        "field30": 100,
+        "xStep": 64,
+        "yStep": 32
+      },
+      "producer": "0x140319D60",
+      "producerUpperCorrection": {
+        "threshold": 200,
+        "replacement": 100
+      },
+      "defaultBudget": {
+        "rows": 10,
+        "recordsPerRow": 12,
+        "records": 120,
+        "generatedBytes": 9600,
+        "renderedVertices": 480
+      },
+      "update": {
+        "dispatcher": "0x14031F050",
+        "case": "0x14031F373",
+        "sourceToSlot": {
+          "source+0x00": "slot+0x2C",
+          "source+0x04": "slot+0x30"
+        },
+        "lowerClamp": false
+      },
+      "positiveProgressDomain": {
+        "minField2C": 2,
+        "minField30": 4
+      },
+      "smallestPositiveStepProjection": {
+        "field2C": 2,
+        "field30": 4,
+        "xStep": 1,
+        "yStep": 1,
+        "records": 230400,
+        "generatedBytes": 18432000,
+        "renderedVertices": 921600
+      },
+      "zeroStepHazard": "field2C 0..1 or field30 0..3 can derive zero step; no local repair recovered",
+      "status": "EXE_CONFIRMED_EFFECT_SLOT_PARAMETER_DEFAULTS_AND_MUTATION_PATH"
     }
   },
   "texture": {
@@ -1482,8 +1576,8 @@
   },
   "claimBoundary": "Representable, corpus-observed, executable-runtime, PS2 hardware and product-safety limits are intentionally separate. No single maximum polygon/texture claim is made until runtime stress gates close.",
   "openGates": [
-    "recover source/validation domain of type-12 record+0x2C/+0x30 and prove non-zero step invariant",
-    "recover source/validation domain of type-11 record+0x58/+0x5C; viewport-side subcommand-11 bounds are now closed",
+    "recover authoritative backing allocation/guard for type-11 0x140CC1AD0 and type-12 0x140CD1AF0 generated buffers; address-gap sizes are not hard bounds",
+    "trace the source-object producer for 0x14031F050 parameter blocks to determine whether higher-level effect/script data validation constrains type-11/type-12 updates",
     "recover authoritative backing extent/bounds for 0x140BEB3F0 SHW expansion scratch; address-gap inference is insufficient",
     "Determine retail payloads and execution frequency/order for SHW and effects11/12; producer sources, formulas, defaults and local parameter import are closed",
     "Recover exact linker/compiler static backing extents; known-neighbor write-conflict boundaries at64/32/128KiB are proven, not enforced hard caps",
@@ -1685,5 +1779,16 @@
         "CORPUS_CONFIRMED_SHW_RENDER_EXPANSION"
       ]
     }
+  },
+  "effectRenderSlots": {
+    "slotBytes": 640,
+    "slotHex": "0x280",
+    "slotCount": 16,
+    "initializer": "0x140316E10",
+    "initializerTable": "0x140317398",
+    "managerScan": "0x140316430",
+    "updateDispatcher": "0x14031F050",
+    "updateJumpTable": "0x14031F778",
+    "status": "EXE_CONFIRMED"
   }
 }
