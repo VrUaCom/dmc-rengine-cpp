@@ -1,0 +1,111 @@
+{
+  "schema": "dmc-rengine.dmc3-effect-slot-type11-type12-parameters.v1",
+  "date": "2026-10-05",
+  "canonicalExecutable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
+  },
+  "slotSystem": {
+    "initializer": "0x140316E10",
+    "bytesPerSlot": 640,
+    "slotCount": 16,
+    "initializerTable": "0x140317398",
+    "managerScan": "0x140316430",
+    "updateDispatcher": "0x14031F050",
+    "updateJumpTable": "0x14031F778"
+  },
+  "updateTable": {
+    "1": "0x14031F3D1",
+    "2": "0x14031F084",
+    "3": "0x14031F523",
+    "4": "0x14031F41A",
+    "5": "0x14031F243",
+    "6": "0x14031F591",
+    "7": "0x14031F2D6",
+    "8": "0x14031F148",
+    "9": "0x14031F1C3",
+    "10": "0x14031F474",
+    "11": "0x14031F0E5",
+    "12": "0x14031F373",
+    "13": "0x14031F61E",
+    "14": "0x14031F6BA",
+    "15": "0x14031F733"
+  },
+  "type11": {
+    "initializer": "0x1403171B7",
+    "defaults": {
+      "shiftX": 4,
+      "shiftY": 3
+    },
+    "defaultNormalDisplayBudget": {
+      "xStep": 16,
+      "yStep": 8,
+      "rows": 34,
+      "recordsPerRow": 35,
+      "records": 1190,
+      "generatedBytes": 47600
+    },
+    "updateCase": "0x14031F0E5",
+    "updateCopies": [
+      "source+0x1C -> slot+0x58",
+      "source+0x20 -> slot+0x5C"
+    ],
+    "updateClamp": "NONE_RECOVERED",
+    "nativeShiftSemantics": "32-bit variable shift count uses low five bits",
+    "extremeEffectiveShift0": {
+      "records": 132870,
+      "generatedBytes": 5314800,
+      "classification": "unsafe projection, not engine support claim"
+    }
+  },
+  "type12": {
+    "initializer": "0x140317218",
+    "defaults": {
+      "field2C": 100,
+      "field30": 100
+    },
+    "producer": "0x140319D60",
+    "localUpperCorrection": [
+      "if field2C>200 ->100",
+      "if field30>200 ->100"
+    ],
+    "derivedSteps": [
+      "Xstep=floor(field2C*64/100)",
+      "Ystep=floor(field30*32/100)"
+    ],
+    "defaultBudget": {
+      "xStep": 64,
+      "yStep": 32,
+      "rows": 10,
+      "recordsPerRow": 12,
+      "records": 120,
+      "generatedBytes": 9600,
+      "renderedVertices": 480
+    },
+    "updateCase": "0x14031F373",
+    "updateCopies": [
+      "source+0x00 -> slot+0x2C",
+      "source+0x04 -> slot+0x30"
+    ],
+    "lowerClamp": "NONE_RECOVERED",
+    "positiveProgressMin": {
+      "field2C": 2,
+      "field30": 4
+    },
+    "smallestPositiveStepProjection": {
+      "xStep": 1,
+      "yStep": 1,
+      "records": 230400,
+      "generatedBytes": 18432000,
+      "renderedVertices": 921600
+    },
+    "zeroStepHazard": "field2C 0..1 or field30 0..3"
+  },
+  "correction": {
+    "oldType12Candidate": "0x14031F4C7",
+    "correctedType12UpdateCase": "0x14031F373",
+    "note": "0x14031F4C7 belongs to type 10 according to the canonical 1..15 jump table"
+  },
+  "conclusion": "Default working budgets are executable-confirmed, but parameters are mutable with no local validation sufficient to make the 64/32 KiB address-gap candidates hard engine limits.",
+  "status": "EXE_CONFIRMED_EFFECT_SLOT_PARAMETER_DEFAULTS_AND_MUTATION_PATH"
+}
