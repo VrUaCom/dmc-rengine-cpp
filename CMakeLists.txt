@@ -199,6 +199,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         spider_exe_window_packet
         spider_exe_window_packet_publication
         spider_l2_runtime_mapping_v2
+        spider_l2_original_selection
         spider_native_executor
         spider_plan_builder
         process_memory_window

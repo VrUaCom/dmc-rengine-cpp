@@ -15,22 +15,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Validate reverse acquisition packet plan
-        run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json --validate-plan-only
-      - name: Validate focused materialization completion plan
-        run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-materialization-completion-boundary-plan.v1.json --validate-plan-only
-      - name: Validate MOT animated-local matrix acquisition plan
-        run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-mot-local-matrix-window-plan.v1.json --validate-plan-only
-      - name: Validate SCM deep reader acquisition plan
-        run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-scm-deep-reader-window-plan.v1.json --validate-plan-only
       - name: Test reverse acquisition packet guardrails
         run: python scripts/reverse/test_extract_exe_window_packet.py
-      - name: Test L2 process-instance mapping v2 guardrails
-        run: python scripts/reverse/test_verify_l2_runtime_mapping_packet_v2.py
-      - name: Test L2 legacy selection candidate normalization
-        run: python scripts/reverse/test_normalize_l2_original_selection_candidate.py
-      - name: Test L2 original selection evidence guardrails
-        run: python scripts/reverse/test_verify_l2_original_selection_evidence.py
       - name: Test executable-reverse SQL importer guardrails
         run: python research/sql/test_import_executable_reverse.py
       - name: Evidence figure checker guardrails
@@ -45,6 +31,18 @@ jobs:
         run: cmake --build build --config Release --parallel 2
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+      - name: Validate reverse acquisition packet plans
+        shell: bash
+        run: |
+          cli=build/dmc-rengine
+          [ -x "$cli" ] || cli=build/Release/dmc-rengine.exe
+          for plan in \
+            data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json \
+            data/reverse/dmc3-materialization-completion-boundary-plan.v1.json \
+            data/reverse/dmc3-mot-local-matrix-window-plan.v1.json \
+            data/reverse/dmc3-scm-deep-reader-window-plan.v1.json; do
+            "$cli" extract-exe-window-packet --plan "$plan" --validate-plan-only
+          done
       - name: Publish Ubuntu CLI evidence artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4

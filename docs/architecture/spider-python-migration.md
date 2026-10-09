@@ -148,16 +148,36 @@ benefit from migration.)
 
 Reverse-orchestration candidates currently include:
 
-- `scripts/reverse/extract_exe_window_packet.py` — **native metadata publication + CLI implemented; raw-byte mode and production benchmark pending**;
-- `scripts/reverse/verify_l2_runtime_mapping_packet.py`;
-- `scripts/reverse/verify_l2_runtime_mapping_packet_v2.py`;
-- `scripts/reverse/normalize_l2_original_selection_candidate.py`;
-- `scripts/reverse/verify_l2_original_selection_evidence.py`.
+- `scripts/reverse/extract_exe_window_packet.py` — **native metadata publication + CLI implemented; CI validates the
+  four checked-in plans natively; raw-byte mode and production benchmark pending**;
+- `scripts/reverse/verify_l2_runtime_mapping_packet.py` — **migrated, Python removed**:
+  `dmc-rengine verify-l2-runtime-mapping-v1` (same verdicts on nine fixtures, same packet bytes on success);
+- `scripts/reverse/verify_l2_runtime_mapping_packet_v2.py` — **migrated, Python removed**:
+  `dmc-rengine verify-l2-runtime-mapping-v2` (byte-identical packet on the Python test's synthetic PE; the
+  four guardrails only the Python test had are now in `spider_l2_runtime_mapping_v2_tests`);
+- `scripts/reverse/normalize_l2_original_selection_candidate.py` — **migrated, Python removed**:
+  `dmc-rengine normalize-l2-original-selection-candidate`;
+- `scripts/reverse/verify_l2_original_selection_evidence.py` — **migrated, Python removed**:
+  `dmc-rengine verify-l2-original-selection-evidence`.
+
+The two selection steps (`src/spider/l2_original_selection.cpp`) were checked
+against the Python scripts on 42 cases — valid inputs and every rejection the
+scripts know: 41 byte-identical outputs and identical messages; the one
+difference is the operating system's wording when the output file already
+exists (both refuse, exit 2, and leave it untouched). Where Python compared
+loosely the port is strict: `True == 1` and `6567320.0 == 6567320` no longer
+pass an integer field.
+
+Every Tarantula port writes through `spider/python_json.hpp`, which emits what
+CPython's `json.dumps(value, indent=2)` emits — insertion-ordered members,
+`ensure_ascii` escapes, `repr()` floats — so a port's output can be compared
+byte for byte with the script it replaces.
 
 `tools/build_discovery_site.py` was a separate category ("should not be migrated
 merely to eliminate Python"); under the owner's rule it is on the queue too.
 
-Whole queue on this branch (2026-10-09): 85 Python files, about 12 400 lines —
+Whole queue on this branch (2026-10-09): 85 Python files, about 12 400 lines
+(78 after the L2 batch above) —
 `research/exe/fx` and `research/exe/fx/emu` (35, the effect reverse and its
 CPU emulation, which binds the C library Unicorn and can do so from C++
 directly), `tools/dmc3-costume-tools` (21), `scripts/reverse` (10),

@@ -3,9 +3,14 @@
 #include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/spider/exe_window_acquirer.hpp"
 #include "dmc_rengine/spider/exe_window_packet_publication.hpp"
+#include "dmc_rengine/spider/l2_original_selection.hpp"
 #include "dmc_rengine/spider/l2_runtime_mapping.hpp"
+#include "dmc_rengine/spider/l2_runtime_mapping_v2.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
+#include <map>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -217,6 +222,161 @@ inline int run_verify_l2_runtime_mapping_v1(int argc, char** argv) {
     return 0;
 }
 
+/// Writes `json` (plus a newline) to a new file and echoes it, as the Python scripts did.
+inline int publish_python_json(const std::filesystem::path& output, const std::string& json,
+                               std::string_view rejected, std::string_view suffix) {
+    const auto encoded = json + "\n";
+    const auto publication = core::publish_bytes_no_replace(
+        output, std::as_bytes(std::span<const char>{encoded.data(), encoded.size()}), {}, suffix);
+    if (!publication.ok()) {
+        std::cerr << rejected << ": " << publication.detail << '\n';
+        return 2;
+    }
+    std::cout << encoded;
+    return 0;
+}
+
+/// Reads `--name value` pairs; repeatable names collect every value.
+struct OptionValues final {
+    std::map<std::string, std::vector<std::string>, std::less<>> values;
+    std::string error;
+};
+
+inline OptionValues read_options(int argc, char** argv, std::span<const std::string_view> known) {
+    OptionValues options;
+    for (int index = 2; index < argc; ++index) {
+        const std::string_view option{argv[index]};
+        if (std::find(known.begin(), known.end(), option) == known.end()) {
+            options.error = "unrecognized argument: " + std::string{option};
+            return options;
+        }
+        if (index + 1 >= argc) {
+            options.error = std::string{option} + " requires a value";
+            return options;
+        }
+        options.values[std::string{option}].emplace_back(argv[++index]);
+    }
+    return options;
+}
+
+inline int run_normalize_l2_selection_candidate(int argc, char** argv) {
+    constexpr std::array<std::string_view, 2> known{"--input", "--output"};
+    const auto options = read_options(argc, argv, known);
+    const auto one = [&options](std::string_view name) -> const std::string* {
+        const auto found = options.values.find(name);
+        return found == options.values.end() || found->second.size() != 1U ? nullptr : &found->second.front();
+    };
+    if (!options.error.empty() || one("--input") == nullptr || one("--output") == nullptr) {
+        std::cerr << "Usage: dmc-rengine normalize-l2-original-selection-candidate --input <legacy.json> "
+                     "--output <candidate.json>\n";
+        if (!options.error.empty()) std::cerr << options.error << '\n';
+        return 2;
+    }
+    constexpr std::string_view rejected = "selection candidate normalization rejected";
+    const auto text = read_text_file(*one("--input"));
+    if (!text.has_value()) {
+        std::cerr << rejected << ": could not read legacy selection JSON: cannot open " << *one("--input") << '\n';
+        return 2;
+    }
+    const auto normalized = spider::normalize_l2_selection_candidate(*text);
+    if (!normalized.ok()) {
+        std::cerr << rejected << ": " << normalized.error << '\n';
+        return 2;
+    }
+    return publish_python_json(*one("--output"), spider::dump_python(*normalized.value), rejected,
+                               ".dmc-rengine-l2-selection-candidate.staging");
+}
+
+inline int run_verify_l2_selection_evidence(int argc, char** argv) {
+    constexpr std::array<std::string_view, 6> known{
+        "--mapping", "--mapping-child", "--selection", "--observer-artifact", "--archive-artifact", "--output"};
+    const auto options = read_options(argc, argv, known);
+    const auto one = [&options](std::string_view name) -> const std::string* {
+        const auto found = options.values.find(name);
+        return found == options.values.end() || found->second.size() != 1U ? nullptr : &found->second.front();
+    };
+    const auto children = options.values.find("--mapping-child");
+    if (!options.error.empty() || one("--mapping") == nullptr || one("--selection") == nullptr ||
+        one("--observer-artifact") == nullptr || one("--output") == nullptr || children == options.values.end()) {
+        std::cerr << "Usage: dmc-rengine verify-l2-original-selection-evidence --mapping <json> "
+                     "--mapping-child <json>... --selection <json> --observer-artifact <file> "
+                     "[--archive-artifact INDEX=PATH ...] --output <json>\n";
+        if (!options.error.empty()) std::cerr << options.error << '\n';
+        return 2;
+    }
+    constexpr std::string_view rejected = "original selection candidate rejected";
+    spider::L2SelectionBindingInputs inputs{
+        .mapping = *one("--mapping"),
+        .selection = *one("--selection"),
+        .mapping_children = {children->second.begin(), children->second.end()},
+        .observer_artifact = *one("--observer-artifact"),
+        .archive_artifacts = {},
+    };
+    const auto archives = options.values.find("--archive-artifact");
+    if (archives != options.values.end()) {
+        const auto error = spider::parse_l2_archive_artifacts(archives->second, inputs.archive_artifacts);
+        if (!error.empty()) {
+            std::cerr << rejected << ": " << error << '\n';
+            return 2;
+        }
+    }
+    const auto bound = spider::bind_l2_selection_candidate(inputs);
+    if (!bound.ok()) {
+        std::cerr << rejected << ": " << bound.error << '\n';
+        return 2;
+    }
+    return publish_python_json(*one("--output"), spider::dump_python(*bound.value), rejected,
+                               ".dmc-rengine-l2-selection-bound.staging");
+}
+
+inline int run_verify_l2_runtime_mapping_v2(int argc, char** argv) {
+    constexpr std::array<std::string_view, 3> known{"--canonical-exe", "--receipt", "--output"};
+    const auto options = read_options(argc, argv, known);
+    const auto one = [&options](std::string_view name) -> const std::string* {
+        const auto found = options.values.find(name);
+        return found == options.values.end() || found->second.size() != 1U ? nullptr : &found->second.front();
+    };
+    const auto receipts = options.values.find("--receipt");
+    if (!options.error.empty() || one("--canonical-exe") == nullptr || one("--output") == nullptr ||
+        receipts == options.values.end()) {
+        std::cerr << "Usage: dmc-rengine verify-l2-runtime-mapping-v2 --canonical-exe <exe> "
+                     "--receipt <json>... --output <json>\n";
+        if (!options.error.empty()) std::cerr << options.error << '\n';
+        return 2;
+    }
+    constexpr std::string_view rejected = "runtime mapping v2 packet rejected";
+    std::vector<std::string> texts;
+    for (const auto& path : receipts->second) {
+        auto text = read_text_file(path);
+        if (!text.has_value()) {
+            std::cerr << rejected << ": could not read receipt " << path << '\n';
+            return 2;
+        }
+        texts.push_back(std::move(*text));
+    }
+    const auto exe = read_text_file(*one("--canonical-exe"));
+    if (!exe.has_value()) {
+        std::cerr << rejected << ": could not read canonical executable " << *one("--canonical-exe") << '\n';
+        return 2;
+    }
+    const std::vector<std::string_view> views{texts.begin(), texts.end()};
+    const auto built = spider::build_l2_runtime_mapping_v2(
+        views, std::as_bytes(std::span<const char>{exe->data(), exe->size()}));
+    if (!built.ok()) {
+        std::cerr << rejected << ':';
+        for (const auto& error : built.errors) std::cerr << "\n  - " << error;
+        std::cerr << '\n';
+        return 2;
+    }
+    auto encoded = spider::l2_runtime_mapping_v2_to_json(*built.packet);
+    if (encoded.empty()) {
+        std::cerr << rejected << ": native serializer failed\n";
+        return 2;
+    }
+    if (encoded.back() == '\n') encoded.pop_back();
+    return publish_python_json(*one("--output"), encoded, rejected, ".dmc-rengine-l2-mapping-v2.staging");
+}
+
 } // namespace spider_cli_detail
 
 inline void print_spider_help() {
@@ -225,7 +385,14 @@ inline void print_spider_help() {
         << "  extract-exe-window-packet --plan <json> --exe <exe> --expected-sha256 <sha> --output <new-dir>\n"
         << "                             Acquire a metadata-only packet in one native process\n"
         << "  verify-l2-runtime-mapping-v1 --receipt <json>... --output <json>\n"
-        << "                             Validate bounded L2 mapping receipts natively\n";
+        << "                             Validate bounded L2 mapping receipts natively\n"
+        << "  verify-l2-runtime-mapping-v2 --canonical-exe <exe> --receipt <json>... --output <json>\n"
+        << "                             Bind L2 mapping receipts to one process instance natively\n"
+        << "  normalize-l2-original-selection-candidate --input <json> --output <json>\n"
+        << "                             Turn a legacy L2 selection into a non-promotable candidate\n"
+        << "  verify-l2-original-selection-evidence --mapping <json> --mapping-child <json>...\n"
+        << "      --selection <json> --observer-artifact <file> [--archive-artifact I=PATH...] --output <json>\n"
+        << "                             Hash-bind an L2 selection candidate to its artifacts\n";
 }
 
 inline int try_run_spider_command(int argc, char** argv) {
@@ -238,6 +405,15 @@ inline int try_run_spider_command(int argc, char** argv) {
     }
     if (command == "verify-l2-runtime-mapping-v1") {
         return spider_cli_detail::run_verify_l2_runtime_mapping_v1(argc, argv);
+    }
+    if (command == "verify-l2-runtime-mapping-v2") {
+        return spider_cli_detail::run_verify_l2_runtime_mapping_v2(argc, argv);
+    }
+    if (command == "normalize-l2-original-selection-candidate") {
+        return spider_cli_detail::run_normalize_l2_selection_candidate(argc, argv);
+    }
+    if (command == "verify-l2-original-selection-evidence") {
+        return spider_cli_detail::run_verify_l2_selection_evidence(argc, argv);
     }
     return -1;
 }

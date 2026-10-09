@@ -273,6 +273,42 @@ int main() {
     assert(!raw_result.ok());
     assert(has_error(raw_result, "metadata-only receipts"));
 
+    // Carried over from test_verify_l2_runtime_mapping_packet_v2.py with the Python script.
+    auto zero_creation = make_valid_receipts(fixture);
+    zero_creation.storage[3] = make_receipt(k_anchors[3], fixture.hashes[3], 0U);
+    zero_creation.views.assign(zero_creation.storage.begin(), zero_creation.storage.end());
+    const auto zero_creation_result = spider::build_l2_runtime_mapping_v2(
+        zero_creation.views, fixture.bytes, fixture.authority);
+    assert(!zero_creation_result.ok());
+    assert(has_error(zero_creation_result, "non-zero unsigned 64-bit integer"));
+
+    auto wrong_diagnostic = make_valid_receipts(fixture);
+    wrong_diagnostic.storage[3] = make_receipt(
+        k_anchors[3], fixture.hashes[3], k_creation,
+        "dmc-rengine.exe-process-window.v2", true, std::string(64U, 'e'));
+    replace_once(
+        wrong_diagnostic.storage[3],
+        "PLACEHOLDER_CANONICAL_SHA",
+        fixture.authority.canonical_analysis_sha256);
+    wrong_diagnostic.views.assign(wrong_diagnostic.storage.begin(), wrong_diagnostic.storage.end());
+    const auto wrong_diagnostic_result = spider::build_l2_runtime_mapping_v2(
+        wrong_diagnostic.views, fixture.bytes, fixture.authority);
+    assert(!wrong_diagnostic_result.ok());
+    assert(has_error(
+        wrong_diagnostic_result,
+        "diagnostic expectation does not match independently derived canonical evidence"));
+
+    // Every required anchor is needed: dropping any one of them is refused.
+    for (std::size_t dropped = 0U; dropped < k_anchors.size(); ++dropped) {
+        auto missing = make_valid_receipts(fixture);
+        missing.storage.erase(missing.storage.begin() + static_cast<std::ptrdiff_t>(dropped));
+        missing.views.assign(missing.storage.begin(), missing.storage.end());
+        const auto missing_result = spider::build_l2_runtime_mapping_v2(
+            missing.views, fixture.bytes, fixture.authority);
+        assert(!missing_result.ok());
+        assert(has_error(missing_result, "at least"));
+    }
+
     auto tampered = fixture.bytes;
     tampered.back() ^= std::byte{0x01};
     const auto tampered_result = spider::build_l2_runtime_mapping_v2(

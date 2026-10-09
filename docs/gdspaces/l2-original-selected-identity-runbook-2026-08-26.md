@@ -140,7 +140,7 @@ Those labels are **legacy content labels, not promotion authority**.
 Before binding, normalize them through the fail-closed adapter:
 
 ```text
-python scripts/reverse/normalize_l2_original_selection_candidate.py \
+dmc-rengine normalize-l2-original-selection-candidate \
   --input <legacy-selection.json> \
   --output <selection-candidate.json>
 ```
@@ -161,7 +161,7 @@ A normalized candidate is still self-authored content, not proof of process orig
 Bind the normalized candidate to the actual R2B and artifact set:
 
 ```text
-python scripts/reverse/verify_l2_original_selection_evidence.py \
+dmc-rengine verify-l2-original-selection-evidence \
   --mapping <real-r2b-mapping.json> \
   --mapping-child <open-game-child.json> \
   --mapping-child <type0-child-a.json> \

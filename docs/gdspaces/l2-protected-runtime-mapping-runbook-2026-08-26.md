@@ -100,7 +100,7 @@ A mismatch does not by itself prove that the RVA is wrong. Possible causes inclu
 Supply at least three metadata-only child receipts:
 
 ```text
-python scripts/reverse/verify_l2_runtime_mapping_packet.py \
+dmc-rengine verify-l2-runtime-mapping-v1 \
   --receipt open-game.json \
   --receipt type0-registration.json \
   --receipt type0-resolve.json \
