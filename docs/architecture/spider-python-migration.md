@@ -138,8 +138,11 @@ Python files are not deleted merely because Tarantula exists. Migration is stage
 6. only after parity and practical benefit may a Python orchestration path be
    deprecated.
 
-Repository/discovery tooling can remain Python when there is no measurable
-benefit from migration.
+Superseded by the owner's rule in `spider-family.md`: the core and its tooling
+are C++ only, so every Python path is on the queue, tooling included. The
+staging below decides the order and the proof, not whether. (Former text:
+repository/discovery tooling could remain Python when there was no measurable
+benefit from migration.)
 
 ## Candidate queue discovered on `main`
 
@@ -151,8 +154,15 @@ Reverse-orchestration candidates currently include:
 - `scripts/reverse/normalize_l2_original_selection_candidate.py`;
 - `scripts/reverse/verify_l2_original_selection_evidence.py`.
 
-`tools/build_discovery_site.py` is a separate category and should not be migrated
-merely to eliminate Python.
+`tools/build_discovery_site.py` was a separate category ("should not be migrated
+merely to eliminate Python"); under the owner's rule it is on the queue too.
+
+Whole queue on this branch (2026-10-09): 85 Python files, about 12 400 lines —
+`research/exe/fx` and `research/exe/fx/emu` (35, the effect reverse and its
+CPU emulation, which binds the C library Unicorn and can do so from C++
+directly), `tools/dmc3-costume-tools` (21), `scripts/reverse` (10),
+`research/sql` (7), `tools` (6, the discovery site and the research tools),
+`research/exe` (4), and a few more. They migrate in the order they are used.
 
 ## Reuse / anti-duplication rule
 

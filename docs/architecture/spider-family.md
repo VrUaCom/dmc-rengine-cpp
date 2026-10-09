@@ -71,8 +71,12 @@ Migration policy is evidence-based:
 5. benchmark wall time, process count, memory, allocations and binary-size cost;
 6. deprecate Python only after parity and practical benefit are demonstrated.
 
-Python should not be removed merely because Tarantula exists. Repository tooling
-or one-off scripts may remain Python when migration has no clear benefit.
+**Owner's rule (2026-10-09):** the core, and the tooling around it, is C++
+only. No Python, Java or script runtime stays in the core or its tools; what is
+useful from another language is adapted and written in C++, and Spider grows
+to carry it. Steps 1–5 above still decide *how* a Python path is replaced —
+parity first, then the native path, then the Python deleted — but not
+*whether*: every Python path is on the migration queue, tooling included.
 
 ## Spider Crusader
 
@@ -251,6 +255,27 @@ Dead-code elimination and LTO are preferred for release products.
   evaluators should be implemented only where a platform shell currently owns
   business decisions. Do not add an empty generic framework merely to claim the
   family exists.
+
+## Reference slices
+
+- **Tarantula, a whole tool:** Pocket GDS's `pocket-tool verify-apk`
+  (`native/tools/apk_verification.cpp` there) replaced a Python APK
+  verifier. One Crusader plan opens the archive once through the core's ZIP
+  reader, takes an inventory, then checks every DEX and every entry's CRC as
+  concurrent steps (`bind_concurrent` + `execute_parallel`, which exist in the
+  Pocket snapshot and are candidates to promote here). Verdicts matched the
+  script on every case; 285 ms against 706 ms.
+- **Crusader, a product workflow:** texture re-encoding
+  (`spider/texture_reencode_workflow`), one transform per PAC slot run
+  concurrently, then assembled in slot order.
+
+## Platforms
+
+The core is prepared for every platform the products may reach: Android and
+iOS today, Windows, Linux and macOS next. Spider is part of that core and
+carries no platform code; shells reach it only through the C ABI. A single
+package format for all of them (`.application`) is a concept under
+discussion and is not implemented.
 
 ## Naming rule
 
