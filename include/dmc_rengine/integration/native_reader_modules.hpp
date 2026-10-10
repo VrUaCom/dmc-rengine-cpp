@@ -27,5 +27,9 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule stage_cfg_pos();
 [[nodiscard]] NativeReaderModule stage_cfg_eve();
 [[nodiscard]] NativeReaderModule stage_cfg_cam();
+[[nodiscard]] NativeReaderModule stage_cfg_itm();
+[[nodiscard]] NativeReaderModule stage_cfg_ste();
+[[nodiscard]] NativeReaderModule stage_cfg_est();
+[[nodiscard]] NativeReaderModule stage_cfg_sef();
 
 } // namespace dmc::rengine::integration::native_reader_modules

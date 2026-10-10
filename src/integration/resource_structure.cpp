@@ -710,7 +710,7 @@ std::optional<StructureView> read_pac_roles(std::span<const std::byte> bytes, st
     return view;
 }
 
-// ---- Stage configuration: POS, EVE, CAM ------------------------------------
+// ---- Stage configuration: POS, EVE, CAM, ITM, STE, EST, SEF ------------------------------------
 //
 // Purpose settled, schema open (format_registry limitations): the rows say
 // what the bytes hold and name a field only where the files show what it is.
@@ -847,12 +847,143 @@ std::optional<StructureView> read_cam(std::span<const std::byte> bytes, std::str
     return view;
 }
 
+
+std::optional<StructureView> read_itm(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_itm(bytes);
+    if (declined(result, "ITM", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "itm";
+    view.reader = "formats::stage_cfg::read_itm (StageCfg static item placements)";
+    add_section(view, {"Header",
+                       {{"Version", std::to_string(doc.header.version)},
+                        {"Items", std::to_string(doc.header.count)}}});
+    for (std::size_t index = 0U; index < doc.records.size(); ++index) {
+        const auto& record = doc.records[index];
+        add_section(view, {"Item " + std::to_string(index) + "  @" + hex(record.offset),
+                           {{"Item id", std::to_string(record.item_id)},
+                            {"Position", point(record.position)},
+                            {"Rotation about Y", num(record.rotation_y)}}});
+    }
+    add_notes(view, result);
+    view.summary = doc.records.empty() ? std::string{"No items placed in this stage."}
+                                       : std::to_string(doc.records.size()) + " item(s) placed: an id, a position "
+                                             "and a turn about the vertical.";
+    return view;
+}
+
+std::optional<StructureView> read_ste(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_ste(bytes);
+    if (declined(result, "STE", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "ste";
+    view.reader = "formats::stage_cfg::read_ste (StageCfg scene/effect transforms; schema read from the files)";
+    add_section(view, {"Header",
+                       {{"Version", std::to_string(doc.header.version)},
+                        {"Transforms", std::to_string(doc.header.count)}}});
+    for (std::size_t index = 0U; index < doc.records.size(); ++index) {
+        const auto& record = doc.records[index];
+        add_section(view, {"Transform " + std::to_string(index) + "  @" + hex(record.offset),
+                           {{"Field +0x00", std::to_string(record.kind)},
+                            {"Number (+0x02)", std::to_string(record.number)},
+                            {"Position", point(record.position)},
+                            {"Rotation", point(record.rotation_degrees) + " °"},
+                            {"Scale", point(record.scale)}}});
+    }
+    add_notes(view, result);
+    view.summary = std::to_string(doc.records.size()) + " transform(s): position, rotation in degrees and scale, "
+        "each under a number.";
+    return view;
+}
+
+constexpr std::array<std::string_view, formats::stage_cfg::est_modes> k_est_modes{
+    "Easy", "Normal", "Hard", "Very Hard", "Dante Must Die"};
+
+std::optional<StructureView> read_est(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_est(bytes);
+    if (declined(result, "EST", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "est";
+    view.reader = "formats::stage_cfg::read_est (StageCfg slot 9; commands read from the files)";
+    add_section(view, {"Header",
+                       {{"Version", std::to_string(doc.header.version)},
+                        {"Rows", std::to_string(doc.header.count)},
+                        {"Table", hex(doc.table_offset) + "  (" + std::to_string(doc.header.count) +
+                                      " × 5 offsets)"},
+                        {"Programs", std::to_string(doc.programs.size())},
+                        {"Bytes not read", std::to_string(doc.unexplained_bytes)}}});
+    StructureSection table{"Programs by difficulty", {}};
+    std::size_t varying = 0U;
+    for (std::size_t row = 0U; row < doc.rows.size(); ++row) {
+        std::string cells;
+        bool differs = false;
+        for (std::size_t mode = 0U; mode < k_est_modes.size(); ++mode) {
+            const auto index = doc.rows[row][mode];
+            if (!cells.empty()) cells += "  ";
+            cells += std::string{k_est_modes[mode].substr(0, mode == 4U ? 3U : k_est_modes[mode].size())} + " " +
+                (index < 0 ? std::string{"—"} : "#" + std::to_string(index));
+            differs = differs || doc.rows[row][mode] != doc.rows[row][0];
+        }
+        if (differs) ++varying;
+        table.rows.push_back({"Row " + std::to_string(row), cells});
+    }
+    add_section(view, std::move(table));
+    for (std::size_t index = 0U; index < doc.programs.size(); ++index) {
+        const auto& program = doc.programs[index];
+        StructureSection section{"Program #" + std::to_string(index) + "  @" + hex(program.offset) + "  (" +
+                                     std::to_string(program.commands.size()) + " commands)",
+                                 {}};
+        for (const auto& command : program.commands) {
+            std::string arguments;
+            for (const auto argument : command.arguments) {
+                if (!arguments.empty()) arguments += ", ";
+                arguments += std::to_string(argument);
+            }
+            section.rows.push_back({hex(command.offset) + "  command " + std::to_string(command.code),
+                                    arguments.empty() ? std::string{"—"} : arguments});
+        }
+        if (!program.terminated) section.rows.push_back({"Note", "no zero word ends this program"});
+        add_section(view, std::move(section));
+    }
+    add_notes(view, result);
+    view.summary = std::to_string(doc.rows.size()) + " row(s) of a program per difficulty mode, " +
+        std::to_string(varying) + " of them different between modes; " + std::to_string(doc.programs.size()) +
+        " distinct program(s) of commands. What each command does is open.";
+    return view;
+}
+
+std::optional<StructureView> read_sef(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_sef(bytes);
+    if (declined(result, "SEF", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "sef";
+    view.reader = "formats::stage_cfg::read_sef (stage effect companion; section table read, sections open)";
+    add_section(view, {"Header",
+                       {{"Sections", std::to_string(doc.sections_declared)},
+                        {"Field +0x06", std::to_string(doc.field6)}}});
+    StructureSection sections{"Sections", {}};
+    for (std::size_t index = 0U; index < doc.sections.size(); ++index) {
+        const auto& section = doc.sections[index];
+        sections.rows.push_back({"Section " + std::to_string(index) + "  @" + hex(section.offset),
+                                 std::to_string(section.size) + " bytes; table value " +
+                                     std::to_string(section.value)});
+    }
+    add_section(view, std::move(sections));
+    add_notes(view, result);
+    view.summary = std::to_string(doc.sections.size()) + " section(s) named by the table at +0x08; "
+        "what each holds is open.";
+    return view;
+}
+
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 13> k_formats{
+constexpr std::array<std::string_view, 17> k_formats{
     "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt",
-    "pos", "eve", "cam"};
+    "pos", "eve", "cam", "itm", "ste", "est", "sef"};
 
 } // namespace
 
@@ -877,6 +1008,10 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "pos") return read_pos(bytes, detail);
         if (format == "eve") return read_eve(bytes, detail);
         if (format == "cam") return read_cam(bytes, detail);
+        if (format == "itm") return read_itm(bytes, detail);
+        if (format == "ste") return read_ste(bytes, detail);
+        if (format == "est") return read_est(bytes, detail);
+        if (format == "sef") return read_sef(bytes, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;

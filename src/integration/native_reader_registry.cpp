@@ -31,6 +31,10 @@ NativeReaderModuleRegistry::NativeReaderModuleRegistry() {
     static_cast<void>(register_module(native_reader_modules::stage_cfg_pos()));
     static_cast<void>(register_module(native_reader_modules::stage_cfg_eve()));
     static_cast<void>(register_module(native_reader_modules::stage_cfg_cam()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_itm()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_ste()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_est()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_sef()));
 }
 
 bool NativeReaderModuleRegistry::register_module(NativeReaderModule module) {

@@ -1,4 +1,4 @@
-// POS, EVE and CAM read from synthetic files built here in their layouts:
+// POS, EVE, CAM, ITM, STE, EST and SEF read from synthetic files built here in their layouts:
 // every field lands where it was written, malformed files are refused, and
 // the structure view lists them.
 
@@ -97,6 +97,76 @@ struct Writer final {
     return w.bytes;
 }
 
+[[nodiscard]] std::vector<std::byte> itm_file(std::uint16_t count) {
+    Writer w;
+    w.tag("ITM", 1U, count);
+    for (std::uint16_t index = 0U; index < count; ++index) {
+        w.u32(0x30U + index);
+        w.f32(10.0F * index);
+        w.f32(0.0F);
+        w.f32(-20.0F);
+        w.f32(1.5F);
+    }
+    while (w.bytes.size() % 16U != 0U) w.zeros(1U);
+    return w.bytes;
+}
+
+[[nodiscard]] std::vector<std::byte> ste_file() {
+    Writer w;
+    w.tag("STE", 1U, 2U);
+    for (int index = 0; index < 2; ++index) {
+        w.u16(2U);
+        w.u16(static_cast<std::uint16_t>(10 + index));
+        for (const float value : {2500.0F, 0.0F, 1000.0F, 0.0F, 180.0F * index, 0.0F}) w.f32(value);
+        for (int axis = 0; axis < 3; ++axis) w.f32(1.0F + 2.0F * index);
+    }
+    return w.bytes;
+}
+
+// Two rows: one program for every mode, then two programs by mode.
+[[nodiscard]] std::vector<std::byte> est_file() {
+    Writer w;
+    w.put("EST", 4U);
+    w.u16(1U);
+    w.u16(2U);
+    w.u32(0U); // table offset, patched below
+    w.zeros(4U);
+    const auto program = [&w](std::uint32_t kind) {
+        const auto start = static_cast<std::uint32_t>(w.bytes.size());
+        w.u32(0x0202U);
+        w.u32(kind);
+        w.u32(5U);
+        w.u32(0x0303U);
+        for (const std::int32_t value : {2900, 20, -2800}) w.u32(static_cast<std::uint32_t>(value));
+        w.u32(0x0105U);
+        w.u32(static_cast<std::uint32_t>(-90));
+        w.u32(0U);
+        return start;
+    };
+    const auto a = program(0U);
+    const auto b = program(8U);
+    const auto c = program(16U);
+    const auto table = static_cast<std::uint32_t>(w.bytes.size());
+    for (int mode = 0; mode < 5; ++mode) w.u32(a);
+    for (int mode = 0; mode < 5; ++mode) w.u32(mode < 3 ? b : c);
+    std::memcpy(w.bytes.data() + 8, &table, 4U);
+    return w.bytes;
+}
+
+[[nodiscard]] std::vector<std::byte> sef_file() {
+    Writer w;
+    w.put("SEF", 4U);
+    w.u16(2U);
+    w.u16(1U);
+    w.u32(3U);
+    w.u32(0x18U);
+    w.u32(7U);
+    w.u32(0x30U);
+    w.zeros(0x30U - 0x18U);
+    w.zeros(20U);
+    return w.bytes;
+}
+
 } // namespace
 
 int main() {
@@ -141,13 +211,81 @@ int main() {
         assert(result.document.areas.size() == 1U && result.document.areas[0].extent == 2000.0F);
         assert(result.document.unexplained_bytes == 4U); // the 256 after the header
     }
+    {
+        const auto empty = cfg::read_itm(itm_file(0U));
+        assert(empty.ok() && empty.document.records.empty());
+        const auto result = cfg::read_itm(itm_file(3U));
+        assert(result.ok() && result.document.records.size() == 3U);
+        assert(result.document.records[2].item_id == 0x32U && result.document.records[2].position.x == 20.0F);
+        assert(result.document.records[0].rotation_y == 1.5F);
+        auto short_file = itm_file(3U);
+        short_file.resize(0x10U + 2U * 0x14U);
+        assert(!cfg::read_itm(short_file).ok());
+    }
+    {
+        const auto result = cfg::read_ste(ste_file());
+        assert(result.ok() && result.document.records.size() == 2U);
+        const auto& second = result.document.records[1];
+        assert(second.kind == 2U && second.number == 11U);
+        assert(second.rotation_degrees.y == 180.0F && second.scale.z == 3.0F && second.position.z == 1000.0F);
+        auto short_file = ste_file();
+        short_file.pop_back();
+        assert(!cfg::read_ste(short_file).ok());
+    }
+    {
+        const auto result = cfg::read_est(est_file());
+        assert(result.ok());
+        const auto& doc = result.document;
+        assert(doc.programs.size() == 3U && doc.unexplained_bytes == 0U);
+        assert(doc.rows.size() == 2U);
+        assert(doc.rows[0][0] == 0 && doc.rows[0][4] == 0);
+        assert(doc.rows[1][2] == 1 && doc.rows[1][3] == 2);
+        const auto& first = doc.programs[0];
+        assert(first.terminated && first.commands.size() == 3U);
+        assert(first.commands[1].code == 3U && first.commands[1].arguments.size() == 3U);
+        assert(first.commands[1].arguments[2] == -2800 && first.commands[2].arguments[0] == -90);
+
+        // A table past the end, and a word that cannot be a command.
+        auto bad_table = est_file();
+        bad_table[9] = std::byte{0x7F};
+        assert(!cfg::read_est(bad_table).ok());
+        auto bad_word = est_file();
+        bad_word[0x10 + 2] = std::byte{1};
+        assert(!cfg::read_est(bad_word).ok());
+        // Bytes no program reads are counted.
+        auto stray = est_file();
+        stray.insert(stray.begin() + 0x10, {std::byte{0}, std::byte{0}, std::byte{0}, std::byte{0}});
+        stray[0x10] = std::byte{0x55};
+        for (std::size_t at = 8U; at < 12U; ++at) stray[at] = std::byte{0};
+        const auto table = static_cast<std::uint32_t>(stray.size() - 40U);
+        std::memcpy(stray.data() + 8, &table, 4U);
+        for (std::size_t entry = 0U; entry < 10U; ++entry) {
+            std::uint32_t offset = 0U;
+            std::memcpy(&offset, stray.data() + table + entry * 4U, 4U);
+            offset += 4U;
+            std::memcpy(stray.data() + table + entry * 4U, &offset, 4U);
+        }
+        const auto strayed = cfg::read_est(stray);
+        assert(strayed.ok() && strayed.document.unexplained_bytes == 1U);
+    }
+    {
+        const auto result = cfg::read_sef(sef_file());
+        assert(result.ok() && result.document.sections.size() == 2U);
+        assert(result.document.sections[0].offset == 0x18U && result.document.sections[0].size == 0x18U);
+        assert(result.document.sections[1].value == 7U && result.document.sections[1].size == 20U);
+        auto backwards = sef_file();
+        backwards[0x14] = std::byte{0x10};
+        assert(!cfg::read_sef(backwards).ok());
+    }
     for (const auto& [format, bytes] : {std::pair{"pos", pos_file()}, std::pair{"eve", eve_file()},
-                                        std::pair{"cam", cam_file()}}) {
+                                        std::pair{"cam", cam_file()}, std::pair{"itm", itm_file(2U)},
+                                        std::pair{"ste", ste_file()}, std::pair{"est", est_file()},
+                                        std::pair{"sef", sef_file()}}) {
         std::string detail;
         const auto view = dmc::rengine::integration::read_structure(format, bytes, "st000cfg", detail);
         assert(view.has_value() && !view->sections.empty() && !view->summary.empty());
         assert(dmc::rengine::integration::has_structure(format));
     }
-    std::cout << "stage_cfg_tests: POS, EVE and CAM read and refuse as their layouts say\n";
+    std::cout << "stage_cfg_tests: POS, EVE, CAM, ITM, STE, EST and SEF read and refuse as their layouts say\n";
     return 0;
 }

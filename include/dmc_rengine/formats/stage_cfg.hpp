@@ -29,6 +29,21 @@
  *   shape is found: areas laid out as EVE's (four corners, w = 1, one height,
  *   then an extent), paths of points, and runs of one repeated coefficient.
  *   Everything else is left as bytes.
+ * - ITM: a 16-byte header (`ITM\0`, u16 version, u16 count) and `count`
+ *   20-byte records — item id, position, rotation about Y — padded with zeros
+ *   to a multiple of 16 bytes (the static item placements).
+ * - STE: a 16-byte header (`STE\0`, u16 version, u16 count) and `count`
+ *   40-byte records: two u16 fields, then position, rotation in degrees and
+ *   scale, each three floats.
+ * - EST: a 16-byte header (`EST\0`, u16 version, u16 count, u32 offset of
+ *   a table) and, at that offset, `count` rows of five u32 offsets, one per
+ *   difficulty mode. Each offset starts a program of commands: a u32 whose
+ *   low byte is the command and whose next byte is how many i32 arguments
+ *   follow, the upper half zero; a zero word ends the program.
+ * - SEF: a 16-byte-aligned header (`SEF\0`, u16 section count, u16) and a
+ *   table from +0x08 of (u32 value, u32 offset) pairs, one per section, that
+ *   runs up to the first section; sections follow in offset order. Inside a
+ *   section the layout is open.
  */
 namespace dmc::rengine::formats::stage_cfg {
 
@@ -125,6 +140,94 @@ struct CamDocument final {
     std::uint64_t unexplained_bytes{};
 };
 
+
+// ---- ITM -------------------------------------------------------------------
+
+inline constexpr std::size_t itm_header_size = 0x10U;
+inline constexpr std::size_t itm_record_size = 0x14U;
+
+struct ItmRecord final {
+    std::uint64_t offset{};
+    std::uint32_t item_id{};
+    Vec3 position;
+    float rotation_y{};
+};
+
+struct ItmDocument final {
+    Header header;
+    std::vector<ItmRecord> records;
+};
+
+// ---- STE -------------------------------------------------------------------
+
+inline constexpr std::size_t ste_header_size = 0x10U;
+inline constexpr std::size_t ste_record_size = 0x28U;
+
+struct SteRecord final {
+    std::uint64_t offset{};
+    /// +0x00 and +0x02: what they mean is open; +0x00 was 2 in every record seen.
+    std::uint16_t kind{};
+    std::uint16_t number{};
+    Vec3 position;
+    /// Degrees about x, y and z.
+    Vec3 rotation_degrees;
+    Vec3 scale;
+};
+
+struct SteDocument final {
+    Header header;
+    std::vector<SteRecord> records;
+};
+
+// ---- EST -------------------------------------------------------------------
+
+inline constexpr std::size_t est_header_size = 0x10U;
+/// Offsets in each row of the table: one per difficulty mode (Easy, Normal,
+/// Hard, Very Hard, Dante Must Die).
+inline constexpr std::size_t est_modes = 5U;
+/// More arguments than this is not a command but bytes misread as one.
+inline constexpr std::uint32_t est_max_arguments = 8U;
+
+struct EstCommand final {
+    std::uint64_t offset{};
+    std::uint8_t code{};
+    std::vector<std::int32_t> arguments;
+};
+
+struct EstProgram final {
+    std::uint64_t offset{};
+    std::vector<EstCommand> commands;
+    /// The program ended on a zero word, not at the end of the bytes.
+    bool terminated{false};
+};
+
+struct EstDocument final {
+    Header header;
+    std::uint32_t table_offset{};
+    /// `count` rows of `est_modes` indices into `programs`; -1 for an offset of 0.
+    std::vector<std::array<std::int32_t, est_modes>> rows;
+    /// Each distinct program once, in offset order.
+    std::vector<EstProgram> programs;
+    /// Non-zero bytes between the header and the table no program reads.
+    std::uint64_t unexplained_bytes{};
+};
+
+// ---- SEF -------------------------------------------------------------------
+
+struct SefSection final {
+    std::uint32_t value{};
+    std::uint64_t offset{};
+    std::uint64_t size{};
+};
+
+struct SefDocument final {
+    /// u16 at +0x04: the number of sections, as the table confirms.
+    std::uint16_t sections_declared{};
+    /// u16 at +0x06: open.
+    std::uint16_t field6{};
+    std::vector<SefSection> sections;
+};
+
 template <typename Document>
 struct Result final {
     bool recognized{false};
@@ -143,5 +246,9 @@ struct Result final {
 [[nodiscard]] Result<PosDocument> read_pos(std::span<const std::byte> bytes);
 [[nodiscard]] Result<EveDocument> read_eve(std::span<const std::byte> bytes);
 [[nodiscard]] Result<CamDocument> read_cam(std::span<const std::byte> bytes);
+[[nodiscard]] Result<ItmDocument> read_itm(std::span<const std::byte> bytes);
+[[nodiscard]] Result<SteDocument> read_ste(std::span<const std::byte> bytes);
+[[nodiscard]] Result<EstDocument> read_est(std::span<const std::byte> bytes);
+[[nodiscard]] Result<SefDocument> read_sef(std::span<const std::byte> bytes);
 
 } // namespace dmc::rengine::formats::stage_cfg

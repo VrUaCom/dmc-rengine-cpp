@@ -159,6 +159,22 @@ void analyze_cam(ProjectWorkspace&, const ResourceWorkspaceSession& session, Res
     analyze_structure("cam", "cam-parts", session, report);
 }
 
+void analyze_itm(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("itm", "itm-items", session, report);
+}
+
+void analyze_ste(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("ste", "ste-transforms", session, report);
+}
+
+void analyze_est(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("est", "est-programs", session, report);
+}
+
+void analyze_sef(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("sef", "sef-sections", session, report);
+}
+
 } // namespace
 
 NativeReaderModule stage_cfg_pos() {
@@ -185,6 +201,42 @@ NativeReaderModule stage_cfg_cam() {
         .consumer = gdspaces::ToolTarget::binary_inspector,
         .link_format_evidence = true,
         .analyze = &analyze_cam,
+    };
+}
+
+NativeReaderModule stage_cfg_itm() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-itm-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_itm,
+    };
+}
+
+NativeReaderModule stage_cfg_ste() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-ste-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_ste,
+    };
+}
+
+NativeReaderModule stage_cfg_est() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-est-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_est,
+    };
+}
+
+NativeReaderModule stage_cfg_sef() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-sef-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_sef,
     };
 }
 
