@@ -28,6 +28,9 @@ NativeReaderModuleRegistry::NativeReaderModuleRegistry() {
     static_cast<void>(register_module(native_reader_modules::evt()));
     static_cast<void>(register_module(native_reader_modules::collision_shapes()));
     static_cast<void>(register_module(native_reader_modules::motion_script()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_pos()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_eve()));
+    static_cast<void>(register_module(native_reader_modules::stage_cfg_cam()));
 }
 
 bool NativeReaderModuleRegistry::register_module(NativeReaderModule module) {

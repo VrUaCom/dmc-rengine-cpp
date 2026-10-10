@@ -269,6 +269,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc3_fx_enemy_events
         dmc3_reader_ports
         resource_structure
+        stage_cfg
         dmc3_em034_stage
         dds_bcn
         dds_bcn_encode

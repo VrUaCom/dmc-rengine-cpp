@@ -24,5 +24,8 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule evt();
 [[nodiscard]] NativeReaderModule collision_shapes();
 [[nodiscard]] NativeReaderModule motion_script();
+[[nodiscard]] NativeReaderModule stage_cfg_pos();
+[[nodiscard]] NativeReaderModule stage_cfg_eve();
+[[nodiscard]] NativeReaderModule stage_cfg_cam();
 
 } // namespace dmc::rengine::integration::native_reader_modules

@@ -145,7 +145,48 @@ void analyze_motion_script(ProjectWorkspace&, const ResourceWorkspaceSession& se
     analyze_structure("motion-script", "motion-script-banks", session, report);
 }
 
+// The stage configuration members (formats/stage_cfg.hpp): read through
+// their structure views, which say what the files hold and what is open.
+void analyze_pos(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("pos", "pos-positions", session, report);
+}
+
+void analyze_eve(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("eve", "eve-volumes", session, report);
+}
+
+void analyze_cam(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("cam", "cam-parts", session, report);
+}
+
 } // namespace
+
+NativeReaderModule stage_cfg_pos() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-pos-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_pos,
+    };
+}
+
+NativeReaderModule stage_cfg_eve() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-eve-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_eve,
+    };
+}
+
+NativeReaderModule stage_cfg_cam() {
+    return NativeReaderModule{
+        .parser_id = "formats.stage-cfg-cam-shape-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_cam,
+    };
+}
 
 NativeReaderModule efm() {
     return NativeReaderModule{

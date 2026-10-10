@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/codecs/dds_bcn.hpp"
 #include "dmc_rengine/formats/evt.hpp"
+#include "dmc_rengine/formats/stage_cfg.hpp"
 #include "dmc_rengine/profiles/dmc3/attachment_tables.hpp"
 #include "dmc_rengine/profiles/dmc3/cloth_chain.hpp"
 #include "dmc_rengine/profiles/dmc3/collision_shapes.hpp"
@@ -709,11 +710,149 @@ std::optional<StructureView> read_pac_roles(std::span<const std::byte> bytes, st
     return view;
 }
 
+// ---- Stage configuration: POS, EVE, CAM ------------------------------------
+//
+// Purpose settled, schema open (format_registry limitations): the rows say
+// what the bytes hold and name a field only where the files show what it is.
+
+template <typename R>
+[[nodiscard]] bool declined(const R& result, std::string_view what, std::string& detail) {
+    if (result.ok()) return false;
+    detail = result.diagnostics.empty() ? "The " + std::string{what} + " reader declined these bytes."
+                                        : result.diagnostics.front().message;
+    return true;
+}
+
+template <typename R>
+void add_notes(StructureView& view, const R& result) {
+    StructureSection notes{"Reader notes", {}};
+    for (const auto& diagnostic : result.diagnostics) {
+        notes.rows.push_back({hex(diagnostic.offset) + "  " + diagnostic.code, diagnostic.message});
+    }
+    if (!notes.rows.empty()) add_section(view, std::move(notes));
+}
+
+[[nodiscard]] std::string point(const formats::stage_cfg::Vec3& v) {
+    return num(v.x) + ", " + num(v.y) + ", " + num(v.z);
+}
+
+std::optional<StructureView> read_pos(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_pos(bytes);
+    if (declined(result, "POS", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "pos";
+    view.reader = "formats::stage_cfg::read_pos (StageCfg placement; schema read from the files)";
+    add_section(view, {"Header",
+                       {{"Version", std::to_string(doc.header.version)},
+                        {"Positions", std::to_string(doc.header.count)},
+                        {"Room for", std::to_string(doc.capacity) + " records of 48 bytes"}}});
+    for (std::size_t index = 0U; index < doc.records.size(); ++index) {
+        const auto& record = doc.records[index];
+        StructureSection section{"Position " + std::to_string(index) + "  @" + hex(record.offset),
+                                 {{"Position", point(record.position)},
+                                  {"Heading", num(record.heading_degrees) + "°"}}};
+        if (record.tag != 0U) section.rows.push_back({"Field +0x00", std::to_string(record.tag)});
+        add_section(view, std::move(section));
+    }
+    add_notes(view, result);
+    view.summary = std::to_string(doc.records.size()) + " position(s) with a heading, of " +
+        std::to_string(doc.capacity) + " the file has room for.";
+    return view;
+}
+
+std::optional<StructureView> read_eve(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_eve(bytes);
+    if (declined(result, "EVE", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "eve";
+    view.reader = "formats::stage_cfg::read_eve (StageCfg event volumes; schema read from the files)";
+    add_section(view, {"Header",
+                       {{"Version", hex(doc.header.version)}, {"Volumes", std::to_string(doc.header.count)}}});
+    std::map<std::uint32_t, std::size_t> kinds;
+    for (std::size_t index = 0U; index < doc.records.size(); ++index) {
+        const auto& record = doc.records[index];
+        ++kinds[record.kind];
+        StructureSection section{"Volume " + std::to_string(index) + "  @" + hex(record.offset),
+                                 {{"Kind (+0x04)", std::to_string(record.kind)},
+                                  {"Argument (+0x08)", std::to_string(record.argument) + "  (u16 " +
+                                       std::to_string(record.argument & 0xFFFFU) + ", " +
+                                       std::to_string(record.argument >> 16U) + ")"},
+                                  {"Field +0x00", std::to_string(record.field0)},
+                                  {"Floor height", num(record.area.corners[0].y)},
+                                  {"Extent above it", num(record.extent)}}};
+        for (std::size_t corner = 0U; corner < 4U; ++corner) {
+            section.rows.push_back({"Corner " + std::to_string(corner), point(record.area.corners[corner])});
+        }
+        if (!record.area.level) section.rows.push_back({"Note", "the corners are not on one level"});
+        add_section(view, std::move(section));
+    }
+    add_notes(view, result);
+    view.summary = std::to_string(doc.records.size()) + " event volume(s): a floor quadrilateral and the height "
+        "it reaches, in " + std::to_string(kinds.size()) + " kind(s).";
+    return view;
+}
+
+std::optional<StructureView> read_cam(std::span<const std::byte> bytes, std::string& detail) {
+    const auto result = formats::stage_cfg::read_cam(bytes);
+    if (declined(result, "CAM", detail)) return std::nullopt;
+    const auto& doc = result.document;
+    StructureView view;
+    view.format = "cam";
+    view.reader = "formats::stage_cfg::read_cam (StageCfg camera; parts found by shape, record layout open)";
+    add_section(view, {"Header",
+                       {{"Version", std::to_string(doc.header.version)},
+                        {"Records", std::to_string(doc.header.count)},
+                        {"Paths", std::to_string(doc.paths.size())},
+                        {"Areas", std::to_string(doc.areas.size())},
+                        {"Coefficient runs", std::to_string(doc.coefficient_runs.size())},
+                        {"Bytes not explained", std::to_string(doc.unexplained_bytes)}}});
+    // Two paths of one length followed by a coefficient per point read as one
+    // camera move: where the camera goes, and where it looks.
+    std::size_t pairs = 0U;
+    for (std::size_t index = 0U; index < doc.paths.size(); ++index) {
+        const auto& path = doc.paths[index];
+        std::string title = "Path " + std::to_string(index) + "  @" + hex(path.offset);
+        if (index + 1U < doc.paths.size() && doc.paths[index + 1U].points.size() == path.points.size()) {
+            title += "  (first of a pair)";
+            ++pairs;
+        } else if (index > 0U && doc.paths[index - 1U].points.size() == path.points.size()) {
+            title += "  (second of a pair)";
+        }
+        StructureSection section{title, {}};
+        for (std::size_t p = 0U; p < path.points.size(); ++p) {
+            section.rows.push_back({"Point " + std::to_string(p), point(path.points[p])});
+        }
+        add_section(view, std::move(section));
+    }
+    for (std::size_t index = 0U; index < doc.areas.size(); ++index) {
+        const auto& area = doc.areas[index];
+        StructureSection section{"Area " + std::to_string(index) + "  @" + hex(area.offset),
+                                 {{"Floor height", num(area.quad.corners[0].y)}, {"Extent", num(area.extent)}}};
+        for (std::size_t corner = 0U; corner < 4U; ++corner) {
+            section.rows.push_back({"Corner " + std::to_string(corner), point(area.quad.corners[corner])});
+        }
+        add_section(view, std::move(section));
+    }
+    StructureSection runs{"Coefficient runs", {}};
+    for (const auto& run : doc.coefficient_runs) {
+        runs.rows.push_back({hex(run.offset), std::to_string(run.count) + " × " + num(run.value)});
+    }
+    if (!runs.rows.empty()) add_section(view, std::move(runs));
+    add_notes(view, result);
+    view.summary = std::to_string(doc.paths.size()) + " path(s), " + std::to_string(pairs) +
+        " of them opening a pair of equal length; " + std::to_string(doc.areas.size()) + " area(s). " +
+        "The record layout is open: these are the parts found by their shape.";
+    return view;
+}
+
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 10> k_formats{
-    "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt"};
+constexpr std::array<std::string_view, 13> k_formats{
+    "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt",
+    "pos", "eve", "cam"};
 
 } // namespace
 
@@ -735,6 +874,9 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "motion-script") return read_motion_script(bytes, detail);
         if (format == "pac") return read_pac_roles(bytes, name, detail);
         if (format == "txt") return read_stage_layout(bytes, detail);
+        if (format == "pos") return read_pos(bytes, detail);
+        if (format == "eve") return read_eve(bytes, detail);
+        if (format == "cam") return read_cam(bytes, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;
