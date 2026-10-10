@@ -574,6 +574,20 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "name-list",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Slot 0 of a stage PAC: the CRLF list of the names of the slots after it (st001.pac: st001.ptx, st001.scm, st001.sch); line i names slot i + 1.",
+                "Typed only once every name it lists has been matched to the slot it names (gdspaces embedded-name evidence); a list that does not line up stays text.",
+                "No original executable read site for the list has been found; the names are evidence of what the slots are called, not of how the game finds them.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "effect-manifest",
             .parser_id = {},
             .maturity = IntegrationMaturity::recognized,
