@@ -159,6 +159,12 @@ void analyze_cam(ProjectWorkspace&, const ResourceWorkspaceSession& session, Res
     analyze_structure("cam", "cam-parts", session, report);
 }
 
+// An effect bank record: read through its structure view, which asks the
+// kind's runtime view (E / P / G / V / A) for what it holds.
+void analyze_fx_record(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure(session.resource().format, "fx-record", session, report);
+}
+
 void analyze_itm(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
     analyze_structure("itm", "itm-items", session, report);
 }
@@ -237,6 +243,15 @@ NativeReaderModule stage_cfg_sef() {
         .consumer = gdspaces::ToolTarget::binary_inspector,
         .link_format_evidence = true,
         .analyze = &analyze_sef,
+    };
+}
+
+NativeReaderModule fx_effect_record() {
+    return NativeReaderModule{
+        .parser_id = "profiles.dmc3.fx-effect-record",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_fx_record,
     };
 }
 

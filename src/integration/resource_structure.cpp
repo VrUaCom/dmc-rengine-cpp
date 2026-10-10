@@ -255,6 +255,120 @@ std::optional<StructureView> read_hits(std::span<const std::byte> bytes, std::st
 
 // ---- Effect bank (PNST manifest + records) --------------------------------
 
+// What one bank record holds, read by the view of its kind. Shared by the
+// bank's view and a record opened on its own (`fx-<kind>`).
+void add_record_rows(const fx::effect_bank::Record& r, StructureSection& s) {
+    namespace eb = fx::effect_bank;
+    switch (r.kind) {
+    case 'T': {
+        const auto dds = eb::texture_dds(r);
+        const auto parsed = codecs::dds_bcn::parse(
+            std::span<const std::byte>{reinterpret_cast<const std::byte*>(dds.data()), dds.size()});
+        if (parsed.ok()) {
+            const auto& d = parsed.document;
+            s.rows.push_back({"Texture", std::string{codecs::dds_bcn::format_name(d.format)} + ", " +
+                                             std::to_string(d.width) + "×" + std::to_string(d.height) + ", " +
+                                             std::to_string(d.mip_count) + " mip(s)"});
+        }
+        break;
+    }
+    case 'A':
+        if (const auto a = eb::sprite_animation(r)) {
+            s.rows.push_back({"Texture id", std::to_string(a->texture)});
+            s.rows.push_back({"Frames", std::to_string(a->frames.size()) + " × " +
+                                            std::to_string(a->frame_time) + " tick(s)" +
+                                            (a->loop ? ", loops from frame " + std::to_string(a->loop_frame)
+                                                     : std::string{", once"})});
+            if (!a->frames.empty()) {
+                const auto& f = a->frames.front();
+                s.rows.push_back({"First frame (x, y, w, h)", std::to_string(f.x) + ", " + std::to_string(f.y) +
+                                                                  ", " + std::to_string(f.w) + ", " +
+                                                                  std::to_string(f.h)});
+            }
+        }
+        break;
+    case 'E':
+        if (const auto e = eb::e_runtime_view(r)) {
+            s.rows.push_back({"Mode", std::to_string(e->mode)});
+            s.rows.push_back({"Texture id (T)", std::to_string(e->texture_id)});
+            s.rows.push_back({"Animation (A)", e->uses_animation ? std::to_string(e->animation_id)
+                                                                 : std::string{"none: fixed rectangle"}});
+            if (!e->uses_animation) {
+                const auto& f = e->rectangle;
+                s.rows.push_back({"Rectangle (x, y, w, h)", std::to_string(f.x) + ", " + std::to_string(f.y) +
+                                                                ", " + std::to_string(f.w) + ", " +
+                                                                std::to_string(f.h)});
+            }
+        }
+        break;
+    case 'P':
+        if (const auto p = fx::particle::parse(r.bytes)) {
+            s.rows.push_back({"Class", std::to_string(p->cls) + (p->name.empty() ? "" : " · " + p->name)});
+            s.rows.push_back({"Particles × life", std::to_string(p->count) + " × " + std::to_string(p->life) +
+                                                      " tick(s)"});
+            s.rows.push_back({"Blend", std::string{blend_name(p->blend)}});
+            s.rows.push_back({"Gravity", num(p->gravity) + (p->world_gravity ? " (world)" : " (local)")});
+            s.rows.push_back({"Spread / push", list(p->spread) + " / " + list(p->push)});
+            if (p->animation != 0xFFFFU) {
+                s.rows.push_back({"Sprite animation (A)", std::to_string(p->animation) +
+                                                              (p->random_frame ? ", one random frame" : "")});
+            }
+            if (p->half_width > 0.0F) {
+                s.rows.push_back({"Sprite half size", num(p->half_width) + " × " + num(p->half_height)});
+            }
+            s.rows.push_back({"Layers", std::to_string(p->layers.size())});
+        } else if (const auto pv = eb::p_runtime_view(r)) {
+            s.rows.push_back({"Version / subtype", std::to_string(pv->version) + " / " +
+                                                       std::to_string(pv->subtype) + " (class not ported)"});
+        }
+        break;
+    case 'G':
+        if (const auto g = fx::generator::parse(r.bytes)) {
+            static constexpr std::array<std::string_view, 4> child{"P", "E", "G", "V"};
+            static constexpr std::array<std::string_view, 3> mode{"drift", "C clip", "still"};
+            s.rows.push_back({"Motion", std::string{g->motion < mode.size() ? mode[g->motion] : "?"} +
+                                            (g->motion == 1U ? " " + std::to_string(g->clip) : std::string{})});
+            s.rows.push_back({"Spawns", std::string{g->child_kind < child.size() ? child[g->child_kind] : "?"} +
+                                            " " + std::to_string(g->child_id)});
+            s.rows.push_back({"First delay / interval", std::to_string(g->first_delay) + " / " +
+                                                            std::to_string(g->interval) + " tick(s)" +
+                                                            (g->interval_mask != 0U
+                                                                 ? " + rand & " + hex(g->interval_mask)
+                                                                 : std::string{})});
+            s.rows.push_back({"Life", g->endless ? std::string{"endless"} : std::to_string(g->life) + " tick(s)"});
+            s.rows.push_back({"Speed / deceleration", num(g->speed) + " / " + num(g->deceleration)});
+            s.rows.push_back({"Scale", num(g->scale_start) + " → " + num(g->scale_end)});
+            s.rows.push_back({"Follows parent", std::string{yes_no(g->follow_parent)}});
+        }
+        break;
+    case 'C':
+        if (const auto c = fx::generator::parse_clip(r.bytes)) {
+            s.rows.push_back({"Clip points", std::to_string(c->points.size())});
+        }
+        break;
+    case 'V':
+        if (const auto v = eb::v_runtime_view(r)) {
+            static constexpr std::array<std::string_view, 4> child{"P", "E", "G", "V"};
+            std::string entries;
+            for (const auto& e : v->entries) {
+                entries += (entries.empty() ? "" : ", ") +
+                    std::string{e.dispatch < child.size() ? child[e.dispatch] : "?"} + " " + std::to_string(e.id);
+            }
+            s.rows.push_back({"Children", std::to_string(v->entries.size()) + ": " + entries});
+        }
+        break;
+    case 'M':
+        s.rows.push_back({"Model", r.bytes.size() >= 4U
+                                       ? std::string(reinterpret_cast<const char*>(r.bytes.data()), 3U) +
+                                             " document + " + std::to_string(r.companion.size()) +
+                                             "-byte companion"
+                                       : std::string{"empty"}});
+        break;
+    default:
+        break;
+    }
+}
+
 std::optional<StructureView> read_effect_bank(std::span<const std::byte> bytes, std::string& detail) {
     namespace eb = fx::effect_bank;
     const auto data = u8(bytes);
@@ -285,119 +399,43 @@ std::optional<StructureView> read_effect_bank(std::span<const std::byte> bytes, 
     for (const auto& r : bank->records) {
         StructureSection s{std::string(1, r.kind) + " " + std::to_string(r.id) + " · slot " + std::to_string(r.slot),
                            {{"Bytes", std::to_string(r.bytes.size())}}};
-        switch (r.kind) {
-        case 'T': {
-            const auto dds = eb::texture_dds(r);
-            const auto parsed = codecs::dds_bcn::parse(
-                std::span<const std::byte>{reinterpret_cast<const std::byte*>(dds.data()), dds.size()});
-            if (parsed.ok()) {
-                const auto& d = parsed.document;
-                s.rows.push_back({"Texture", std::string{codecs::dds_bcn::format_name(d.format)} + ", " +
-                                                 std::to_string(d.width) + "×" + std::to_string(d.height) + ", " +
-                                                 std::to_string(d.mip_count) + " mip(s)"});
-            }
-            break;
-        }
-        case 'A':
-            if (const auto a = eb::sprite_animation(r)) {
-                s.rows.push_back({"Texture id", std::to_string(a->texture)});
-                s.rows.push_back({"Frames", std::to_string(a->frames.size()) + " × " +
-                                                std::to_string(a->frame_time) + " tick(s)" +
-                                                (a->loop ? ", loops from frame " + std::to_string(a->loop_frame)
-                                                         : std::string{", once"})});
-                if (!a->frames.empty()) {
-                    const auto& f = a->frames.front();
-                    s.rows.push_back({"First frame (x, y, w, h)", std::to_string(f.x) + ", " + std::to_string(f.y) +
-                                                                      ", " + std::to_string(f.w) + ", " +
-                                                                      std::to_string(f.h)});
-                }
-            }
-            break;
-        case 'E':
-            if (const auto e = eb::e_runtime_view(r)) {
-                s.rows.push_back({"Mode", std::to_string(e->mode)});
-                s.rows.push_back({"Texture id (T)", std::to_string(e->texture_id)});
-                s.rows.push_back({"Animation (A)", e->uses_animation ? std::to_string(e->animation_id)
-                                                                     : std::string{"none: fixed rectangle"}});
-                if (!e->uses_animation) {
-                    const auto& f = e->rectangle;
-                    s.rows.push_back({"Rectangle (x, y, w, h)", std::to_string(f.x) + ", " + std::to_string(f.y) +
-                                                                    ", " + std::to_string(f.w) + ", " +
-                                                                    std::to_string(f.h)});
-                }
-            }
-            break;
-        case 'P':
-            if (const auto p = fx::particle::parse(r.bytes)) {
-                s.rows.push_back({"Class", std::to_string(p->cls) + (p->name.empty() ? "" : " · " + p->name)});
-                s.rows.push_back({"Particles × life", std::to_string(p->count) + " × " + std::to_string(p->life) +
-                                                          " tick(s)"});
-                s.rows.push_back({"Blend", std::string{blend_name(p->blend)}});
-                s.rows.push_back({"Gravity", num(p->gravity) + (p->world_gravity ? " (world)" : " (local)")});
-                s.rows.push_back({"Spread / push", list(p->spread) + " / " + list(p->push)});
-                if (p->animation != 0xFFFFU) {
-                    s.rows.push_back({"Sprite animation (A)", std::to_string(p->animation) +
-                                                                  (p->random_frame ? ", one random frame" : "")});
-                }
-                if (p->half_width > 0.0F) {
-                    s.rows.push_back({"Sprite half size", num(p->half_width) + " × " + num(p->half_height)});
-                }
-                s.rows.push_back({"Layers", std::to_string(p->layers.size())});
-            } else if (const auto pv = eb::p_runtime_view(r)) {
-                s.rows.push_back({"Version / subtype", std::to_string(pv->version) + " / " +
-                                                           std::to_string(pv->subtype) + " (class not ported)"});
-            }
-            break;
-        case 'G':
-            if (const auto g = fx::generator::parse(r.bytes)) {
-                static constexpr std::array<std::string_view, 4> child{"P", "E", "G", "V"};
-                static constexpr std::array<std::string_view, 3> mode{"drift", "C clip", "still"};
-                s.rows.push_back({"Motion", std::string{g->motion < mode.size() ? mode[g->motion] : "?"} +
-                                                (g->motion == 1U ? " " + std::to_string(g->clip) : std::string{})});
-                s.rows.push_back({"Spawns", std::string{g->child_kind < child.size() ? child[g->child_kind] : "?"} +
-                                                " " + std::to_string(g->child_id)});
-                s.rows.push_back({"First delay / interval", std::to_string(g->first_delay) + " / " +
-                                                                std::to_string(g->interval) + " tick(s)" +
-                                                                (g->interval_mask != 0U
-                                                                     ? " + rand & " + hex(g->interval_mask)
-                                                                     : std::string{})});
-                s.rows.push_back({"Life", g->endless ? std::string{"endless"} : std::to_string(g->life) + " tick(s)"});
-                s.rows.push_back({"Speed / deceleration", num(g->speed) + " / " + num(g->deceleration)});
-                s.rows.push_back({"Scale", num(g->scale_start) + " → " + num(g->scale_end)});
-                s.rows.push_back({"Follows parent", std::string{yes_no(g->follow_parent)}});
-            }
-            break;
-        case 'C':
-            if (const auto c = fx::generator::parse_clip(r.bytes)) {
-                s.rows.push_back({"Clip points", std::to_string(c->points.size())});
-            }
-            break;
-        case 'V':
-            if (const auto v = eb::v_runtime_view(r)) {
-                static constexpr std::array<std::string_view, 4> child{"P", "E", "G", "V"};
-                std::string entries;
-                for (const auto& e : v->entries) {
-                    entries += (entries.empty() ? "" : ", ") +
-                        std::string{e.dispatch < child.size() ? child[e.dispatch] : "?"} + " " + std::to_string(e.id);
-                }
-                s.rows.push_back({"Children", std::to_string(v->entries.size()) + ": " + entries});
-            }
-            break;
-        case 'M':
-            s.rows.push_back({"Model", r.bytes.size() >= 4U
-                                           ? std::string(reinterpret_cast<const char*>(r.bytes.data()), 3U) +
-                                                 " document + " + std::to_string(r.companion.size()) +
-                                                 "-byte companion"
-                                           : std::string{"empty"}});
-            break;
-        default:
-            break;
-        }
+        add_record_rows(r, s);
         add_section(view, std::move(s));
     }
     std::string kinds;
     for (const auto& [kind, count] : counts) kinds += (kinds.empty() ? "" : ", ") + std::to_string(count) + " " + kind;
     view.summary = std::to_string(bank->records.size()) + " effect record(s): " + kinds + ".";
+    return view;
+}
+
+// One record of an effect bank, opened on its own. Its kind is not in its
+// bytes — the bank's manifest letter is what the loader dispatches on — so it
+// comes from the format the bank gave it (`fx-e`, `fx-p`, …).
+std::optional<StructureView> read_effect_record(std::span<const std::byte> bytes, std::string_view format,
+                                                std::string_view name, std::string& detail) {
+    namespace eb = fx::effect_bank;
+    if (format.size() != 4U || !format.starts_with("fx-")) {
+        detail = "Not an effect record format.";
+        return std::nullopt;
+    }
+    const char kind = static_cast<char>(std::toupper(static_cast<unsigned char>(format[3])));
+    const auto data = u8(bytes);
+    eb::Record record{.kind = kind, .id = 0U, .slot = 0U, .bytes = data, .companion = {}};
+    StructureView view;
+    view.format = std::string{format};
+    view.reader = "profiles::dmc3::fx::effect_bank, the " + std::string(1, kind) +
+        " view (registrar " + hex(eb::registrar(kind)) + ")";
+    StructureSection section{name.empty() ? std::string(1, kind) + " record" : std::string{name},
+                             {{"Kind", std::string{eb::kind_name(kind)}}, {"Bytes", std::to_string(bytes.size())}}};
+    if (kind == 'M' && bytes.size() == 16U) {
+        section.rows.push_back({"Role", "the 16-byte companion the M registrar takes with the model before it"});
+    } else {
+        add_record_rows(record, section);
+    }
+    const bool decoded = section.rows.size() > 2U;
+    add_section(view, std::move(section));
+    view.summary = std::string{eb::kind_name(kind)} + ", named by the bank's manifest" +
+        (decoded ? "." : "; this kind's fields are not decoded yet.");
     return view;
 }
 
@@ -981,9 +1019,10 @@ std::optional<StructureView> read_sef(std::span<const std::byte> bytes, std::str
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 17> k_formats{
+constexpr std::array<std::string_view, 25> k_formats{
     "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt",
-    "pos", "eve", "cam", "itm", "ste", "est", "sef"};
+    "pos", "eve", "cam", "itm", "ste", "est", "sef",
+    "fx-a", "fx-c", "fx-e", "fx-g", "fx-m", "fx-p", "fx-t", "fx-v"};
 
 } // namespace
 
@@ -1012,6 +1051,7 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "ste") return read_ste(bytes, detail);
         if (format == "est") return read_est(bytes, detail);
         if (format == "sef") return read_sef(bytes, detail);
+        if (format.starts_with("fx-")) return read_effect_record(bytes, format, name, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;

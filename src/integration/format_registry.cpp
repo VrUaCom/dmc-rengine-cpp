@@ -1,5 +1,9 @@
 #include "dmc_rengine/integration/format_registry.hpp"
 
+#include <array>
+#include <string>
+#include <string_view>
+
 #include <algorithm>
 #include <cctype>
 #include <string>
@@ -703,6 +707,43 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
     };
+
+    // Effect bank records, one format per manifest kind. A record carries no
+    // tag of its own: the bank loader port (0x1402C04C0) hands the next record
+    // slot to the registrar of each `<kind> <id>` pair, so the enclosing bank
+    // is what types the slot (gdspaces::effect_pack_record_kinds).
+    struct EffectRecordKind final {
+        std::string_view format;
+        std::string_view view;
+    };
+    constexpr std::array<EffectRecordKind, 8> k_effect_record_kinds{{
+        {"fx-a", "A: sprite animation — texture id, frame time, loop and frames."},
+        {"fx-c", "C: clip points a G record can move along."},
+        {"fx-e", "E: sprite emitter — mode, texture id, animation or fixed rectangle."},
+        {"fx-g", "G: generator — spawn schedule, child kind and id, life, speed and scale."},
+        {"fx-m", "M: a model record with its 16-byte companion; the model itself is read as MOD/EFM where its bytes say so."},
+        {"fx-p", "P: particle class, count and life, blend, gravity, spread and layers."},
+        {"fx-t", "T: 112-byte descriptor and a DDS texture."},
+        {"fx-v", "V: composite — the P/E/G/V children it dispatches."},
+    }};
+    for (const auto& kind : k_effect_record_kinds) {
+        formats_.push_back(FormatIntegrationDescriptor{
+            .format = std::string{kind.format},
+            .parser_id = "profiles.dmc3.fx-effect-record",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = true,
+            .stage_category = gdspaces::StageResourceCategory::effects,
+            .evidence_claim_ids = {},
+            .limitations = {
+                std::string{kind.view},
+                "Typed by the enclosing bank's manifest letter, as the bank loader port dispatches it; the record's "
+                "own bytes carry no tag, so a record taken out of its bank has no kind.",
+                "Field names are those the runtime views (E / P / G / V / A) recovered; fields they do not read are "
+                "left as bytes.",
+            },
+        });
+    }
 }
 
 const FormatIntegrationDescriptor* FormatIntegrationRegistry::find(

@@ -31,5 +31,6 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule stage_cfg_ste();
 [[nodiscard]] NativeReaderModule stage_cfg_est();
 [[nodiscard]] NativeReaderModule stage_cfg_sef();
+[[nodiscard]] NativeReaderModule fx_effect_record();
 
 } // namespace dmc::rengine::integration::native_reader_modules

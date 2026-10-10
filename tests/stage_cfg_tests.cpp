@@ -286,6 +286,14 @@ int main() {
         assert(view.has_value() && !view->sections.empty() && !view->summary.empty());
         assert(dmc::rengine::integration::has_structure(format));
     }
+    // An effect record opened on its own: the view answers whatever the bytes.
+    {
+        std::string detail;
+        const std::vector<std::byte> record(96U, std::byte{0});
+        const auto view = dmc::rengine::integration::read_structure("fx-e", record, "E 7", detail);
+        assert(view.has_value() && view->format == "fx-e" && !view->summary.empty());
+        assert(!dmc::rengine::integration::read_structure("fx-", record, "", detail).has_value());
+    }
     std::cout << "stage_cfg_tests: POS, EVE, CAM, ITM, STE, EST and SEF read and refuse as their layouts say\n";
     return 0;
 }
