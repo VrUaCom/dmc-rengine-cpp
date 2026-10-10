@@ -10,6 +10,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
+#include "dmc_rengine/formats/mot/parser.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 
 #include <algorithm>
@@ -65,6 +66,14 @@ namespace {
     // canonical structural parser so classification and materialization cannot
     // disagree about whether the supplied byte image is a relative-slot PNST.
     return formats::PnstParser::parse(bytes).ok();
+}
+
+[[nodiscard]] bool is_motion(std::span<const std::byte> bytes) noexcept {
+    try {
+        return formats::mot::Parser::parse(bytes).ok();
+    } catch (...) {
+        return false;
+    }
 }
 
 } // namespace
@@ -143,7 +152,11 @@ ResourceClassification ResourceClassifier::classify(
         // weakest, so anything the others can claim should be claimed there.
         result.format = "so-link";
         result.structural_confirmed = true;
-    } else if (formats::MotParser::structurally_valid(bytes)) {
+    } else if (is_motion(bytes)) {
+        // (The canonical parser's chain check, not the legacy summary's: that
+        // one also wanted every track in compression 2 or 3, which is what it
+        // can decode, not what a motion is — em034's motion bank opens with 69
+        // tracks in compression 1.)
         // A motion carries `MOT` at +4, but that tag is compared nowhere in
         // the executable: the runtime types a motion by its name, through the
         // second resource registry (AnimationTypeContract), and never looks at

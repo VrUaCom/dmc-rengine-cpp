@@ -1,4 +1,5 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
+#include "dmc_rengine/profiles/dmc3/player_param_blocks.hpp"
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
@@ -244,6 +245,24 @@ ContainerExpansion ContainerExpander::expand(
                 .byte_provenance = std::move(provenance),
             },
         });
+    }
+
+    // A player PAC's parameter blocks carry no tag; the slot they sit in is
+    // what names them, checked against what the bytes read as.
+    {
+        auto stem = std::string_view{expansion.parent.id.logical_path};
+        if (const auto slash = stem.find_last_of("/\\"); slash != std::string_view::npos) stem.remove_prefix(slash + 1U);
+        if (const auto dot = stem.find('.'); dot != std::string_view::npos) stem = stem.substr(0U, dot);
+        if (profiles::dmc3::player_params::is_player_pac(stem)) {
+            for (auto& child : expansion.children) {
+                if (!child.entry.populated || child.payload.resource.format != "unknown") continue;
+                if (const auto format = profiles::dmc3::player_params::slot_format(
+                        stem, child.entry.slot_index,
+                        std::span<const std::byte>{child.payload.bytes.data(), child.payload.bytes.size()})) {
+                    child.payload.resource.format = std::string{*format};
+                }
+            }
+        }
     }
 
     return expansion;

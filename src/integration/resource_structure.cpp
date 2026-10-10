@@ -9,6 +9,7 @@
 #include "dmc_rengine/profiles/dmc3/em000_family_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/environment_collision.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/effect_bank.hpp"
+#include "dmc_rengine/profiles/dmc3/player_param_blocks.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/enemy_events.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/generator.hpp"
 #include "dmc_rengine/profiles/dmc3/fx/particle.hpp"
@@ -1016,13 +1017,79 @@ std::optional<StructureView> read_sef(std::span<const std::byte> bytes, std::str
     return view;
 }
 
+// ---- Player parameter blocks (pl0NN slots 9, 10, 11) ------------------------
+
+[[nodiscard]] float f32_at(std::span<const std::byte> bytes, std::size_t at) noexcept {
+    float value = 0.0F;
+    std::memcpy(&value, bytes.data() + at, sizeof value);
+    return value;
+}
+
+void add_float_grid(StructureView& view, std::span<const std::byte> bytes, std::size_t from) {
+    StructureSection grid{"Values by offset", {}};
+    for (std::size_t row = from; row + 4U <= bytes.size(); row += 16U) {
+        std::string values;
+        for (std::size_t at = row; at < row + 16U && at + 4U <= bytes.size(); at += 4U) {
+            if (!values.empty()) values += "   ";
+            values += num(f32_at(bytes, at));
+        }
+        grid.rows.push_back({hex(row), values});
+    }
+    add_section(view, std::move(grid));
+}
+
+std::optional<StructureView> read_player_params(std::span<const std::byte> bytes, std::string_view format,
+                                                std::string& detail) {
+    namespace pp = dmc3::player_params;
+    const bool pairs_block = format == "player-pairs";
+    const auto pairs = pairs_block ? pp::leading_pairs(bytes) : 0U;
+    if (bytes.empty() || bytes.size() % 4U != 0U || (pairs_block && pairs == 0U)) {
+        detail = "Not a player parameter block: whole 32-bit values" +
+            std::string{pairs_block ? ", opening with u16 pairs." : "."};
+        return std::nullopt;
+    }
+    StructureView view;
+    view.format = std::string{format};
+    view.reader = "profiles::dmc3::player_params (CPlDante init 0x140212C5C keeps slots 9/10/11)";
+    const auto reads = pp::known_reads(bytes.size());
+    StructureSection overview{"Block", {{"Bytes", std::to_string(bytes.size())},
+                                        {"Values", std::to_string((bytes.size() - pairs * 4U) / 4U) + " floats"}}};
+    if (pairs_block) overview.rows.push_back({"Leading pairs", std::to_string(pairs) + " × (u16, u16)"});
+    add_section(view, std::move(overview));
+    if (!reads.empty()) {
+        StructureSection known{"Read by the executable", {}};
+        for (const auto& read : reads) {
+            known.rows.push_back({"+" + hex(read.offset) + " = " + num(f32_at(bytes, read.offset)),
+                                  hex(read.address) + ": " + std::string{read.note}});
+        }
+        add_section(view, std::move(known));
+    }
+    if (pairs_block) {
+        StructureSection list{"Pairs", {}};
+        for (std::size_t index = 0U; index < pairs; ++index) {
+            std::uint16_t first = 0U, second = 0U;
+            std::memcpy(&first, bytes.data() + index * 4U, 2U);
+            std::memcpy(&second, bytes.data() + index * 4U + 2U, 2U);
+            list.rows.push_back({std::to_string(index), std::to_string(first) + ", " + std::to_string(second)});
+        }
+        add_section(view, std::move(list));
+    }
+    add_float_grid(view, bytes, pairs * 4U);
+    view.summary = pairs_block
+        ? std::to_string(pairs) + " u16 pairs, then " + std::to_string((bytes.size() - pairs * 4U) / 4U) +
+              " floats. No reader of this block has been found yet."
+        : std::to_string(bytes.size() / 4U) + " float parameters, " + std::to_string(reads.size()) +
+              " of them with a known read site; the rest are listed by offset.";
+    return view;
+}
+
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 25> k_formats{
+constexpr std::array<std::string_view, 27> k_formats{
     "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt",
     "pos", "eve", "cam", "itm", "ste", "est", "sef",
-    "fx-a", "fx-c", "fx-e", "fx-g", "fx-m", "fx-p", "fx-t", "fx-v"};
+    "fx-a", "fx-c", "fx-e", "fx-g", "fx-m", "fx-p", "fx-t", "fx-v", "player-params", "player-pairs"};
 
 } // namespace
 
@@ -1052,6 +1119,7 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "est") return read_est(bytes, detail);
         if (format == "sef") return read_sef(bytes, detail);
         if (format.starts_with("fx-")) return read_effect_record(bytes, format, name, detail);
+        if (format == "player-params" || format == "player-pairs") return read_player_params(bytes, format, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;

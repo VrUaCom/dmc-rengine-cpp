@@ -165,6 +165,11 @@ void analyze_fx_record(ProjectWorkspace&, const ResourceWorkspaceSession& sessio
     analyze_structure(session.resource().format, "fx-record", session, report);
 }
 
+void analyze_player_params(ProjectWorkspace&, const ResourceWorkspaceSession& session,
+                           ResourceAnalysisReport& report) {
+    analyze_structure(session.resource().format, "player-params", session, report);
+}
+
 void analyze_itm(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
     analyze_structure("itm", "itm-items", session, report);
 }
@@ -252,6 +257,15 @@ NativeReaderModule fx_effect_record() {
         .consumer = gdspaces::ToolTarget::binary_inspector,
         .link_format_evidence = true,
         .analyze = &analyze_fx_record,
+    };
+}
+
+NativeReaderModule player_param_block() {
+    return NativeReaderModule{
+        .parser_id = "profiles.dmc3.player-param-block",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_player_params,
     };
 }
 

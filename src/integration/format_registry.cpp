@@ -726,6 +726,35 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         {"fx-t", "T: 112-byte descriptor and a DDS texture."},
         {"fx-v", "V: composite — the P/E/G/V children it dispatches."},
     }};
+    // A player PAC's parameter blocks (profiles::dmc3::player_params).
+    formats_.push_back(FormatIntegrationDescriptor{
+        .format = "player-params",
+        .parser_id = "profiles.dmc3.player-param-block",
+        .maturity = IntegrationMaturity::structural,
+        .write_policy = ResourceWritePolicy::read_only,
+        .binary_adapter = true,
+        .stage_category = std::nullopt,
+        .evidence_claim_ids = {},
+        .limitations = {
+            "Slots 9 and 11 of a player PAC: blocks of floats CPlDante init (0x140212C5C) keeps at player+0x3DE8 and +0x3DF8.",
+            "Typed by the slot it sits in and checked to be whole finite floats; the block carries no tag.",
+            "Read sites are known for slot 9 +0x12C (0x1401DFE96) and slot 11 +0x2F4..+0x2FC (0x1401CA0FD); the other values are listed by offset, unnamed.",
+        },
+    });
+    formats_.push_back(FormatIntegrationDescriptor{
+        .format = "player-pairs",
+        .parser_id = "profiles.dmc3.player-param-block",
+        .maturity = IntegrationMaturity::structural,
+        .write_policy = ResourceWritePolicy::read_only,
+        .binary_adapter = true,
+        .stage_category = std::nullopt,
+        .evidence_claim_ids = {},
+        .limitations = {
+            "Slot 10 of a player PAC, kept at player+0x3DF0: u16 pairs, then floats.",
+            "No reader of this block has been found in the executable; the split between pairs and floats is read from the values.",
+        },
+    });
+
     for (const auto& kind : k_effect_record_kinds) {
         formats_.push_back(FormatIntegrationDescriptor{
             .format = std::string{kind.format},

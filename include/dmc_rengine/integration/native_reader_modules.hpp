@@ -32,5 +32,6 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule stage_cfg_est();
 [[nodiscard]] NativeReaderModule stage_cfg_sef();
 [[nodiscard]] NativeReaderModule fx_effect_record();
+[[nodiscard]] NativeReaderModule player_param_block();
 
 } // namespace dmc::rengine::integration::native_reader_modules
