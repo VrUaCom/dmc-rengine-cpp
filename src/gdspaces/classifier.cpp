@@ -10,6 +10,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
+#include "dmc_rengine/formats/fon.hpp"
 #include "dmc_rengine/formats/mot/parser.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 
@@ -164,6 +165,12 @@ ResourceClassification ResourceClassifier::classify(
         // an unpacked stage folder does — can only be recognized structurally,
         // by walking its own track chain to the end of the payload.
         result.format = "mot";
+        result.structural_confirmed = true;
+    } else if (formats::fon::looks_like_fon(bytes)) {
+        // A bitmap font has no tag either. What identifies one is the layout
+        // closing exactly: pages numbered 1..P, glyph numbers 1..G each used
+        // once, and the rest of the file whole glyphs of one size.
+        result.format = "fon";
         result.structural_confirmed = true;
     } else {
         // Remaining recognition is driven by the recovered runtime contract

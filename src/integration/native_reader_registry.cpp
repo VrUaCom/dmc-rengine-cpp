@@ -37,6 +37,7 @@ NativeReaderModuleRegistry::NativeReaderModuleRegistry() {
     static_cast<void>(register_module(native_reader_modules::stage_cfg_sef()));
     static_cast<void>(register_module(native_reader_modules::fx_effect_record()));
     static_cast<void>(register_module(native_reader_modules::player_param_block()));
+    static_cast<void>(register_module(native_reader_modules::fon_reader()));
 }
 
 bool NativeReaderModuleRegistry::register_module(NativeReaderModule module) {

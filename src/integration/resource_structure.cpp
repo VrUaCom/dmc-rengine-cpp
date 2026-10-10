@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/codecs/dds_bcn.hpp"
 #include "dmc_rengine/formats/evt.hpp"
+#include "dmc_rengine/formats/fon.hpp"
 #include "dmc_rengine/formats/stage_cfg.hpp"
 #include "dmc_rengine/profiles/dmc3/attachment_tables.hpp"
 #include "dmc_rengine/profiles/dmc3/cloth_chain.hpp"
@@ -1083,13 +1084,94 @@ std::optional<StructureView> read_player_params(std::span<const std::byte> bytes
     return view;
 }
 
+// ---- FON: the game's bitmap fonts ---------------------------------------------
+
+[[nodiscard]] std::string_view unicode_block(std::uint8_t high) noexcept {
+    if (high == 0x00U) return "Basic Latin and Latin-1";
+    if (high == 0x01U) return "Latin Extended";
+    if (high == 0x03U) return "Greek";
+    if (high == 0x04U) return "Cyrillic";
+    if (high == 0x20U) return "General Punctuation";
+    if (high == 0x21U) return "Letterlike Symbols and Arrows";
+    if (high == 0x25U) return "Box Drawing and Geometric Shapes";
+    if (high == 0x26U) return "Miscellaneous Symbols";
+    if (high == 0x30U) return "CJK Symbols, Hiragana and Katakana";
+    if (high >= 0x4EU && high <= 0x9FU) return "CJK Unified Ideographs";
+    if (high >= 0xACU && high <= 0xD7U) return "Hangul Syllables";
+    if (high == 0xFFU) return "Halfwidth and Fullwidth Forms";
+    return "Other";
+}
+
+std::optional<StructureView> read_font(std::span<const std::byte> bytes, std::string& detail) {
+    namespace fon = formats::fon;
+    const auto result = fon::read(bytes);
+    if (!result.ok()) {
+        detail = result.diagnostics.empty() ? "Not a FON font." : result.diagnostics.front().message;
+        return std::nullopt;
+    }
+    const auto& doc = *result.document;
+    StructureView view;
+    view.format = "fon";
+    view.reader = "formats::fon (layout read from the four retail fonts)";
+    add_section(view, {"Font",
+                       {{"Glyphs", std::to_string(doc.glyph_count)},
+                        {"Cell", std::to_string(doc.width) + " × " + std::to_string(doc.height) + " px, 1 bit"},
+                        {"Glyph bytes", std::to_string(doc.glyph_bytes) + " (" + std::to_string(doc.row_bytes) +
+                                            " per row)"},
+                        {"Pages", std::to_string(doc.pages) + " of 256 characters"},
+                        {"Glyphs start at", hex(doc.glyph_offset)}}});
+    // Characters per Unicode block, in the order the pages cover them.
+    std::map<std::string_view, std::pair<std::uint32_t, std::string>> blocks;
+    std::vector<std::string_view> order;
+    for (const auto& character : doc.characters) {
+        const auto block = unicode_block(static_cast<std::uint8_t>(character.code >> 8U));
+        auto [entry, inserted] = blocks.try_emplace(block, 0U, std::string{});
+        if (inserted) order.push_back(block);
+        ++entry->second.first;
+    }
+    StructureSection coverage{"Characters by block", {}};
+    for (const auto block : order) {
+        coverage.rows.push_back({std::string{block}, std::to_string(blocks[block].first)});
+    }
+    add_section(view, std::move(coverage));
+    StructureSection ranges{"Pages", {}};
+    for (const auto high : doc.blocks) {
+        std::uint32_t mapped = 0U;
+        for (const auto& character : doc.characters) mapped += (character.code >> 8U) == high ? 1U : 0U;
+        char label[16];
+        std::snprintf(label, sizeof label, "U+%02X00..%02XFF", high, high);
+        ranges.rows.push_back({label, std::to_string(mapped) + " glyph(s)"});
+        if (ranges.rows.size() >= 24U && doc.blocks.size() > 25U) {
+            ranges.rows.push_back({"…", std::to_string(doc.blocks.size() - ranges.rows.size()) + " more page(s)"});
+            break;
+        }
+    }
+    add_section(view, std::move(ranges));
+    // The first glyphs, their ink measured (the advance is not stored).
+    StructureSection sample{"First characters", {}};
+    for (std::size_t index = 0U; index < doc.characters.size() && sample.rows.size() < 16U; ++index) {
+        const auto& character = doc.characters[index];
+        char code[12];
+        std::snprintf(code, sizeof code, "U+%04X", character.code);
+        const auto ink = fon::ink_span(doc, bytes, character.number);
+        sample.rows.push_back({code, "glyph " + std::to_string(character.number) + ", ink " +
+                                         (ink ? std::to_string(ink->first) + ".." + std::to_string(ink->last)
+                                              : std::string{"none"})});
+    }
+    add_section(view, std::move(sample));
+    view.summary = std::to_string(doc.glyph_count) + " glyphs of " + std::to_string(doc.width) + " × " +
+        std::to_string(doc.height) + " px over " + std::to_string(doc.pages) +
+        " page(s) of characters; the image shows them in code order.";
+    return view;
+}
+
 // "so-volume" is the classifier's older name for the same 80-byte shape table
 // when every record is a sphere or a segment (em000 slot 40); a table with a
 // box record is typed "collision-shapes".
-constexpr std::array<std::string_view, 27> k_formats{
+constexpr std::array<std::string_view, 28> k_formats{
     "clt", "tsc", "evt", "hits", "pnst", "collision-shapes", "so-volume", "motion-script", "pac", "txt",
     "pos", "eve", "cam", "itm", "ste", "est", "sef",
-    "fx-a", "fx-c", "fx-e", "fx-g", "fx-m", "fx-p", "fx-t", "fx-v", "player-params", "player-pairs"};
+    "fx-a", "fx-c", "fx-e", "fx-g", "fx-m", "fx-p", "fx-t", "fx-v", "player-params", "player-pairs", "fon"};
 
 } // namespace
 
@@ -1120,6 +1202,7 @@ std::optional<StructureView> read_structure(std::string_view format, std::span<c
         if (format == "sef") return read_sef(bytes, detail);
         if (format.starts_with("fx-")) return read_effect_record(bytes, format, name, detail);
         if (format == "player-params" || format == "player-pairs") return read_player_params(bytes, format, detail);
+        if (format == "fon") return read_font(bytes, detail);
     } catch (const std::exception& exception) {
         detail = exception.what();
         return std::nullopt;

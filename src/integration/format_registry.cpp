@@ -645,15 +645,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "fon",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.fon-reader",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
             .limitations = {
                 "Observed in the retail dmc3-0.nbz central-directory surface bound by archive SHA-256 2c2302ce...fd13df; see docs/reverse/dmc3-nbz-archive-key-census-2026-09-03.md.",
-                "Recognized by path extension only; font structure is unreversed.",
+                "Read from the four retail fonts with every byte accounted for: a 256-byte table of pages by UTF-16 high byte, pages of 256 u16 glyph numbers, then equal-size 1-bit glyphs, most significant bit first.",
+                "The cell size is not stored; it is the narrowest whole-byte row at least as wide as the glyph is tall (32 x 28 for euro28, 24 x 20 for the 20-pixel fonts), which matches each file's name.",
+                "Advance widths, baseline and the loader that draws the glyphs are not recovered; the ink span of each glyph is measured, not read.",
             },
         },
         FormatIntegrationDescriptor{

@@ -170,6 +170,10 @@ void analyze_player_params(ProjectWorkspace&, const ResourceWorkspaceSession& se
     analyze_structure(session.resource().format, "player-params", session, report);
 }
 
+void analyze_fon(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
+    analyze_structure("fon", "fon-glyphs", session, report);
+}
+
 void analyze_itm(ProjectWorkspace&, const ResourceWorkspaceSession& session, ResourceAnalysisReport& report) {
     analyze_structure("itm", "itm-items", session, report);
 }
@@ -266,6 +270,15 @@ NativeReaderModule player_param_block() {
         .consumer = gdspaces::ToolTarget::binary_inspector,
         .link_format_evidence = true,
         .analyze = &analyze_player_params,
+    };
+}
+
+NativeReaderModule fon_reader() {
+    return NativeReaderModule{
+        .parser_id = "formats.fon-reader",
+        .consumer = gdspaces::ToolTarget::binary_inspector,
+        .link_format_evidence = true,
+        .analyze = &analyze_fon,
     };
 }
 

@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 29U);
+    assert(readers.size() == 30U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
@@ -57,7 +57,8 @@ int main() {
              "formats.stage-cfg-est-reader",
              "formats.stage-cfg-sef-reader",
              "profiles.dmc3.fx-effect-record",
-             "profiles.dmc3.player-param-block"}) {
+             "profiles.dmc3.player-param-block",
+             "formats.fon-reader"}) {
         const auto* module = readers.find(parser_id);
         assert(module != nullptr);
         assert(module->valid());
