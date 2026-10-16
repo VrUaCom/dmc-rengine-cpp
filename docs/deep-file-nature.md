@@ -1,4 +1,4 @@
-# Deep per-file nature reverse
+﻿# Deep per-file nature reverse
 
 The nature census visits **79,592/79,592 files** in `Extracted - copia`, hashes every payload and records the first 64 bytes, entropy, printable ratio, strings and content-derived family in `evidence/deep_file_nature.jsonl`. The compact aggregate is `evidence/deep_file_nature.json`.
 
@@ -41,10 +41,17 @@ The nature census visits **79,592/79,592 files** in `Extracted - copia`, hashes 
 
 - `.ukn`: 9,874 total. Known tags identify HITS 281, DCA 189, ITM 189, STE 189, EST 112, TSC 38, MOT 9, SO-volume 21 and VAG 249. The remaining 8,607 are dominated by exact record-aligned sizes: 544 bytes (3,466), 368 (1,550), 336 (1,250), 16 (566), 0 (316), 528 (309), 96 (223) and 48 (195). These are grouped in the JSONL by prefix, size and family for the next parser pass.
 - `.bd`: 900 files are exactly 96 bytes with zero prefix; one `snd_sys.bd` is 374,544 bytes and begins `VAGp`, so the suffix covers at least a fixed effect/behavior record and a VAG sound bank.
-- `.so`: all 430 are record-aligned; Native Reader recognizes 3 SO-graph and 21 SO-link payloads, while 406 remain untyped by the current registry. The common 368-byte size equals 23?16-byte records and the existing SO modules are the authority for the three recognized subfamilies.
-- `.ff`: 11 payloads are 896 bytes (56?16) and begin with float-looking data (`ff&A`), consistent with a fixed vector table; no magic or writer is claimed.
+- `.so`: all 430 are record-aligned; Native Reader recognizes 3 SO-graph and 21 SO-link payloads, while 406 remain untyped by the current registry. The common 368-byte size equals 23x16-byte records and the existing SO modules are the authority for the three recognized subfamilies.
+- `.ff`: 11 payloads are 896 bytes (56x16) and begin with float-looking data (`ff&A`), consistent with a fixed vector table; no magic or writer is claimed.
 - `.tsb`: all 33 begin `dbsT` and vary by table length; this is a stable sound-table signature. `.bin` contains 22 `EVT\0` EventTbl records, one `SPUM` map and one zero-filled `lei20_4c.bin`.
 - `.tm2`: six zero-prefixed console texture payloads; the EXE contains `.tm2` literals, but no structural reader is registered. `.ptx` has two 12,288-byte bundles accepted by the PTX reader despite no ASCII magic.
+
+## EXE-confirmed routes
+
+- `FUN_140032910` compares `VAGp`, derives chunk lengths, aligns the stream and calls `FMOD_System_CreateSound`; this confirms the VAG nature of `snd_sys.bd` and the VAG-tagged `.ukn` rows.
+- `FUN_140339d80` accepts `SPUMAPDT`, builds sixteen 0x5020-based offsets and enforces a 0x200000 bound; `FUN_140339cb0` recomputes those entries. `SpuMap`/`SPUMAP`/`snd_sys`/`EventTbl` have EXE string references.
+- `.hid` is selected by the recovered animation registry. STE string hits are Steam API interface names, not a DMC3 STE parser.
+- The bounded token census is in `evidence/dmc3_exe_opaque_format_refs.json`; decompilation is in `evidence/dmc3_exe_audio_system_decomp.json`.
 
 ## Limits
 
@@ -57,4 +64,6 @@ Evidence:
 - `evidence/scm_structural_detail.json`
 - `evidence/container_structural_detail.json`
 - `evidence/index_nature_census.json`
-- `evidence/container_structural_failures.json
+- `evidence/container_structural_failures.json`
+
+
