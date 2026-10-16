@@ -52,7 +52,7 @@ public class DumpFormatEvidence extends GhidraScript {
     private static String family(String value) {
         String lower = value.toLowerCase().trim();
         if (lower.length() > 160) return null;
-        String[] exts = {".cam", ".sef", ".efm", ".dds", ".ptx", ".scm", ".mot", ".lig", ".pos", ".eve"};
+        String[] exts = {".cam", ".sef", ".efm", ".dds", ".ptx", ".scm", ".mot", ".lig", ".pos", ".eve", ".mod", ".shw"};
         for (String ext : exts) {
             // Keep extension-table entries and short resource paths, but drop
             // shader/source text that merely contains words such as
@@ -108,7 +108,7 @@ public class DumpFormatEvidence extends GhidraScript {
         w.println();
         w.println("  ],");
         w.println("  \"byte_tokens\": [");
-        String[] tokens = {".ptx", ".PTX", ".cam", ".CAM", ".mot", ".MOT", ".sef", ".SEF", ".efm", ".EFM", "SCM ", "SEF\\0", "EFM "};
+        String[] tokens = {".ptx", ".PTX", ".cam", ".CAM", ".mot", ".MOT", ".sef", ".SEF", ".efm", ".EFM", "SCM ", "SEF\\0", "EFM ", "MOD ", "SHW", "MRP", "HITS", "ITM", "STE", "DCA", "EST"};
         boolean firstToken = true;
         for (String token : tokens) {
             byte[] needle = token.getBytes("US-ASCII");

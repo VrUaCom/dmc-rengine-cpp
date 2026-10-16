@@ -48,6 +48,13 @@ public class FindMagicInstructionRefs extends GhidraScript {
         magic.put(0x004d4143L, "CAM\\0");
         magic.put(0x204d4353L, "SCM ");
         magic.put(0x53544948L, "HITS");
+        magic.put(0x004d5449L, "ITM\\0");
+        magic.put(0x00455453L, "STE\\0");
+        magic.put(0x00414344L, "DCA\\0");
+        magic.put(0x00545345L, "EST\\0");
+        magic.put(0x20444f4dL, "MOD ");
+        magic.put(0x00574853L, "SHW\\0");
+        magic.put(0x0050524dL, "MRP\\0");
         File out = new File(args[0]);
         out.getParentFile().mkdirs();
         PrintWriter w = new PrintWriter(out, "UTF-8");
