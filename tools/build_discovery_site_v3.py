@@ -409,22 +409,58 @@ def _render_tool_directory(document: str, page: dict) -> str:
         if not url.startswith("https://github.com/VrUaCom/"):
             raise SystemExit("unexpected first-party tool repository URL")
         cards.append(
-            '<li><strong>' + html.escape(name) + '</strong> — ' + html.escape(role)
+            '<article class="tool-card">'
+            + '<p class="tool-status">' + html.escape(status.replace("-", " ")) + '</p>'
+            + '<h3>' + html.escape(name) + '</h3>'
+            + '<p class="tool-role">' + html.escape(role) + '</p>'
             + '<p>' + html.escape(note) + '</p>'
-            + '<p>Status: ' + html.escape(status) + ' · '
             + '<a rel="noopener noreferrer" href="' + html.escape(url, quote=True)
-            + '">Source and project information</a></p></li>'
+            + '">Source and project information ↗</a></article>'
         )
     marker = '<section class="related">'
     if marker not in document:
         raise SystemExit("tool directory injection marker missing")
-    extra = '<section class="content-block"><h2>Our ecosystem tools</h2><ul>' + "".join(cards) + '</ul></section>'
+    extra = '<section class="content-block"><h2>Our ecosystem tools</h2><div class="tool-grid">' + "".join(cards) + '</div></section>'
     return document.replace(marker, extra + marker, 1)
+
+
+def _render_hub_invitation(document: str, page: dict, base_url: str | None) -> str:
+    if page.get("path") != "/":
+        return document
+    marker = '<section class="content-block">'
+    if marker not in document:
+        raise SystemExit("homepage content marker missing")
+    guide = html.escape(base.public_url(base_url, "/guides/start-modding-dmc3/"), quote=True)
+    products = html.escape(base.public_url(base_url, "/tools/"), quote=True)
+    welcome = html.escape(base.public_url(base_url, "/en/"), quote=True)
+    languages = [
+        (code, route) for code, route in (
+            ("ES", "/es/"), ("PT-BR", "/pt-br/"), ("UK", "/uk/"), ("JA", "/ja/")
+        )
+    ]
+    links = " ".join(
+        '<a href="' + html.escape(base.public_url(base_url, route), quote=True) + '">' + code + '</a>'
+        for code, route in languages
+    )
+    invite = (
+        '<section class="hub-invite" aria-labelledby="hub-invite-title">'
+        '<p class="eyebrow">DMC MODDING HUB / GETTING STARTED</p>'
+        '<h2 id="hub-invite-title">Understand the game files. Build what comes next.</h2>'
+        '<p>Explore evidence-backed DMC3 file guides, find first-party research and viewing tools, '
+        'and learn exactly which platform or format operation has been verified.</p>'
+        '<div class="hub-actions"><a class="hub-primary" href="' + guide + '">Start modding DMC3 ↗</a>'
+        '<a href="' + products + '">Explore our tools →</a>'
+        '<a href="' + welcome + '">Multilingual hub →</a></div>'
+        '<nav class="hub-locales" aria-label="Hub languages"><span>Also available:</span>' + links + '</nav>'
+        '</section>'
+    )
+    return document.replace(marker, invite + marker, 1)
 
 
 def render_page(site: dict, page: dict, base_url: str | None) -> str:
     document = _V2_RENDER_PAGE(site, page, base_url)
     document = _render_tool_directory(document, page)
+    document = _render_hub_invitation(document, page, base_url)
     locale = page.get("locale")
     if not locale:
         return document
