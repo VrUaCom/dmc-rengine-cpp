@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 from pathlib import Path
 
@@ -14,8 +15,11 @@ INTENT_WAVES = (
     base.ROOT / "site" / "intent-pages-wave2.json",
     base.ROOT / "site" / "intent-pages-wave3.json",
     base.ROOT / "site" / "intent-pages-wave4.json",
+    base.ROOT / "site" / "intent-pages-wave5.json",
 )
 _V2_LOAD_MANIFEST = v2.load_manifest
+_V2_RENDER_PAGE = v2.render_page
+PRODUCT_CATALOG = base.ROOT / 'site' / 'tool-catalog.json'
 INDEXNOW_KEY_SOURCE = base.ROOT / "site" / "6ef2bc73288e1e2b580119a4b1bfc2fa.txt"
 INDEXNOW_ALLOWED_CHARS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
@@ -341,8 +345,125 @@ def _augment_intent_graph(site: dict) -> dict:
 
     _promote_mod_writer_gate(by_path)
     _promote_post_372_model_format_truth(by_path)
+    # Durable entry points from existing indexable routes into the new hub.
+    _append_related(by_path["/"], "/en/", "Explore the multilingual DMC Modding Hub")
+    _append_related(by_path["/"], "/tools/", "Explore the verified first-party DMC Rengine tools")
+    _append_related(by_path["/guides/"], "/guides/start-modding-dmc3/", "Start modding Devil May Cry 3 with the beginner guide")
     return site
 
+
+
+# Locales are content metadata; the canonical technical truth remains in the
+# repository, not in translated marketing prose.
+_LOCALE_CHROME = {
+    "en": ("Related research", "Canonical source", "Evidence boundary", "Open canonical GitHub source"),
+    "es": ("Lecturas relacionadas", "Fuente técnica original", "Límites de las pruebas", "Abrir la fuente original en GitHub"),
+    "pt-BR": ("Leituras relacionadas", "Fonte técnica original", "Limites das evidências", "Abrir a fonte original no GitHub"),
+    "uk": ("Пов’язані матеріали", "Канонічне джерело", "Межі підтвердження", "Відкрити джерело на GitHub"),
+    "ja": ("関連資料", "正式な技術資料", "検証範囲", "GitHub の原資料を見る"),
+}
+_LOCALE_EXPLANATION = {
+    "es": (
+        "Esta página facilita la consulta; el código, las versiones publicadas y las pruebas del repositorio son la fuente técnica principal.",
+        "Leer un archivo no equivale a editarlo. Reconstruirlo no demuestra automáticamente que el juego original lo acepte. Consulta el estado actual y las pruebas."
+    ),
+    "pt-BR": (
+        "Esta página facilita a consulta; o código, as versões publicadas e as evidências do repositório são as fontes técnicas principais.",
+        "Ler um arquivo não significa editá-lo. Reconstruí-lo não prova automaticamente que o jogo original aceite o resultado. Consulte o estado atual."
+    ),
+    "uk": (
+        "Ця сторінка допомагає орієнтуватися. Основним джерелом технічних фактів залишаються код, релізи та докази в репозиторії.",
+        "Читання файлу не означає можливості редагувати його. Успішна перебудова ще не доводить, що результат приймає оригінальна гра. Перевіряйте актуальний статус."
+    ),
+    "ja": (
+        "このページは案内用です。正確な技術情報はリポジトリ内の実装、公開版、検証資料を参照してください。",
+        "ファイルを読めても編集できるとは限りません。再構築の成功だけでは元のゲームでの動作は保証されません。最新の検証状況を確認してください。"
+    ),
+}
+_EN_SOURCE_NOTE = "This page is a public discovery and readability layer. It does not replace the repository's current implementation, status, evidence or format-specific documentation."
+_EN_EVIDENCE_NOTE = "A parser is not automatically a writer. A successful writer is not automatically equivalent to Capcom's offline tools. Synthetic validation does not establish original-game behavioral equivalence."
+
+
+def _render_tool_directory(document: str, page: dict) -> str:
+    if page.get("path") != "/tools/":
+        return document
+    catalog = json.loads(PRODUCT_CATALOG.read_text(encoding="utf-8"))
+    if catalog.get("schema") != "dmc-rengine.first-party-tool-catalog.v1":
+        raise SystemExit("unrecognized first-party tool catalog schema")
+    products = catalog.get("products")
+    if not isinstance(products, list) or not products:
+        raise SystemExit("empty first-party tool catalog")
+    cards = []
+    seen = set()
+    for item in products:
+        if not isinstance(item, dict) or item.get("id") in seen:
+            raise SystemExit("invalid or duplicate first-party tool")
+        seen.add(item["id"])
+        name = item.get("name")
+        url = item.get("repo_url")
+        role = item.get("role")
+        note = item.get("notes")
+        status = item.get("status")
+        if not all(isinstance(value, str) and value.strip() for value in (name, url, role, note, status)):
+            raise SystemExit("first-party tool catalog is missing content")
+        if not url.startswith("https://github.com/VrUaCom/"):
+            raise SystemExit("unexpected first-party tool repository URL")
+        cards.append(
+            '<li><strong>' + html.escape(name) + '</strong> — ' + html.escape(role)
+            + '<p>' + html.escape(note) + '</p>'
+            + '<p>Status: ' + html.escape(status) + ' · '
+            + '<a rel="noopener noreferrer" href="' + html.escape(url, quote=True)
+            + '">Source and project information</a></p></li>'
+        )
+    marker = '<section class="related">'
+    if marker not in document:
+        raise SystemExit("tool directory injection marker missing")
+    extra = '<section class="content-block"><h2>Our ecosystem tools</h2><ul>' + "".join(cards) + '</ul></section>'
+    return document.replace(marker, extra + '\\n' + marker, 1)
+
+
+def render_page(site: dict, page: dict, base_url: str | None) -> str:
+    document = _V2_RENDER_PAGE(site, page, base_url)
+    document = _render_tool_directory(document, page)
+    locale = page.get("locale")
+    if not locale:
+        return document
+    if locale not in _LOCALE_CHROME:
+        raise SystemExit("unsupported hub locale")
+    document = document.replace('<html lang="en">', '<html lang="' + html.escape(locale, quote=True) + '">', 1)
+    chrome = _LOCALE_CHROME[locale]
+    for english, localized in zip(
+        ("Related research", "Canonical source", "Evidence boundary", "Open canonical GitHub source"),
+        chrome,
+    ):
+        document = document.replace(english, localized)
+    if locale in _LOCALE_EXPLANATION:
+        source_note, evidence_note = _LOCALE_EXPLANATION[locale]
+        document = document.replace(html.escape(_EN_SOURCE_NOTE), html.escape(source_note))
+        document = document.replace(html.escape(_EN_EVIDENCE_NOTE), html.escape(evidence_note))
+    siblings = [p for p in site["pages"] if p.get("language_group") == page.get("language_group")]
+    siblings_by_locale = {p.get("locale"): p for p in siblings}
+    if len(siblings_by_locale) != 5:
+        raise SystemExit("localized hub must have five unique language routes")
+    links = []
+    switch = []
+    for code in ("en", "es", "pt-BR", "uk", "ja"):
+        sibling = siblings_by_locale.get(code)
+        if sibling is None:
+            raise SystemExit("missing reciprocal hub locale: " + code)
+        url = base.public_url(base_url, sibling["path"])
+        switch.append('<a lang="' + html.escape(code, quote=True) + '" hreflang="' + html.escape(code, quote=True)
+                      + '" href="' + html.escape(url, quote=True) + '">' + html.escape(code.upper()) + '</a>')
+        if base_url:
+            links.append('<link rel="alternate" hreflang="' + html.escape(code, quote=True)
+                         + '" href="' + html.escape(url, quote=True) + '">')
+    if base_url:
+        links.append('<link rel="alternate" hreflang="x-default" href="'
+                     + html.escape(base.public_url(base_url, siblings_by_locale["en"]["path"]), quote=True) + '">')
+    document = document.replace('</head>', '    ' + '\\n    '.join(links) + '\\n</head>', 1)
+    selector = '<nav class="language-switcher" aria-label="Choose language">' + ' '.join(switch) + '</nav>'
+    document = document.replace('</header>', selector + '\\n</header>', 1)
+    return document
 
 def _publish_indexnow_key(output: Path) -> None:
     try:
@@ -373,11 +494,14 @@ def load_manifest() -> dict:
 
 def build(output: Path, base_url: str | None) -> None:
     original_load_manifest = v2.load_manifest
+    original_render_page = v2.render_page
     v2.load_manifest = load_manifest
+    v2.render_page = render_page
     try:
         v2.build(output, base_url)
     finally:
         v2.load_manifest = original_load_manifest
+        v2.render_page = original_render_page
     _publish_indexnow_key(output)
 
 
