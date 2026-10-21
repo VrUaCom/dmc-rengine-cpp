@@ -9,6 +9,7 @@ on:
       - 'tools/build_discovery_site_v2.py'
       - 'tools/build_discovery_site_v3.py'
       - 'tools/discovery_format_catalog.py'
+      - 'tools/test_modding_hub_v1.py'
       - 'docs/discovery/**'
       - 'docs/guides/**'
       - 'docs/formats/**'
@@ -70,6 +71,9 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
 
+      - name: Test multilingual hub before production build
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
+        run: python tools/test_modding_hub_v1.py
       - name: Build static discovery site
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         env:

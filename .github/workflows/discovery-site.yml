@@ -10,6 +10,7 @@ on:
       - 'tools/discovery_format_catalog.py'
       - 'tools/test_discovery_site_builder.py'
       - 'tools/test_discovery_site_v2.py'
+      - 'tools/test_modding_hub_v1.py'
       - '.github/workflows/discovery-site.yml'
       - '.github/workflows/pages-deploy.yml'
       - '.github/workflows/indexnow-notify.yml'
@@ -30,6 +31,7 @@ on:
       - 'tools/discovery_format_catalog.py'
       - 'tools/test_discovery_site_builder.py'
       - 'tools/test_discovery_site_v2.py'
+      - 'tools/test_modding_hub_v1.py'
       - '.github/workflows/discovery-site.yml'
       - '.github/workflows/pages-deploy.yml'
       - '.github/workflows/indexnow-notify.yml'
@@ -56,6 +58,8 @@ jobs:
         run: python tools/test_discovery_site_builder.py
       - name: Test format encyclopedia builder
         run: python tools/test_discovery_site_v2.py
+      - name: Test multilingual DMC Modding Hub
+        run: python tools/test_modding_hub_v1.py
       - name: Build discovery site
         run: >-
           python tools/build_discovery_site_v3.py

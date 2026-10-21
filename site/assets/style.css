@@ -143,3 +143,28 @@ section { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); bo
   .format-grid, .lesson-grid { grid-template-columns: 1fr; }
   .lesson-navigation { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* DMC Modding Hub: progressive enhancement of the existing discovery site. */
+.language-switcher { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.language-switcher a { display: inline-flex; padding: .25rem .5rem; border: 1px solid var(--border); border-radius: 6px; font-size: .75rem; font-weight: 700; color: var(--text); }
+.language-switcher a[hreflang]:hover { border-color: var(--accent); color: var(--accent); }
+.hub-invite { position: relative; overflow: hidden; padding: clamp(1.5rem, 5vw, 3.2rem); border-color: #365b7f; background: linear-gradient(115deg, #172b3e, #121b27 65%, #1b1c24); }
+.hub-invite::after { content: ""; position: absolute; width: 270px; height: 270px; top: -170px; right: -75px; border: 1px solid #3d607c; border-radius: 50%; pointer-events: none; }
+.hub-invite h2 { max-width: 770px; font-size: clamp(1.65rem, 3.6vw, 2.7rem); line-height: 1.15; letter-spacing: -.035em; }
+.hub-invite p:not(.eyebrow) { max-width: 750px; color: #bdcddc; }
+.hub-actions { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-top: 1.4rem; }
+.hub-actions a { font-weight: 700; text-decoration: none; }
+.hub-actions .hub-primary { background: #b8dcff; color: #111b24; border-radius: 8px; padding: .75rem 1.15rem; }
+.hub-actions .hub-primary:hover { background: #e0f0ff; }
+.hub-locales { margin-top: 1.7rem; padding-top: .8rem; border-top: 1px solid #304658; display: flex; gap: .8rem; flex-wrap: wrap; }
+.hub-locales span { color: #a8b8c7; font-size: .85rem; }
+.hub-locales a { font-size: .8rem; }
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 1rem; }
+.tool-card { display: flex; flex-direction: column; padding: 1.3rem; border: 1px solid var(--border); border-radius: 12px; background: #0f151e; min-width: 0; }
+.tool-card h3 { font-size: 1.3rem; margin: .4rem 0 .3rem; }
+.tool-card p { color: #b8c7d6; }
+.tool-card .tool-role { color: #e1eaf3; font-weight: 600; }
+.tool-card .tool-status { color: #9ac7f2; letter-spacing: .08em; text-transform: uppercase; font-size: .7rem; margin: 0; }
+.tool-card a { margin-top: auto; padding-top: 1rem; text-decoration: none; font-weight: 700; }
+@media (max-width: 760px) { .hub-actions { align-items: stretch; flex-direction: column; } .hub-actions a { text-align: center; } .tool-grid { grid-template-columns: 1fr; } }
