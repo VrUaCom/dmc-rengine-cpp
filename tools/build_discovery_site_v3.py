@@ -419,7 +419,7 @@ def _render_tool_directory(document: str, page: dict) -> str:
     if marker not in document:
         raise SystemExit("tool directory injection marker missing")
     extra = '<section class="content-block"><h2>Our ecosystem tools</h2><ul>' + "".join(cards) + '</ul></section>'
-    return document.replace(marker, extra + '\\n' + marker, 1)
+    return document.replace(marker, extra + marker, 1)
 
 
 def render_page(site: dict, page: dict, base_url: str | None) -> str:
@@ -439,8 +439,8 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
         document = document.replace(english, localized)
     if locale in _LOCALE_EXPLANATION:
         source_note, evidence_note = _LOCALE_EXPLANATION[locale]
-        document = document.replace(html.escape(_EN_SOURCE_NOTE), html.escape(source_note))
-        document = document.replace(html.escape(_EN_EVIDENCE_NOTE), html.escape(evidence_note))
+        document = document.replace(_EN_SOURCE_NOTE, html.escape(source_note))
+        document = document.replace(_EN_EVIDENCE_NOTE, html.escape(evidence_note))
     siblings = [p for p in site["pages"] if p.get("language_group") == page.get("language_group")]
     siblings_by_locale = {p.get("locale"): p for p in siblings}
     if len(siblings_by_locale) != 5:
@@ -460,9 +460,9 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     if base_url:
         links.append('<link rel="alternate" hreflang="x-default" href="'
                      + html.escape(base.public_url(base_url, siblings_by_locale["en"]["path"]), quote=True) + '">')
-    document = document.replace('</head>', '    ' + '\\n    '.join(links) + '\\n</head>', 1)
+    document = document.replace('</head>', '    ' + ' '.join(links) + '</head>', 1)
     selector = '<nav class="language-switcher" aria-label="Choose language">' + ' '.join(switch) + '</nav>'
-    document = document.replace('</header>', selector + '\\n</header>', 1)
+    document = document.replace('</header>', selector + '</header>', 1)
     return document
 
 def _publish_indexnow_key(output: Path) -> None:
