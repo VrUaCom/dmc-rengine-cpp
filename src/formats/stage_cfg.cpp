@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -192,6 +193,29 @@ Result<CamDocument> read_cam(std::span<const std::byte> bytes) {
         return result;
     }
     std::size_t at = cam_header_size;
+    // The zone records (0x400) from the first record on: a 0x40 head with the
+    // zone count in the byte at +0x14, then 0x50-byte zones. A record is taken
+    // only when every zone it claims has the zone shape; the walk stops at the
+    // first record that does not, and shape scanning reads the rest.
+    while (at + cam_zones_head <= bytes.size() && u32(bytes, at) == cam_zones_only) {
+        const std::uint32_t zones = std::to_integer<std::uint32_t>(bytes[at + 0x14U]);
+        const auto size = cam_zones_head + std::size_t{zones} * cam_zone_size;
+        if (zones == 0U || at + size > bytes.size()) break;
+        std::vector<CamArea> found;
+        for (std::uint32_t zone = 0U; zone < zones; ++zone) {
+            const auto base = at + cam_zones_head + zone * cam_zone_size;
+            const auto area = quad(bytes, base);
+            bool finite = area.homogeneous;
+            for (const auto& corner : area.corners) finite = finite && finite_point(corner);
+            if (!finite) break;
+            found.push_back({.offset = base, .quad = area, .extent = f32(bytes, base + 64U),
+                             .record = static_cast<int>(document.records.size())});
+        }
+        if (found.size() != zones) break;
+        document.records.push_back({.offset = at, .flags = cam_zones_only, .zone_count = zones, .size = size});
+        document.areas.insert(document.areas.end(), found.begin(), found.end());
+        at += size;
+    }
     while (at + 4U <= bytes.size()) {
         if (u32(bytes, at) == 0U) {
             at += 4U;
@@ -462,6 +486,170 @@ Result<SefDocument> read_sef(std::span<const std::byte> bytes) {
         document.sections[index].size = end - document.sections[index].offset;
     }
     return result;
+}
+
+namespace {
+
+[[nodiscard]] float area_of(const Quad& quad) noexcept {
+    float sum = 0.0F;
+    for (std::size_t i = 0U; i < 4U; ++i) {
+        const auto& a = quad.corners[i];
+        const auto& b = quad.corners[(i + 1U) % 4U];
+        sum += a.x * b.z - b.x * a.z;
+    }
+    return std::fabs(sum) * 0.5F;
+}
+
+// The nearest place on a polyline (horizontally) to `point`: the segment and
+// how far along it.
+[[nodiscard]] std::pair<std::size_t, float> nearest_on(const std::vector<Vec3>& rail, const Vec3& point) noexcept {
+    std::pair<std::size_t, float> best{0U, 0.0F};
+    float best_distance = std::numeric_limits<float>::max();
+    for (std::size_t i = 0U; i + 1U < rail.size(); ++i) {
+        const float dx = rail[i + 1U].x - rail[i].x;
+        const float dz = rail[i + 1U].z - rail[i].z;
+        const float length = dx * dx + dz * dz;
+        float t = length > 0.0F ? ((point.x - rail[i].x) * dx + (point.z - rail[i].z) * dz) / length : 0.0F;
+        t = std::clamp(t, 0.0F, 1.0F);
+        const float px = rail[i].x + dx * t - point.x;
+        const float pz = rail[i].z + dz * t - point.z;
+        const float distance = px * px + pz * pz;
+        if (distance < best_distance) {
+            best_distance = distance;
+            best = {i, t};
+        }
+    }
+    return best;
+}
+
+[[nodiscard]] Vec3 lerp(const Vec3& a, const Vec3& b, float t) noexcept {
+    return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t};
+}
+
+} // namespace
+
+std::vector<CamShot> read_cam_shots(std::span<const std::byte> bytes) {
+    std::vector<CamShot> shots;
+    if (bytes.size() < cam_header_size || std::memcmp(bytes.data(), "CAM\0", 4U) != 0) return {};
+    const std::size_t count = u16(bytes, 6U);
+    std::size_t at = cam_header_size;
+    for (std::size_t record = 0U; record < count; ++record) {
+        if (at + cam_zones_head > bytes.size()) return {};
+        CamShot shot{.offset = at, .type = u32(bytes, at), .flags = u32(bytes, at + 0x40U), .eye = {}, .target = {},
+                     .fov = {}, .follows_player = false, .zones = {}};
+        std::size_t head = 0U;
+        if (shot.type == cam_fixed) {
+            head = cam_fixed_head;
+        } else if (shot.type == cam_rail) {
+            head = cam_rail_head;
+        } else if (shot.type == cam_zones_only) {
+            head = cam_zones_head;
+        } else {
+            return {};
+        }
+        const std::size_t zones = std::to_integer<std::size_t>(bytes[at + 0x14U]);
+        if (zones == 0U || at + head + zones * cam_zone_size > bytes.size()) return {};
+        if (shot.type == cam_fixed) {
+            shot.eye = {vec3(bytes, at + 0x90U)};
+            shot.target = {vec3(bytes, at + 0x50U)};
+            shot.fov = {f32(bytes, at + 0xA0U)};
+            shot.follows_player = (shot.flags & cam_follows_player) != 0U;
+        } else if (shot.type == cam_rail) {
+            const std::size_t points = u32(bytes, at + 0x480U);
+            if (points == 0U || points > cam_rail_points) return {};
+            for (std::size_t k = 0U; k < points; ++k) {
+                shot.eye.push_back(vec3(bytes, at + 0x80U + k * 12U));
+                shot.target.push_back(vec3(bytes, at + 0x200U + k * 12U));
+                shot.fov.push_back(f32(bytes, at + 0x380U + k * 4U));
+            }
+        }
+        for (const auto& point : shot.eye) {
+            if (!finite_point(point)) return {};
+        }
+        for (const auto& point : shot.target) {
+            if (!finite_point(point)) return {};
+        }
+        for (std::size_t zone = 0U; zone < zones; ++zone) {
+            const auto base = at + head + zone * cam_zone_size;
+            const auto area = quad(bytes, base);
+            if (!area.homogeneous) return {};
+            shot.zones.push_back({.offset = base, .quad = area, .extent = f32(bytes, base + 64U),
+                                  .record = static_cast<int>(record)});
+        }
+        shots.push_back(std::move(shot));
+        at += head + zones * cam_zone_size;
+    }
+    // Nothing but zero padding after the last record.
+    if (!zero(bytes, at, bytes.size())) return {};
+    return shots;
+}
+
+bool zone_holds(const CamArea& zone, const Vec3& point) noexcept {
+    const auto& c = zone.quad.corners;
+    if (point.y < c[0].y - 1.0F || point.y > c[0].y + zone.extent) return false;
+    // Inside a convex quadrilateral either way round: every edge on one side.
+    int sign = 0;
+    for (std::size_t i = 0U; i < 4U; ++i) {
+        const auto& a = c[i];
+        const auto& b = c[(i + 1U) % 4U];
+        const float cross = (b.x - a.x) * (point.z - a.z) - (b.z - a.z) * (point.x - a.x);
+        const int side = cross > 0.0F ? 1 : (cross < 0.0F ? -1 : 0);
+        if (side == 0) continue;
+        if (sign == 0) sign = side;
+        if (side != sign) return false;
+    }
+    return true;
+}
+
+std::optional<CamView> cam_view_at(const std::vector<CamShot>& shots, const Vec3& player) {
+    int best = -1;
+    float best_area = std::numeric_limits<float>::max();
+    for (std::size_t i = 0U; i < shots.size(); ++i) {
+        if (shots[i].eye.empty()) continue;
+        for (const auto& zone : shots[i].zones) {
+            const float area = area_of(zone.quad);
+            if (zone_holds(zone, player) && area < best_area) {
+                best = static_cast<int>(i);
+                best_area = area;
+            }
+        }
+    }
+    if (best < 0) return std::nullopt;
+    const auto& shot = shots[static_cast<std::size_t>(best)];
+    CamView view{.eye = {}, .target = {}, .fov_radians = 0.0F, .shot = best};
+    if (shot.type == cam_fixed) {
+        view.eye = shot.eye.front();
+        const auto& t = shot.target.front();
+        view.target = shot.follows_player ? Vec3{player.x + t.x, player.y + t.y, player.z + t.z} : t;
+        view.fov_radians = shot.fov.front();
+    } else if (shot.eye.size() == 1U) {
+        view.eye = shot.eye.front();
+        view.target = shot.target.front();
+        view.fov_radians = shot.fov.front();
+    } else {
+        const auto [segment, t] = nearest_on(shot.target, player);
+        view.eye = lerp(shot.eye[segment], shot.eye[segment + 1U], t);
+        view.target = lerp(shot.target[segment], shot.target[segment + 1U], t);
+        view.fov_radians = shot.fov[segment] + (shot.fov[segment + 1U] - shot.fov[segment]) * t;
+    }
+    if (!(view.fov_radians > 0.1F && view.fov_radians < 3.0F)) view.fov_radians = 1.0F;
+    return view;
+}
+
+std::optional<SefFog> sef_fog(std::span<const std::byte> bytes, const SefDocument& document) {
+    for (const auto& section : document.sections) {
+        if (section.value != sef_fog_section || section.offset + 12U > bytes.size()) continue;
+        const auto at = static_cast<std::size_t>(section.offset);
+        float start = f32(bytes, at);
+        float end = f32(bytes, at + 4U);
+        if (!std::isfinite(start) || !std::isfinite(end) || start == end) continue;
+        if (start > end) std::swap(start, end);
+        SefFog fog{.start = start, .end = end, .colour = {}, .alpha = 0.0F};
+        for (std::size_t c = 0U; c < 3U; ++c) fog.colour[c] = std::to_integer<std::uint8_t>(bytes[at + 8U + c]);
+        fog.alpha = std::clamp(static_cast<float>(std::to_integer<std::uint8_t>(bytes[at + 11U])) / 128.0F, 0.0F, 1.0F);
+        return fog;
+    }
+    return std::nullopt;
 }
 
 } // namespace dmc::rengine::formats::stage_cfg

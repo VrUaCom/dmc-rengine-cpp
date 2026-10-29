@@ -7,6 +7,9 @@
 
 #include <cassert>
 #include <cstring>
+#include <utility>
+#include <cstdint>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -167,9 +170,93 @@ struct Writer final {
     return w.bytes;
 }
 
+// CAM zone records, the game's cameras and the camera at a player's place,
+// and the SEF fog section.
+void test_cam_shots_and_fog() {
+    Writer w;
+    const auto pad_to = [&](std::size_t size) { w.zeros(size - w.bytes.size()); };
+    const auto corner = [&](float x, float y, float z) { w.f32(x); w.f32(y); w.f32(z); w.f32(1.0F); };
+    // One 0x400 record of two zones (count in the byte at +0x14), then a path.
+    w.tag("CAM", 1U, 2U);
+    auto at = w.bytes.size();
+    w.u32(0x400U); w.zeros(0x10U); w.u32(2U); pad_to(at + 0x40U);
+    for (int z = 0; z < 2; ++z) {
+        const float o = 20.0F * static_cast<float>(z);
+        corner(o, 5, 0); corner(o + 10, 5, 0); corner(o + 10, 5, 10); corner(o, 5, 10);
+        w.f32(30.0F); w.zeros(12U);
+    }
+    for (int p = 0; p < 3; ++p) { w.f32(100.0F + static_cast<float>(p)); w.f32(7.5F); w.f32(200.0F + static_cast<float>(p)); }
+    pad_to((w.bytes.size() + 15U) & ~std::size_t{15U});
+    const auto read = cfg::read_cam(w.bytes);
+    assert(read.ok());
+    assert(read.document.records.size() == 1U && read.document.records[0].zone_count == 2U);
+    assert(read.document.areas.size() == 2U && read.document.areas[1].record == 0);
+    assert(read.document.paths.size() == 1U && read.document.paths[0].points.size() == 3U);
+    assert(cfg::read_cam_shots(w.bytes).empty());  // the second record is not a camera record
+
+    // A fixed camera following the player over one zone; a rail camera over a
+    // far zone and a wide one round both.
+    Writer s;
+    const auto spad = [&](std::size_t size) { s.zeros(size - s.bytes.size()); };
+    const auto zone = [&](float x0, float z0, float x1, float z1) {
+        for (const auto& [x, z] : {std::pair{x0, z0}, std::pair{x0, z1}, std::pair{x1, z1}, std::pair{x1, z0}}) {
+            s.f32(x); s.f32(-10.0F); s.f32(z); s.f32(1.0F);
+        }
+        s.f32(500.0F); s.zeros(12U);
+    };
+    s.tag("CAM", 1U, 2U);
+    at = s.bytes.size();
+    s.u32(0x000U); s.zeros(0x10U); s.u32(0x00780101U);  // count 1, then st002's 01 78
+    spad(at + 0x40U); s.u32(0x200U);
+    spad(at + 0x50U); s.f32(0.0F); s.f32(105.0F); s.f32(0.0F);
+    spad(at + 0x90U); s.f32(500.0F); s.f32(300.0F); s.f32(500.0F);
+    spad(at + 0xA0U); s.f32(1.05F);
+    spad(at + 0xB0U);
+    zone(0, 0, 1000, 1000);
+    at = s.bytes.size();
+    s.u32(0x100U); s.zeros(0x10U); s.u32(2U);
+    spad(at + 0x80U);
+    for (const float x : {2000.0F, 3000.0F}) { s.f32(x); s.f32(100.0F); s.f32(0.0F); }
+    spad(at + 0x200U);
+    for (const float x : {2000.0F, 3000.0F}) { s.f32(x); s.f32(150.0F); s.f32(500.0F); }
+    spad(at + 0x380U); s.f32(1.0F); s.f32(1.2F);
+    spad(at + 0x480U); s.u32(2U);
+    spad(at + 0x490U);
+    zone(1500, -500, 3500, 1500);
+    zone(-1000, -1000, 5000, 2000);
+    const auto shots = cfg::read_cam_shots(s.bytes);
+    assert(shots.size() == 2U && shots[0].type == cfg::cam_fixed && shots[0].follows_player && shots[1].eye.size() == 2U);
+    const auto fixed = cfg::cam_view_at(shots, {200.0F, 0.0F, 300.0F});
+    assert(fixed && fixed->shot == 0 && fixed->eye.x == 500.0F && fixed->target.y == 105.0F &&
+           fixed->target.x == 200.0F && std::fabs(fixed->fov_radians - 1.05F) < 1.0e-6F);
+    const auto rail = cfg::cam_view_at(shots, {2500.0F, 0.0F, 800.0F});
+    assert(rail && rail->shot == 1 && std::fabs(rail->eye.x - 2500.0F) < 1.0e-2F && rail->eye.z == 0.0F &&
+           std::fabs(rail->target.z - 500.0F) < 1.0e-3F && std::fabs(rail->fov_radians - 1.1F) < 1.0e-5F);
+    assert(cfg::cam_view_at(shots, {4500.0F, 0.0F, 0.0F})->shot == 1);
+    assert(!cfg::cam_view_at(shots, {9000.0F, 0.0F, 0.0F}));
+    assert(!cfg::cam_view_at(shots, {200.0F, 600.0F, 300.0F}));
+    auto torn = s.bytes;
+    torn.resize(torn.size() - 0x50U);
+    assert(cfg::read_cam_shots(torn).empty());
+
+    // SEF: one fog section (value 2), distances far first as st001 writes them.
+    Writer f;
+    f.put("SEF", 4U); f.u16(1U); f.u16(0U); f.u32(2U); f.u32(0x10U);
+    f.f32(2100.0F); f.f32(1680.0F);
+    for (const std::uint8_t b : {std::uint8_t{0x60}, std::uint8_t{0x70}, std::uint8_t{0x80}, std::uint8_t{0x40}}) f.put(&b, 1U);
+    f.zeros(4U);
+    const auto sef = cfg::read_sef(f.bytes);
+    assert(sef.ok());
+    const auto fog = cfg::sef_fog(f.bytes, sef.document);
+    assert(fog && fog->start == 1680.0F && fog->end == 2100.0F && fog->colour[2] == 0x80U && fog->alpha == 0.5F);
+
+    static_assert(cfg::ste_effect_kind(0U) == 'P' && cfg::ste_effect_kind(3U) == 'V' && !cfg::ste_effect_kind(4U));
+}
+
 } // namespace
 
 int main() {
+    test_cam_shots_and_fog();
     {
         const auto result = cfg::read_pos(pos_file());
         assert(result.ok());
