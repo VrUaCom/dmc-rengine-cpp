@@ -13,6 +13,20 @@
 
 ## Authority split
 
+### DMC3 gates 0–48 and the light pipeline — 2026-10-29 (branch `claude/devil-microy3-decompile-port-2v8pne`)
+
+The gate archive (Android ARM64 Gates 0–43) and the Native Reader's Gates
+44–48 are ported. Every gate fact the executable can show is a C++ check in
+`tools/reverse/dmc3_gates.cpp` (114 of 114 pass on the canonical image,
+`data/reverse/dmc3-gates-20261029.json`). The light path is proven from the
+stage configuration's LIG2 to the shader constants, and modelled in
+`profiles/dmc3/light_pipeline.hpp`; material state is in
+`profiles/dmc3/material_state.hpp`, the HD vertex formats in
+`profiles/dmc3/vertex_layouts.hpp`, and Gate 0's lifted function in
+`reverse/object_flag_228.hpp`. Index:
+[gates 0–48](../research/dmc3-gates-00-48-2026-10-29.md); detail:
+[light pipeline](../research/dmc3-light-pipeline-gates-2026-10-29.md).
+
 ### Internal game structure — fresh structural pass, 2026-09-13
 
 The active user objective is the **internal DMC3 runtime tree**, including

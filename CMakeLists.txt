@@ -112,6 +112,12 @@ if(DMC_RENGINE_BUILD_REVERSE_TOOLS)
     if(BUILD_TESTING)
         add_test(NAME dmc3_runtime_tree_self_test COMMAND dmc3-runtime-tree --self-test)
     endif()
+    add_executable(dmc3-gates tools/reverse/dmc3_gates.cpp)
+    target_link_libraries(dmc3-gates PRIVATE DMCRengine::Core)
+    dmc_rengine_enable_warnings(dmc3-gates)
+    if(BUILD_TESTING)
+        add_test(NAME dmc3_gates_self_test COMMAND dmc3-gates --self-test)
+    endif()
 endif()
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
@@ -193,6 +199,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         em000_family_contract
         cloth_chain_contract
         tsc_uv_scroll_contract
+        light_pipeline
+        material_state
+        vertex_layouts
+        object_flag_228
         mod_euler_order
         stage_txt
         resource_analyzer
