@@ -13,8 +13,11 @@
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/exe/rtti_scanner.hpp"
 #include "dmc_rengine/exe/x86_decoder.hpp"
+#include "dmc_rengine/profiles/dmc3/effect_spawn_sites.hpp"
+#include "dmc_rengine/profiles/dmc3/em000_events.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstdint>
 #include <fstream>
 #include <functional>
@@ -212,6 +215,7 @@ public:
         model_constants();
         stage_path();
         vertex_formats();
+        effect_catalogs();
         return std::move(out_);
     }
 
@@ -488,6 +492,39 @@ private:
         store_in("48", "stage-holder.mask-1-lights-on", 0x140089320ULL, 0xC7U, 0x570, 0x10000);
         store_in("48", "model-holder.mask-2", 0x140089270ULL, 0xC7U, 0x744, 2);
         store_in("48", "stage-holder.lights-off", 0x140089F20ULL, 0xC6U, 0x570, 1);
+    }
+
+    // The spawn-site catalog (profiles/dmc3/effect_spawn_sites.hpp): every row
+    // is a direct call (or tail jump) to its spawn API or kind factory, made
+    // from the function the row names; and the em000 event handler.
+    void effect_catalogs() {
+        namespace sites = profiles::dmc3::effect_spawn_sites;
+        std::size_t calls_ok = 0U, owners_ok = 0U, total = 0U;
+        std::set<U64> addresses;
+        for (const auto& site : sites::spawn_sites()) {
+            ++total;
+            const auto in = im_.decode(site.address);
+            const U64 target = sites::call_target(site);
+            if (in && (is_call_to(*in, site.address, target) || is_jump_to(*in, site.address, target))) ++calls_ok;
+            // A leaf function has no unwind entry: its row names its entry.
+            const auto f = im_.function_of(site.address);
+            if ((f && *f == site.function) || (!f && site.function <= site.address)) {
+                ++owners_ok;
+            } else if (std::getenv("DMC3_GATES_DEBUG") != nullptr) {
+                std::cerr << "row " << hex(site.address) << " names " << hex(site.function) << ", .pdata "
+                          << (f ? hex(*f) : std::string{"none"}) << '\n';
+            }
+            addresses.insert(site.address);
+        }
+        add("fx", "spawn-sites.calls", calls_ok == total,
+            std::to_string(calls_ok) + " of " + std::to_string(total) + " rows call their API or factory (" +
+                std::to_string(addresses.size()) + " call sites)");
+        add("fx", "spawn-sites.functions", owners_ok == total,
+            std::to_string(owners_ok) + " of " + std::to_string(total) + " rows lie in the function they name");
+        function_start("em000", "event-handler", profiles::dmc3::em000_events::handler_va);
+        const auto death = im_.function_of(profiles::dmc3::em000_events::death_state_va);
+        add("em000", "death-state-in-code", death.has_value(),
+            "0x140095E85 in " + (death ? hex(*death) : std::string{"?"}));
     }
 
     // Gate 48 v0.3d: the vertex formats.

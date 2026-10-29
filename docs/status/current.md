@@ -17,7 +17,7 @@
 
 The gate archive (Android ARM64 Gates 0–43) and the Native Reader's Gates
 44–48 are ported. Every gate fact the executable can show is a C++ check in
-`tools/reverse/dmc3_gates.cpp` (114 of 114 pass on the canonical image,
+`tools/reverse/dmc3_gates.cpp` (118 of 118 pass on the canonical image,
 `data/reverse/dmc3-gates-20261029.json`). The light path is proven from the
 stage configuration's LIG2 to the shader constants, and modelled in
 `profiles/dmc3/light_pipeline.hpp`; material state is in
@@ -26,6 +26,11 @@ stage configuration's LIG2 to the shader constants, and modelled in
 `reverse/object_flag_228.hpp`. Index:
 [gates 0–48](../research/dmc3-gates-00-48-2026-10-29.md); detail:
 [light pipeline](../research/dmc3-light-pipeline-gates-2026-10-29.md).
+The Native Reader's other reverses since 2026-10-10 are ported too: stage
+cameras, fog and placed effects (`formats/stage_cfg.hpp`), the effect
+spawn-site catalog and the em000 event tables (`profiles/dmc3/`), cutscene
+archives (`formats/demo.hpp`) and subtitle message tables
+(`formats/messages.hpp`), with their research notes.
 
 ### Internal game structure — fresh structural pass, 2026-09-13
 

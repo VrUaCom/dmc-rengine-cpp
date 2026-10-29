@@ -203,6 +203,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         material_state
         vertex_layouts
         object_flag_228
+        effect_catalogs
+        demo
+        messages
         mod_euler_order
         stage_txt
         resource_analyzer

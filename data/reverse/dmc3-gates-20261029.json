@@ -3,8 +3,8 @@
   "target": {"name": "dmc3.exe", "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082", "image_base": "0x140000000"},
   "tool": "tools/reverse/dmc3_gates.cpp",
   "evidence": ["docs/research/dmc3-gates-00-48-2026-10-29.md", "docs/research/dmc3-light-pipeline-gates-2026-10-29.md"],
-  "checks_passed": 114,
-  "checks_total": 114,
+  "checks_passed": 118,
+  "checks_total": 118,
   "checks": [
     {"gate": "0", "id": "lift.0x14002AB40", "status": "PASS", "detail": "0x14002AB40: 84 D2 74 08 83 89 28 02 00 00 04 C3 83 A1 28 02 00 00 FB C3 "},
     {"gate": "1", "id": "crt.initialize-cb9ed0", "status": "PASS", "detail": "0x140021A20 leaf, pointed to from data at 0x14035A8E0"},
@@ -119,6 +119,10 @@
     {"gate": "48", "id": "vertex.layout-0x1405628C0", "status": "PASS", "detail": "0x1400473F0 references 0x1405628C0"},
     {"gate": "48", "id": "vertex.layout-0x140562B80", "status": "PASS", "detail": "0x1400473F0 references 0x140562B80"},
     {"gate": "48", "id": "vertex.layout-0x140562840", "status": "PASS", "detail": "0x1400473F0 references 0x140562840"},
-    {"gate": "48", "id": "vertex.layout-0x140562B00", "status": "PASS", "detail": "0x1400473F0 references 0x140562B00"}
+    {"gate": "48", "id": "vertex.layout-0x140562B00", "status": "PASS", "detail": "0x1400473F0 references 0x140562B00"},
+    {"gate": "fx", "id": "spawn-sites.calls", "status": "PASS", "detail": "1023 of 1023 rows call their API or factory (875 call sites)"},
+    {"gate": "fx", "id": "spawn-sites.functions", "status": "PASS", "detail": "1023 of 1023 rows lie in the function they name"},
+    {"gate": "em000", "id": "event-handler", "status": "PASS", "detail": "0x1401C3130 in function 0x1401C3130"},
+    {"gate": "em000", "id": "death-state-in-code", "status": "PASS", "detail": "0x140095E85 in 0x140094AE0"}
   ]
 }

@@ -12,7 +12,7 @@ Only addresses, offsets and rules are recorded here.
 
 | What | Where |
 | --- | --- |
-| Every address below that the image can show (114 checks, gates 0–48) | `tools/reverse/dmc3_gates.cpp` (`dmc3-gates canonical.exe --json out.json`; `DMC_RENGINE_BUILD_REVERSE_TOOLS=ON`), result `data/reverse/dmc3-gates-20261029.json` |
+| Every address below that the image can show (118 checks: gates 0–48 and the effect catalogs) | `tools/reverse/dmc3_gates.cpp` (`dmc3-gates canonical.exe --json out.json`; `DMC_RENGINE_BUILD_REVERSE_TOOLS=ON`), result `data/reverse/dmc3-gates-20261029.json` |
 | LIG2 table, candidate rules, top-four selection, Lc/Lv, model rig, stage rig, object masks | `include/dmc_rengine/profiles/dmc3/light_pipeline.hpp`, `src/profiles/dmc3/light_pipeline.cpp`, `tests/light_pipeline_tests.cpp` |
 | Clamp register, HD WRAP/CLAMP, nearest flag, alpha control, material byte | `include/dmc_rengine/profiles/dmc3/material_state.hpp`, `tests/material_state_tests.cpp` |
 | Vertex formats of `0x1400473F0` (DIFFUSE as four floats) | `include/dmc_rengine/profiles/dmc3/vertex_layouts.hpp`, `tests/vertex_layouts_tests.cpp` |
