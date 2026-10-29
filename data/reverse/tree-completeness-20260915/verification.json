@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "confirmed_root_rows_checked": 10112,
+  "unique_missing_root_targets_union": 7450,
+  "candidate_run_capped_anchors": [
+    "0x1404c6a18",
+    "0x1404c75e0",
+    "0x1404c7ea0"
+  ],
+  "scope": "cross-check counts and deduplicate confirmed metadata roots; no complete vtable claim"
+}

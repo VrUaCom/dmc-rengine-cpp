@@ -1,0 +1,32 @@
+{
+  "schema": "dmc-rengine.dmc3-internal-runtime-roots.v1",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "status": "STRUCTURAL_CONFIRMED",
+  "relations": [
+    {"from":"DMC3_Runtime", "to":"dmc3_main", "kind":"entrypoint", "address":"0x1402C5DF0", "evidence":"EXE_CONFIRMED"},
+    {"from":"dmc3_main", "to":"ArenaInitializer", "kind":"direct_call", "address":"0x140030190", "callsite":"0x1402C5E03", "evidence":"EXE_CONFIRMED"},
+    {"from":"dmc3_main", "to":"CSceneFactoryApp_global", "kind":"global_registration_argument", "address":"0x140C8F970", "callsite":"0x1402C5E48", "evidence":"EXE_CONFIRMED"},
+    {"from":"CSceneFactoryApp", "to":"SceneSelectorDispatch", "kind":"dispatch", "address":"0x140240090", "selector_count":10, "evidence":"EXE_CONFIRMED"},
+    {"from":"CActor", "to":"CWork", "kind":"inheritance", "type_descriptor":"0x1405D5430", "base_type_descriptor":"0x1405D5410", "evidence":"EXE_CONFIRMED"},
+    {"from":"CActor", "to":"IActor", "kind":"secondary_base_subobject", "subobject_offset":96, "evidence":"EXE_CONFIRMED"},
+    {"from":"CActor", "to":"ICollisionHandle", "kind":"secondary_base_subobject", "subobject_offset":208, "evidence":"EXE_CONFIRMED"},
+    {"from":"CPlayer", "to":"CActor", "kind":"inheritance", "type_descriptor":"0x1405D73B8", "evidence":"EXE_CONFIRMED"},
+    {"from":"CNonPlayer", "to":"CActor", "kind":"inheritance", "type_descriptor":"0x1405D5BD0", "evidence":"EXE_CONFIRMED"},
+    {"from":"CItem", "to":"CWork", "kind":"inheritance", "type_descriptor":"0x1405D6E78", "evidence":"EXE_CONFIRMED"},
+    {"from":"CEffectBase", "to":"CWork", "kind":"inheritance", "type_descriptor":"0x1405D76D8", "evidence":"EXE_CONFIRMED"},
+    {"from":"CParticle", "to":"CEffectBase", "kind":"inheritance", "type_descriptor":"0x1405D7700", "evidence":"EXE_CONFIRMED"},
+    {"from":"CMcAppli", "to":"Application_Persistence_Runtime", "kind":"domain_membership", "vtable":"0x140508728", "evidence":"STRUCTURAL_CONFIRMED"}
+  ],
+  "non_claims": [
+    "source_directory_names",
+    "complete_function_signatures",
+    "complete_vtable_extents",
+    "behavioral_equivalence",
+    "full_game_decompilation",
+    "Android_iOS_or_other_port_acceptance"
+  ]
+}

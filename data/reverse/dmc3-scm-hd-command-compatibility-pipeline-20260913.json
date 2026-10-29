@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-hd-command-compatibility-pipeline.v2",
+  "schema": "dmc-rengine.scm-hd-command-compatibility-pipeline.v3",
   "date": "2026-09-13",
   "branch": "reverse/mod-completion-20260907",
   "target": {
@@ -8,7 +8,7 @@
     "image_base": "0x140000000",
     "status": "EXE_CONFIRMED"
   },
-  "status": "EXE_CONFIRMED_SCM_TO_D3D11_SHADER_BIND",
+  "status": "EXE_CONFIRMED_SCM_TO_D3D11_SHADER_RESOURCE_SAMPLER_BIND",
   "retail_source_flag_census": {
     "objects_total": 345,
     "source_mask_00080000_objects": 46,
@@ -50,6 +50,8 @@
     "packed_register_map_table":"0x14055D110",
     "packed_register_map_values":[0,1,2,3,4,5,6,7,8,9,10,127,12,13,127,127],
     "lower_state_dispatcher":"0x14002CD60",
+    "common_gs_state_store":"0x14002D80E writes payload qword to 0x1405D91D0 + register_address*8",
+    "important_correction":"TEX0_1/TEX1_1/MIPTBP1_1 are not no-op merely because they lack unique special handlers. Their payloads pass through the common GS-state store; TEX0_1 at address 0x06 therefore lands at 0x1405D9200 and CLAMP_1 at 0x08 at 0x1405D9210.",
     "scm_geometry_tag": {
       "constructor":"0x14030A320..0x14030A38D",
       "tag_formula":"((runtimeObject+0x98 & 0x7F8) | 5) << 47 | 0x0000400000008000 | 0x3000000000000000",
@@ -114,6 +116,40 @@
     "selector_6":"exits before shader binding; no VS base key",
     "status":"EXE_CONFIRMED"
   },
+  "texture_to_d3d11": {
+    "serialized_source":"SCM mesh +0x02 texture_index",
+    "companion_resource_identity":"external companion runtime source record +0x06 = gs_base_pointer_units = TEX0.TBP0 low14 resource key",
+    "chain":[
+      "0x1402F9890 indexes the external runtime texture table by mesh.texture_index*0x40 and copies descriptor+0x20 TEX0 into runtime mesh state",
+      "SCM material GIF packet emits TEX0_1 A+D address 0x06",
+      "0x14002CD60 -> common state store 0x14002D80E writes TEX0_1 qword to 0x1405D9200",
+      "0x14002BC30 chooses active TEX0_1 0x1405D9200 or TEX0_2 0x1405D9208 from compatibility context state",
+      "0x14002CC10 masks active TEX0 with 0x3FFF and calls registry lookup 0x140033350",
+      "texture companion creation path 0x1403365B0/0x1403366E0 creates texture resource objects; 0x140331970 reads record+0x06 and registers the object through 0x140033370 in the same 0x1405E1830 registry",
+      "texture resource vtable 0x1404C5388 slot +0x08 = 0x140046900 -> 0x140046910",
+      "0x140046910 obtains resource+0x30 SRV and calls 0x14004C290 PSSetShaderResources; missing resource clears PS SRV slot 0",
+      "0x140046910 then calls 0x1400469C0 when sampler flags changed; 0x1400469C0 builds D3D11_SAMPLER_DESC and calls 0x14004C1D0 PSSetSamplers"
+    ],
+    "registry":"0x1405E1830",
+    "resource_key_mask":"0x3FFF",
+    "d3d_wrappers": {
+      "0x14004C290":"ID3D11DeviceContext::PSSetShaderResources, vtable +0x40",
+      "0x14004C1D0":"ID3D11DeviceContext::PSSetSamplers, vtable +0x50"
+    },
+    "status":"EXE_CONFIRMED_TO_D3D11_RESOURCE_AND_SAMPLER_BIND"
+  },
+  "clamp_to_d3d11_sampler": {
+    "active_state":"0x14002BC30 reads CLAMP_1 0x1405D9210 or CLAMP_2 0x1405D9218",
+    "projection":"normal path starts flags=1; WMS 1 or 2 sets U-clamp flag 0x02; WMT 1 or 2 sets V-clamp flag 0x04",
+    "d3d_sampler_builder":"0x1400469C0 copies a 0x34-byte D3D11_SAMPLER_DESC, modifies Filter at +0x00, AddressU +0x04 and AddressV +0x08, then 0x14004C1D0 calls PSSetSamplers",
+    "normal_filter":"flag bit0 yields D3D11 Filter=0x55 (D3D11_FILTER_ANISOTROPIC)",
+    "address_projection": {
+      "legacy_modes_1_or_2":"D3D11_TEXTURE_ADDRESS_CLAMP = 3",
+      "legacy_modes_0_or_3":"D3D11_TEXTURE_ADDRESS_WRAP = 1"
+    },
+    "region_repeat_boundary":"SCM REGION_REPEAT encodes WMS=WMT=3; the generic D3D11 sampler bridge therefore leaves AddressU/AddressV as WRAP. Serialized MINU/MAXU/MINV/MAXV remain in compatibility GS state, but no additional provenance-clean D3D11 sampler consumer of those MIN/MAX fields is promoted. This is not a global-unused claim.",
+    "status":"EXE_CONFIRMED_BOUNDED_D3D11_PROJECTION"
+  },
   "scm_mesh_converter_to_shader": {
     "provenance": [
       "0x140309DF0 emits compatibility command 0x57000000",
@@ -128,18 +164,25 @@
       "0x14004C140 reaches ID3D11DeviceContext::PSSetShader (vtable +0x48)"
     ],
     "vs_boundary":"Base VS mapping for selectors 2..12 is exact. SCM source initialization produces 2/3, both base key 13. A conditional +0x40 runtime variant exists downstream and is not assigned an artistic shader name.",
-    "ps_boundary":"PS binding itself is EXE-confirmed, but the complete numeric PS-key formula still depends on auxiliary mesh/runtime state and conditional +0x20/+0x40 variants. Do not infer a one-to-one PS family from source flag 0x00080000.",
+    "ps_numeric_formula": {
+      "base_key_producer":"0x14002CC10 stores (active_TEX0 >> 36) & 3 at global 0x1405D95D8",
+      "aux_override":"0x140044310 forces base key 4 when the auxiliary descriptor exists and byte+7>0 or byte+3>0",
+      "variant_0x20":"when globals 0x140C0CDD1 and 0x140553009 are both nonzero, PS key receives +0x20 while VS key receives +0x40",
+      "variant_0x40":"0x140044310 forms PS candidate base|0x40 and selects it when the runtime condition derived from [0x1405E1728]+0x28 is active",
+      "boundary":"Numeric table-key operations are EXE-confirmed. The high-level artistic meaning of the auxiliary/global variant gates is intentionally not named."
+    },
     "status":"EXE_CONFIRMED_TO_D3D11_SHADER_BIND"
   },
   "d3d11_backend": {
-    "context_global":"0x140C0B420",
+    "context_global":"0x140C0B420 / wrapper-owned context roots",
     "wrappers":[
       {"va":"0x14004C340","operation":"VSSetShader","context_vtable_offset":"0x58","scm_source_provenance":"closed"},
-      {"va":"0x14004C140","operation":"PSSetShader","context_vtable_offset":"0x48","scm_source_provenance":"closed to bind; exact PS key formula remains open"},
+      {"va":"0x14004C140","operation":"PSSetShader","context_vtable_offset":"0x48","scm_source_provenance":"closed to numeric table-key formula"},
+      {"va":"0x14004C290","operation":"PSSetShaderResources","context_vtable_offset":"0x40","scm_source_provenance":"closed through TEX0.TBP0 companion-resource registry"},
+      {"va":"0x14004C1D0","operation":"PSSetSamplers","context_vtable_offset":"0x50","scm_source_provenance":"closed through active CLAMP compatibility state and texture bind"},
       {"va":"0x1400460E0","operation":"Map -> copy -> Unmap -> VSSetConstantBuffers","context_vtable_offsets":["0x70","0x78","0x38"]},
       {"va":"0x140045F00","operation":"Map -> copy -> Unmap -> PSSetConstantBuffers","context_vtable_offsets":["0x70","0x78","0x80"]},
-      {"va":"0x140043F90","operation":"draw wrapper: input/index/topology setup then DrawIndexed or Draw","context_vtable_offsets":["0x98","0xC0","0x60","0x68"]},
-      {"va":"0x14003F7A0/0x14003F580","operation":"texture/SRV/sampler binding family","context_vtable_offsets":["0x40","0x50"],"scm_source_provenance":"backend family confirmed; exact SCM TEX0/TEX1/CLAMP/MIPTBP1 -> D3D11 SRV/sampler slot chain remains open"}
+      {"va":"0x140043F90","operation":"draw wrapper: input/index/topology setup then DrawIndexed or Draw","context_vtable_offsets":["0x98","0xC0","0x60","0x68"]}
     ]
   },
   "rejected_overclaim": {
@@ -149,14 +192,16 @@
     "status":"REJECTED_AS_SCM_SPECIFIC_SHADER_EVIDENCE"
   },
   "remaining_frontier":[
-    "derive the complete numeric PS table-key formula for every SCM mesh/auxiliary/runtime-state combination in 0x140044310/0x140045FE0",
-    "bind SCM TEX0/TEX1/CLAMP/MIPTBP1 state to the exact D3D11 SRV and sampler slots behind 0x14003F7A0/0x14003F580 with source-level provenance",
+    "recover the high-level technical role, if any, of runtimeObject+0x98 beyond its confirmed compatibility/context control effects without renaming it from speculation",
+    "determine whether REGION_REPEAT MIN/MAX have any additional source-proven HD consumer outside the bounded D3D11 sampler projection; preserve exactly regardless",
     "keep object source bit 0x00200000 preservation-only until a source-proven semantic consumer is recovered"
   ],
   "closed_frontier":[
     "runtimeObject+0x05 producer and source flag 0x00080000 projection",
     "selector 2/3 -> VS base key 13 and full selector 2..12 VS-base jump table",
     "real SCM material GIF packet TEX0_1/TEX1_1/CLAMP_1/MIPTBP1_1 register ABI",
-    "SCM compatibility command path to ID3D11DeviceContext::VSSetShader and PSSetShader"
+    "SCM compatibility command path to ID3D11DeviceContext::VSSetShader and PSSetShader",
+    "SCM mesh.texture_index -> TEX0.TBP0 -> companion texture registry -> PSSetShaderResources",
+    "active CLAMP WMS/WMT -> D3D11_SAMPLER_DESC AddressU/AddressV -> PSSetSamplers"
   ]
 }

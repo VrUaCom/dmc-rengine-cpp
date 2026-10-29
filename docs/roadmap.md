@@ -1,10 +1,10 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-09-11  
+**Snapshot:** 2026-09-13  
 **Canonical base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
 **Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT consolidation and container gates (merged after PR #375)  
 **Latest public/status reconciliation:** PR #375 — MOD Writer Gate 1 roadmap/learning reconciliation  
-**Active branch advancement:** `reverse/mod-completion-20260907` — bounded MOT runtime channel path + animated-local EXE acquisition gate  
+**Active branch advancement:** `reverse/mod-completion-20260907` — bounded MOT runtime channel path + SCM real size-changing canonical rebuild/PAC reflow + animated-local EXE acquisition gate  
 **Native Reader registry authority:** directly verified on current `main`  
 **Completion model:** evidence-gated, not percentage-gated.
 
@@ -30,6 +30,7 @@ Synthetic tests and CI prove DMC Rengine behavior only. They do not by themselve
 - ⚠️ PAC/PNST size-changing/nested authoring exists; original-game acceptance remains open.
 - ✅ MOD Writer Gate 1 + writer receipt bridge are canonical (#365/#369).
 - ✅ Provenance-bound real retail PNST reintegration of an authored MOD child is canonical (#372): target physical slot 23 in `m20_s00_012.pac`, unchanged parent size/slot table, only three expected child bytes changed, exact authored MOD recovered after reparse/re-expand.
+- ✅ Branch evidence in PR #386 closes one real SCM size-changing PAC reflow class: `st001.scm` grows by 16 bytes under deterministic `canonical_rebuild`, real `st001.pac` grows by the same 16 bytes, reopened physical slot 2 equals the exact authored SCM, and all seven non-target top-level slots remain byte-identical.
 - ✅ Synthetic MOD -> container -> next-volume NBZ overlay -> reopen is regression-proven (#372).
 - ❌ Provenance-bound retail NBZ selection/consumption by the original runtime remains open.
 
@@ -37,7 +38,7 @@ Synthetic tests and CI prove DMC Rengine behavior only. They do not by themselve
 
 - ❌ trusted original resolver-selected provenance;
 - ❌ exact representation classification for that selected lineage;
-- ⚠️ retail PNST reintegration is proven independently, but the same-lineage original-selected -> authored-overlay -> rematerialized chain remains open;
+- ⚠️ real retail MOD PNST and SCM PAC reintegration are proven independently, but the same-lineage original-selected -> authored-overlay -> rematerialized chain remains open;
 - ❌ original runtime selects authored higher-numbered NBZ;
 - ❌ deterministic consumer-visible effect;
 - ❌ rollback proving retail immutability;
@@ -110,7 +111,7 @@ This corrects older roadmap/status snapshots that omitted MOT and the SO module 
 
 ### SCM
 
-PR #372 promotes one selected canonical bounded authoring stack:
+PR #372 promotes one selected canonical bounded authoring stack, with PR #386 branch evidence advancing the real-retail reflow boundary:
 
 - ✅ `preserve_layout` same-layout authoring;
 - ✅ deterministic `canonical_rebuild` typed-IR layout planning;
@@ -118,8 +119,13 @@ PR #372 promotes one selected canonical bounded authoring stack:
 - ✅ dependent metadata derivation and mandatory canonical output reparse;
 - ✅ source-bound mutation guards and fail-closed reflow on non-zero unmodeled source bytes;
 - ✅ bounded texture-companion coherence through `ScmResourceBundleWriter`;
-- ✅ 78 paths / 68 unique inputs: 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical no-edit exact parity.
-- ❌ provenance-bound representative semantic edits, retail texture rewrite, real-retail size-changing rebuild, SCM PAC/PNST/NBZ reintegration and original-game acceptance remain open.
+- ✅ 78 paths / 68 unique inputs: 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical no-edit exact parity;
+- ✅ real hash-bound same-layout alpha-control, node-translation and node-rotation receipts through parent PAC reintegration/reopen;
+- ✅ PR #386 branch receipt: real hash-bound `st001.scm` size-changing canonical rebuild, 167 -> 168 vertices in object 0 / mesh 0, 887,760 -> 887,776 bytes, 118 -> 118 non-degenerate triangles;
+- ✅ PR #386 branch receipt: real `st001.pac` packed reflow, 4,632,960 -> 4,632,976 bytes, exact authored slot-2 rematerialization and byte-exact preservation of all seven non-target top-level physical slots.
+- ❌ provenance-bound retail texture rewrite, broader PNST authored delivery, retail NBZ authored-resource delivery/resolver selection and original-game acceptance remain open.
+
+Machine receipt: `data/reverse/dmc3-scm-real-size-changing-pac-reintegration-attestation-20260913.json`.
 
 ### MOT
 
@@ -164,10 +170,11 @@ Execution frontier:
 3. ✅ MOD Gate 1/no-op/controlled edit (#365/#368/#369);
 4. ✅ MOD real retail PNST + synthetic NBZ reopen (#372);
 5. ✅ SCM writer/corpus and MOT parser/key-evaluation consolidation (#372);
-6. ❌ protected-process mapping/selected identity;
-7. ❌ same-lineage original-process authored overlay selection/rematerialization;
-8. ❌ deterministic original consumer effect + rollback;
-9. ❌ final independent L1/L2/L3 audits.
+6. ✅ SCM real size-changing canonical rebuild + real PAC packed reflow/reopen (#386 branch receipt);
+7. ❌ protected-process mapping/selected identity;
+8. ❌ same-lineage original-process authored overlay selection/rematerialization;
+9. ❌ deterministic original consumer effect + rollback;
+10. ❌ final independent L1/L2/L3 audits.
 
 ## 7. Completion rule
 

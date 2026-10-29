@@ -1,0 +1,195 @@
+{
+  "status": "PASS",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "unicorn_version": "2.1.4",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "differential_cases": 24,
+  "cases": [
+    {
+      "entry": "0x140021a20",
+      "pattern": 0,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 0,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 1,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 1,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 2,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 2,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 3,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 3,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 4,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 4,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 5,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x140021a20",
+      "pattern": 5,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 1536
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 0,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 0,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 1,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 1,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 2,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 2,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 3,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 3,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 4,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 4,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 5,
+      "registration_status": 0,
+      "byte_equal": true,
+      "writes": 49
+    },
+    {
+      "entry": "0x1400236a0",
+      "pattern": 5,
+      "registration_status": -1,
+      "byte_equal": true,
+      "writes": 49
+    }
+  ],
+  "caller_skeletons_checked": 79,
+  "argument_sites_checked": 143,
+  "app_exit_registration_bindings_checked": 69,
+  "vector_construction_sites_checked": 11,
+  "source_sha256": {
+    "include/dmc_rengine/reverse/crt_global_initializers.hpp": "344d0ae08af0217ea0879816716f82e9a9e4c6ed56c955e46ebe16bbf274cc8c",
+    "src/reverse/crt_global_initializers.cpp": "fc7b1978c8ca84d4fe701a777aa54c5ffb656bf3abdb4610ae574abedbb618a4",
+    "tests/reverse/crt_initializer_bridge.cpp": "02a1ffae9bb17ef43db1a655cd0ae82c34f0eae029858317c274133c5223f9e2",
+    "scripts/reverse/canonical_image.py": "e409af8ba41756c6f36dca1096cc5c0f1da11cb189f4b7858003e904cdfa22ba",
+    "scripts/reverse/audit_crt_lifecycle.py": "152937ea7685f0cc36d8756cce0167686ed56f0ff7eb625643953d2d72ccd4a5",
+    "scripts/reverse/verify_crt_lifecycle.py": "a08a960fcc170c30d7cb313bd6ad2f0f0c512145cfa5716c5b15880d12b8a037"
+  },
+  "limitations": [
+    "The two initializers run through their memory operations; exit registration is intercepted.",
+    "The 79 caller-skeleton checks stub all callees and cover reached paths only; they do not run real constructors.",
+    "Four CRT platform initializer bodies are statically catalogued, not emulated here.",
+    "No canonical game runtime acceptance or full object-lifecycle claim."
+  ]
+}

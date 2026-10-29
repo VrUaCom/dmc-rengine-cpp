@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "direct_edges_verified_from_bytes": 99015,
+  "switch_edges": 49,
+  "switch_table_slots_verified": 66,
+  "instruction_boundaries_checked": 611752,
+  "checks": [
+    "direct displacements",
+    "edge endpoint closure",
+    "call/conditional fallthrough",
+    "no overlapping instructions",
+    "confirmed tables excluded from instruction starts",
+    "switch slots and remap match EXE",
+    "second decoder length agreement"
+  ]
+}

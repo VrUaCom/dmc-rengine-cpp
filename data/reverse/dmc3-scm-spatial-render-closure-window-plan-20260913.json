@@ -1,0 +1,135 @@
+{
+  "schema": "dmc-rengine.scm-spatial-render-closure-window-plan.v1",
+  "date": "2026-09-13",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "reason": "Native Reader can reconstruct the confirmed SCM hierarchy and world matrices, but correct stage-object placement is still not empirically reproduced. Existing reverse evidence closes serialized positions and node world propagation separately, while the object/node attachment -> per-object render transform -> MDL_GLOBAL_MAT -> stage vertex-position chain is not yet closed end-to-end.",
+  "do_not_assume": [
+    "Do not assume serialized SCM positions are final world-space positions.",
+    "Do not assume every SCM vertex must be CPU-transformed by objectBindingByNodeIndex world matrix until the EXE draw path proves it.",
+    "Do not assume SCM manager root/base matrix +0x1B0 is identity without SCM-provenanced producer evidence.",
+    "Do not infer geometry transform semantics from the header +0x13 lighting-reference world-matrix consumer; that path is lighting-specific.",
+    "Do not treat writer/reintegration success as original-game spatial-render acceptance."
+  ],
+  "already_confirmed": [
+    "0x140303C10 enters SCM scene setup.",
+    "0x1402F1DB0 binds parent/order/object-binding/transform arrays.",
+    "0x1402FA360 builds SCM local transforms using XYZ radians and serialized translation.",
+    "0x1402F9700 propagates world matrices as local * parentOrRootWorld.",
+    "0x1402F9BB0 materializes serialized position float3 streams.",
+    "0x1402FD040 is the CDrawSCM path.",
+    "0x1402FC850 writes SCM draw constant-buffer state.",
+    "0x1402FAB70 independently establishes the MDL_GLOBAL_MAT constant block at +0x200/+0x240.",
+    "0x140300740 dispatches SCM pass 4 to per-object command builders 0x140300150 or 0x140305440.",
+    "0x14030A705 emits the active 0x5B00001C mesh descriptor used by the HD backend compatibility path."
+  ],
+  "priority_windows": [
+    {
+      "id": "scm-global-matrix-producer-1402fab70",
+      "va": "0x1402FA900",
+      "size": "0x700",
+      "priority": "P0",
+      "purpose": "Recover 0x1402FAB70 completely. Identify every input pointer/value used to build MDL_GLOBAL_MAT at constant-buffer +0x200/+0x240. Prove whether the source is manager root/base, scene-node world, per-object runtime matrix, camera/view state, or a composition. Enumerate direct callers and SCM-provenanced call sites."
+    },
+    {
+      "id": "scm-cdraw-object-to-global-matrix-1402fd040",
+      "va": "0x1402FCF00",
+      "size": "0x900",
+      "priority": "P0",
+      "purpose": "Trace CDrawSCM object/mesh iteration into the 0x1402FAB70 global-matrix producer. Record the exact runtime object pointer, node/attachment index if present, matrix pointer, and branch conditions for each draw. Keep the known header+0x13 lighting-reference lookup separate from geometry placement."
+    },
+    {
+      "id": "scm-root-base-producer-xref-census",
+      "va": "0x140303C10",
+      "size": "0x900",
+      "priority": "P0",
+      "purpose": "From SCM setup, census all writes/initializers feeding manager+0x1B0 root/base matrix before 0x1402F9700. Prove whether canonical stage SCM receives identity, a stage/game transform, or another runtime matrix. Follow callers/xrefs beyond this acquisition window when the producer is external."
+    },
+    {
+      "id": "scm-object-attachment-runtime-consumer-1402fa360",
+      "va": "0x1402FA200",
+      "size": "0x900",
+      "priority": "P0",
+      "purpose": "Recover the SCM-specific consumption of the third scene array during 0x1402FA360 initialization. Identify the runtime field written from objectBindingByNodeIndex and follow all later reads of that field into update/culling/queue/draw code. The closure target is a typed path from serialized object binding to the matrix used for the matching geometry object."
+    },
+    {
+      "id": "scm-pass4-object-builder-a-140300150",
+      "va": "0x1402FFF00",
+      "size": "0x900",
+      "priority": "P1",
+      "purpose": "Trace per-object pass-4 command construction for manager+0xE0 bit1 clear. Record all object/node/matrix references copied into queue records and determine whether a transform selector or matrix pointer is encoded before queue drain."
+    },
+    {
+      "id": "scm-pass4-object-builder-b-140305440",
+      "va": "0x140305300",
+      "size": "0x900",
+      "priority": "P1",
+      "purpose": "Trace the alternate per-object pass-4 command construction for manager+0xE0 bit1 set. Record transform-bearing state and compare field-for-field with 0x140300150."
+    },
+    {
+      "id": "scm-pass4-queue-drain-a-1403081f0",
+      "va": "0x140308080",
+      "size": "0x700",
+      "priority": "P1",
+      "purpose": "Follow queue entries from 0x140300150 to their executor. Identify where current object/mesh state becomes CDrawSCM/global-matrix input."
+    },
+    {
+      "id": "scm-pass4-queue-drain-b-140308470",
+      "va": "0x140308300",
+      "size": "0x700",
+      "priority": "P1",
+      "purpose": "Follow queue entries from 0x140305440 to their executor. Compare matrix/object state with the sibling drain and locate convergence before draw submission."
+    },
+    {
+      "id": "scm-mesh-descriptor-emitter-14030a705",
+      "va": "0x14030A500",
+      "size": "0x700",
+      "priority": "P1",
+      "purpose": "Decode all 0x1C dwords of the 0x5B00001C mesh descriptor emitted at 0x14030A705. Determine whether any field carries object transform identity, matrix address/index, vertex base, or per-draw constant-state selector rather than only input-layout/material state."
+    },
+    {
+      "id": "scm-mesh-descriptor-consumer-140032d7a",
+      "va": "0x140032C80",
+      "size": "0x500",
+      "priority": "P1",
+      "purpose": "Track the 0x5B mesh descriptor through the converter and isolate fields forwarded toward render/input selection versus constant-buffer state."
+    },
+    {
+      "id": "scm-global-matrix-upload-1402fc850",
+      "va": "0x1402FC700",
+      "size": "0x900",
+      "priority": "P0",
+      "purpose": "Map every write into the SCM constant-buffer region around +0x200..+0x2FF. Distinguish MDL_GLOBAL_MAT at +0x200/+0x240 from MDL_LIGHT_MAT at +0x280 and prove upload order/lifetime for one geometry object."
+    },
+    {
+      "id": "scm-stage-vs-global-matrix-consumer",
+      "va": "0x140045FE0",
+      "size": "0x800",
+      "priority": "P0",
+      "purpose": "From the confirmed stage VS table selection, bind the selected DMC3_STG vertex variant to the embedded HLSL/compiled ABI and recover the exact POSITION transform formula consuming MDL_GLOBAL_MAT. Determine whether input POSITION is expected in object-local, scene-local, stage-world, or already transformed space. Follow to VSSetShader 0x14004C340."
+    }
+  ],
+  "required_closure_proofs": [
+    "serialized object index -> scene attachment node or explicit proof that geometry does not use that binding",
+    "attachment/current-object state -> exact matrix input of 0x1402FAB70",
+    "SCM root/base matrix producer and value domain",
+    "MDL_GLOBAL_MAT construction -> constant-buffer +0x200/+0x240",
+    "DMC3_STG vertex POSITION -> exact MDL_GLOBAL_MAT multiplication formula",
+    "one complete object draw traced from serialized SCM position bytes to final vertex-shader input/output space"
+  ],
+  "native_reader_acceptance": {
+    "current_behavior": "SCM adapter calls build_world_matrices(scene) with identity root_base, maps each geometry object to its bound node, and scene_projection CPU-transforms every serialized vertex by node.world.",
+    "status": "SEMANTIC_CANDIDATE_UNTIL_RENDER_CHAIN_CLOSED",
+    "required_ab_tests": [
+      "raw serialized positions with no node transform",
+      "local node transform only",
+      "confirmed hierarchical node world with identity root",
+      "confirmed hierarchical node world with EXE-proven SCM root/base",
+      "EXE-proven final geometry matrix path"
+    ],
+    "rule": "Do not promote a Native Reader placement fix solely because one stage looks plausible; require st001/st002 plus a multi-SCM corpus regression and evidence-linked matrix policy."
+  },
+  "status": "RESEARCH_REQUIRED"
+}

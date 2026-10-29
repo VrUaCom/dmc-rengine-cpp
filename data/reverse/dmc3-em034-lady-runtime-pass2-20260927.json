@@ -1,0 +1,373 @@
+{
+  "schema": "dmc-rengine.em034-lady-runtime-pass2.v1",
+  "date": "2026-09-27",
+  "state_setter": {
+    "function": "0x14016A410",
+    "state_field": "+0x5990",
+    "secondary_vtable": "0x1404D84A0",
+    "both_lane_adjustor": "0x14016AD40",
+    "evidence": "EXE_CONFIRMED"
+  },
+  "script_start": {
+    "router": "0x140171AB0",
+    "primitive": "0x14005A1F0",
+    "lanes": {
+      "0": "+0x5070",
+      "1": "+0x5190",
+      "-1": "both"
+    },
+    "evidence": "EXE_CONFIRMED"
+  },
+  "bank4_state_formula": "action = state - 0x53",
+  "state_actions": {
+    "0x56": 3,
+    "0x57": 4,
+    "0x58": 5,
+    "0x59": 6,
+    "0x5E": 11,
+    "0x60": 13,
+    "0x61": 14,
+    "0x7F": 44,
+    "0x81": 46,
+    "0x85": 50,
+    "0x8F": 60
+  },
+  "slot20_controller_gate": {
+    "field": "+0x4020",
+    "attached_mode": 1,
+    "independent_script_tick_mode": 0,
+    "independent_controller": "+0x52B0",
+    "evidence": "EXE_CONFIRMED"
+  },
+  "actions": {
+    "13": {
+      "state": "0x60",
+      "entry_attachment": [
+        {
+          "slot": 20,
+          "mode": 1
+        },
+        {
+          "slot": 24,
+          "mode": 1
+        }
+      ],
+      "signals": [
+        [
+          2,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          3,
+          [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          5,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          8,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          14,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          17,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          20,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "44": {
+      "state": "0x7F",
+      "entry_attachment": [
+        {
+          "slot": 21,
+          "mode": 1
+        },
+        {
+          "slot": 22,
+          "mode": 1
+        }
+      ],
+      "signals": [
+        [
+          14,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          21,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          28,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "dynamic_actor": "CEm034Shl00 on lane1 channel0==1",
+      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "46": {
+      "state": "0x81",
+      "entry_attachment": [
+        {
+          "slot": 23,
+          "mode": 1
+        }
+      ],
+      "transitions": [
+        {
+          "frame": 78,
+          "slot": 23,
+          "mode": 0,
+          "source": "lane1 channel2==1"
+        }
+      ],
+      "signals": [
+        [
+          1,
+          [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          27,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          32,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          37,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          42,
+          [
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          78,
+          [
+            0,
+            0,
+            1,
+            0,
+            0
+          ]
+        ]
+      ],
+      "dynamic_actor": "CEm034Shl05 on lane1 channel0==1",
+      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "50": {
+      "state": "0x85",
+      "transitions": [
+        {
+          "frame": 10,
+          "slot": 24,
+          "mode": 1,
+          "source": "lane1 channel1==1"
+        },
+        {
+          "frame": 64,
+          "slot": 24,
+          "mode": 0,
+          "source": "lane1 channel1==2"
+        }
+      ],
+      "signals": [
+        [
+          10,
+          [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          25,
+          [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          39,
+          [
+            2,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          64,
+          [
+            0,
+            2,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "evidence": "EXE_AND_CORPUS_CONFIRMED",
+      "runtime_flag_path": [
+        {
+          "frame": 25,
+          "channel": 0,
+          "value": 1,
+          "effect": "+0x57DD flag/timer on"
+        },
+        {
+          "frame": 39,
+          "channel": 0,
+          "value": 2,
+          "effect": "+0x57DD flag/timer off"
+        }
+      ],
+      "correction": "Live canonical-EXE revalidation: frame39 channel0==2 is not an attachment reset; frame64 channel1==2 restores component4/slot24 preset0."
+    }
+  },
+  "dynamic_resources": {
+    "slot25": {
+      "actor": "CEm034Shl02",
+      "states": [
+        "0x56",
+        "0x57",
+        "0x58"
+      ],
+      "actions": [
+        3,
+        4,
+        5
+      ],
+      "trigger": "lane1 channel0==1 at frame4",
+      "resource_slots": [
+        19,
+        25
+      ],
+      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "slots26_30": {
+      "actor": "CEm034Shl03",
+      "state": "0x5E",
+      "action": 11,
+      "trigger": "immediate external creation after state transition",
+      "resource_slots": [
+        19,
+        26,
+        29,
+        30
+      ],
+      "evidence": "EXE_AND_CORPUS_CONFIRMED"
+    }
+  },
+  "rejected": [
+    "slots20-26/30 as one persistent attachment",
+    "single scalar Lady weapon state",
+    "single MotionScriptFile per actor PAC",
+    "slot20 always follows host joint"
+  ]
+}

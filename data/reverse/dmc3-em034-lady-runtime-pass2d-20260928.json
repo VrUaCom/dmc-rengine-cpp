@@ -1,0 +1,111 @@
+{
+  "schema": "dmc-rengine.em034-lady-runtime-pass2d.v1",
+  "date": "2026-09-28",
+  "branch": "reverse/em034-lady-runtime-20260927",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": "CEm034Shl00..05 inheritance, inherited actor subobject layout, and destruction entrypoints",
+  "evidence": "EXE_CONFIRMED",
+  "inheritance": {
+    "CEm034Shl00": "CShell",
+    "CEm034Shl01": "CShell",
+    "CEm034Shl02": "CShell",
+    "CEm034Shl03": "CShell",
+    "CEm034Shl04": "CShell",
+    "CEm034Shl05": "CShell",
+    "CShell": "CActor",
+    "CActor_bases": [
+      "CWork",
+      "IActor",
+      "ICollisionHandle"
+    ]
+  },
+  "shared_polymorphic_heads": [
+    {
+      "offset": "0x000",
+      "role": "primary CWork/CActor/CShell-derived head"
+    },
+    {
+      "offset": "0x060",
+      "role": "secondary actor-interface head"
+    },
+    {
+      "offset": "0x0D0",
+      "role": "secondary collision-interface head"
+    }
+  ],
+  "control_crosscheck": {
+    "class": "CEm034",
+    "primary_vtable": "0x1404D80E8",
+    "atlas_first_virtual_target": "0x140168840",
+    "independent_identity": "CEm034 deleting destructor",
+    "conclusion": "primary vtable slot 0 is the deleting-destructor entry"
+  },
+  "classes": {
+    "CEm034Shl00": {
+      "size": "0x540",
+      "factory": "0x140172240",
+      "cols": ["0x5157C0", "0x515860", "0x515888"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D8588", "0x1404D85D0", "0x1404D86C8"],
+      "first_virtual_targets": ["0x1401721D0", "0x1401721AC", "0x1401721B8"],
+      "deleting_destructor": "0x1401721D0"
+    },
+    "CEm034Shl01": {
+      "size": "0x560",
+      "factory": "0x1401729D0",
+      "cols": ["0x5158B0", "0x515950", "0x515978"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D8738", "0x1404D8780", "0x1404D8878"],
+      "first_virtual_targets": ["0x140172960", "0x14017293C", "0x140172948"],
+      "deleting_destructor": "0x140172960"
+    },
+    "CEm034Shl02": {
+      "size": "0xD80",
+      "factory": "0x140173620",
+      "cols": ["0x5159A0", "0x515A40", "0x515A68"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D88E8", "0x1404D8930", "0x1404D8A28"],
+      "first_virtual_targets": ["0x1401735E0", "0x1401735BC", "0x1401735C8"],
+      "deleting_destructor": "0x1401735E0"
+    },
+    "CEm034Shl03": {
+      "size": "0x1540",
+      "factory": "0x1401745F0",
+      "cols": ["0x515A90", "0x515B30", "0x515B58"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D8A98", "0x1404D8AE0", "0x1404D8BD8"],
+      "first_virtual_targets": ["0x140174010", "0x140173FEC", "0x140173FF8"],
+      "deleting_destructor": "0x140174010"
+    },
+    "CEm034Shl04": {
+      "size": "0x540",
+      "factory": "0x140175210",
+      "cols": ["0x515B80", "0x515C20", "0x515C48"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D8C48", "0x1404D8C90", "0x1404D8D88"],
+      "first_virtual_targets": ["0x1401751A0", "0x14017517C", "0x140175188"],
+      "deleting_destructor": "0x1401751A0"
+    },
+    "CEm034Shl05": {
+      "size": "0x540",
+      "factory": "0x140175B10",
+      "cols": ["0x515C70", "0x515D10", "0x515D38"],
+      "offset_to_top": ["0x0", "0x60", "0xD0"],
+      "vtables": ["0x1404D8DF8", "0x1404D8E40", "0x1404D8F38"],
+      "first_virtual_targets": ["0x140175AA0", "0x140175A7C", "0x140175A88"],
+      "deleting_destructor": "0x140175AA0"
+    }
+  },
+  "architectural_conclusion": {
+    "persistent_equipment_domain": "slots20..24 remain CEm034-owned component/control domains",
+    "dynamic_actor_domain": "Shl00..05 are independent CShell/CActor instances with actor and collision lifecycle",
+    "rejected": "modeling Shl lifetime as a visibility state of persistent equipment slots20..24"
+  },
+  "open": [
+    "exact per-class retire/remove trigger",
+    "actor-manager/remove call reaching deleting destructor",
+    "possible pre-retire render disable state",
+    "gameplay/artistic names for Shl00..05",
+    "complete persistent slots20..24 visibility semantics"
+  ]
+}

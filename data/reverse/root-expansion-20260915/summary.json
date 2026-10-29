@@ -1,0 +1,48 @@
+{
+  "schema": "dmc3-static-cfg-v2",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "capstone_version": "5.0.7",
+  "status": "STRUCTURAL_CONFIRMED",
+  "semantic_completion_claim": false,
+  "seed_count": 19683,
+  "runtime_range_count": 12235,
+  "visited_instruction_starts": 633647,
+  "excluded_confirmed_data_seeds": 5,
+  "resolved_switch_sites": 6,
+  "visited_instruction_bytes_sum": 2837178,
+  "decode_failures": 0,
+  "overlapping_instructions": 0,
+  "outside_executable_targets": 0,
+  "transfer_counts": {
+    "call:direct": 38370,
+    "conditional:direct": 46402,
+    "jump:direct": 14800,
+    "jump:indirect_unresolved": 1386,
+    "call:indirect_unresolved": 8637,
+    "switch:direct": 49
+  },
+  "linear_first_token_bad_count": 3488,
+  "linear_all_bad_count": 3651,
+  "linear_all_bad_inside_ranges": 3292,
+  "zero_preserving_linear_all_bad_count": 3651,
+  "bad_dispositions": {
+    "not_visited": 3646,
+    "inside_visited_instruction": 5
+  },
+  "common_start_length_agreements": 633561,
+  "decoder_disagreements": 86,
+  "reanchored_length_agreements": 86,
+  "metadata_root_records": 10112,
+  "metadata_unique_targets": 7885,
+  "metadata_root_coverage": {
+    "visited_start": 10112
+  },
+  "vtable_anchor_file_sha256": "462a4727bca9d610bcbc56984d325cdb2c04159a49bbce70b2f8592ac79ed0d6",
+  "limitations": [
+    "Seeds are static metadata, not proof of execution.",
+    "Only six reviewed switch sites are resolved; other indirect jumps terminate traversal. With vtable_anchors supplied CRT targets, first vtable entries and direct unwind handlers are seeded, but other virtual slots and callbacks remain incomplete.",
+    "Calls conservatively assume fallthrough, including potentially noreturn functions.",
+    "Unvisited bytes are not proven data or unreachable.",
+    "Second-decoder comparison verifies lengths at common starts, not full instruction semantics."
+  ]
+}

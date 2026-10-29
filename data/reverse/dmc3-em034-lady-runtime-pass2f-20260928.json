@@ -1,0 +1,77 @@
+{
+  "schema": "dmc-rengine.em034-lady-runtime-pass2f.v1",
+  "date": "2026-09-28",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": "persistent CEm034 component visibility versus placement/control-domain semantics",
+  "status": "EXE_CONFIRMED_BOUNDED_CLOSED",
+  "components": {
+    "0": {"slot":20,"manager":"+0x08E8","constraint_host":"+0x4000","auxiliary":"+0x4080"},
+    "1": {"slot":21,"manager":"+0x0900","constraint_host":"+0x40C0","auxiliary":"+0x4140"},
+    "2": {"slot":22,"manager":"+0x0908","constraint_host":"+0x4180","auxiliary":"+0x4200"},
+    "3": {"slot":23,"manager":"+0x0910","constraint_host":"+0x4240","auxiliary":"+0x42C0"},
+    "4": {"slot":24,"manager":"+0x0930","constraint_host":"+0x4300","auxiliary":"+0x4380"}
+  },
+  "constraint": {
+    "type": "CCnsMatrix",
+    "evaluator": "0x1402CBBE0",
+    "initializer": "0x1402CBCB0",
+    "mode_field": "+0x28",
+    "parent_field": "+0x30",
+    "inline_matrix": "+0x40",
+    "local_matrix": "+0x80",
+    "mode_semantics": {
+      "1": "external parent matrix from +0x30",
+      "2": "inline matrix at +0x40",
+      "other": "generic constraint path 0x14030E9B0"
+    }
+  },
+  "placement_helper": {
+    "function": "0x1401713F0",
+    "preset0_table": "0x14057AFC0",
+    "preset1_table": "0x14057B0B0",
+    "record_stride": "0x30",
+    "effect": "rebind selected CCnsMatrix parent/local transform; not visibility"
+  },
+  "direct_manager_reference_census": {
+    "slot20": {
+      "count": 11,
+      "addresses": ["0x140168CD0","0x1401691E0","0x14016A5C8","0x14016CBB0","0x14016F44A","0x14016F63B","0x1401704AD","0x1401704F9","0x140170C94","0x140171146","0x1401715C9"]
+    },
+    "slot21": {
+      "count": 10,
+      "addresses": ["0x140168B92","0x14016930D","0x1401693FD","0x14016A919","0x14016F491","0x14016F4B4","0x1401705D0","0x140170620","0x140171163","0x140171564"]
+    },
+    "slot22": {
+      "count": 7,
+      "addresses": ["0x140168C31","0x14016F4C9","0x14016F4EC","0x1401706DF","0x14017072F","0x140171180","0x14017154D"]
+    },
+    "slot23": {
+      "count": 6,
+      "addresses": ["0x140168D8A","0x14016F501","0x1401707EE","0x14017083E","0x14017119D","0x1401714EE"]
+    },
+    "slot24": {
+      "count": 10,
+      "addresses": ["0x140168E29","0x140169508","0x1401695F8","0x14016F54A","0x14016F56D","0x1401708FD","0x14017094D","0x1401711BA","0x1401714D4","0x140171CA2"]
+    }
+  },
+  "negative_consumer_closure": [
+    "no gameplay clear/null of loaded slots20..24 manager fields",
+    "no manager+0x100 null detach in CEm034 component paths",
+    "no state transition using component CCnsMatrix +0x28=0",
+    "no script-conditioned MOD alpha/object-flag visibility operation",
+    "no opcode-3 channel routed to a distinct render enable/disable primitive"
+  ],
+  "slot20_special": {
+    "field":"+0x4020",
+    "meaning":"control-domain gate",
+    "body_constraint_value":1,
+    "independent_em034_013_tick_value":0,
+    "visibility_bit":false
+  },
+  "canonical_reader_model": {
+    "presence":"persistent-present when successfully loaded and owned by CEm034",
+    "placement":"preset0 | preset1",
+    "independent_visibility_toggle":false,
+    "do_not_infer_visibility_from_preset":true
+  }
+}

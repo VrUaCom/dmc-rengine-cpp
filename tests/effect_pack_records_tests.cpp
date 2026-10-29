@@ -11,10 +11,10 @@
 // manifest never claimed — which is why every effect record in that archive
 // reached the browser as a placeholder.
 //
-// The ten are byte-identical: a `0x31` word followed by twelve zeros, each in
-// the slot immediately after a record the manifest calls `M`. Setting exactly
-// those aside, line k names record k for all 173 — kind and identifier, in
-// order, with no exception. That mapping is what this file pins.
+// The canonical loader later closed the real rule: every manifest record
+// consumes one physical inner-PNST slot and M consumes one additional physical
+// slot unconditionally. The known 0x31/zero blocks are one companion payload
+// shape, not the rule. em034 additionally carries PTX M companions.
 //
 // The same corpus also moved two kind readings. `G` and `M` were absent from
 // the earlier two packs entirely, and `P` is not the fixed 704 those two
@@ -138,6 +138,62 @@ void a_companion_is_not_a_named_record() {
     }
 }
 
+// em034 proves the companion is not identified by the 0x31 byte constant.
+// Its M15/M18/M79 records carry populated PTX payloads in the immediately
+// following physical slot. The parser must consume that slot without trying to
+// reinterpret it as the next manifest record.
+void an_m_companion_can_be_an_arbitrary_payload() {
+    auto ptx = record_of(24160U, std::byte{0x5A});
+    ptx[0] = std::byte{'P'};
+    ptx[1] = std::byte{'N'};
+    ptx[2] = std::byte{'S'};
+    ptx[3] = std::byte{'T'};
+
+    const auto pack = make_pack(
+        "M 15\r\nV 423\r\n# End\r\n",
+        {
+            record_of(2000U, std::byte{0xD1}),
+            ptx,
+            record_of(368U, std::byte{0xD2}),
+        });
+
+    const auto parsed = formats::EffectPackParser::parse(pack);
+    assert(parsed.ok());
+    const auto& document = *parsed.document;
+    assert(document.records.size() == 2U);
+    assert(document.companion_record_count == 1U);
+    assert(document.records[0].kind == 'M');
+    assert(document.records[0].companion_slot_index == 1U);
+    assert(document.records[0].companion_populated);
+    assert(document.records[0].companion_extent == 24160U);
+    assert(document.records[1].kind == 'V');
+    assert(document.records[1].identifier == 423U);
+    assert(document.records[1].slot_index == 2U);
+}
+
+// The EXE advances over the physical M companion slot even when that slot has
+// offset zero. This is why companion authority must follow the loader cursor,
+// not the set of populated payloads.
+void an_m_companion_slot_can_be_empty() {
+    const auto pack = make_pack(
+        "M 17\r\nG 608\r\n# End\r\n",
+        {
+            record_of(2000U, std::byte{0xE1}),
+            std::nullopt,
+            record_of(96U, std::byte{0xE2}),
+        });
+
+    const auto parsed = formats::EffectPackParser::parse(pack);
+    assert(parsed.ok());
+    const auto& document = *parsed.document;
+    assert(document.populated_record_count == 2U);
+    assert(document.companion_record_count == 0U);
+    assert(document.records[0].companion_slot_index == 1U);
+    assert(!document.records[0].companion_populated);
+    assert(document.records[1].slot_index == 2U);
+    assert(document.records[1].kind == 'G');
+}
+
 // The rule the corpus contradicted. A pack with no companions still has to
 // hold, because that is what the earlier two packs are.
 void a_pack_without_companions_is_unchanged() {
@@ -171,10 +227,10 @@ void an_unexplained_extra_record_is_still_refused() {
     assert(parsed.error == formats::EffectPackParseError::line_count_mismatch);
 }
 
-// The companion is recognized by its bytes, not by what precedes it: all ten
-// in the corpus are the same sixteen bytes and none carries an identifier, so
-// an identifier match would have been a rule the payloads cannot support.
-void the_companion_is_a_constant() {
+// The old 0x31 companion payload remains recognizable for corpus inspection,
+ // but it is no longer used to decide whether a physical slot is an M
+ // companion.
+void the_observed_0x31_companion_shape_is_still_recognizable() {
     const auto companion = companion_record();
     assert(Contract::is_companion_record(companion));
 
@@ -216,6 +272,11 @@ void the_kind_table_carries_what_the_corpus_holds() {
 
     static_assert(!Contract::is_known_kind('Z'));
     static_assert(Contract::extent_for('Z') == 0U);
+
+    static_assert(Contract::manifest_read_site_found);
+    static_assert(Contract::runtime_loader_va == 0x1402C04C0ULL);
+    static_assert(Contract::model_kind == 'M');
+    static_assert(Contract::model_consumes_following_physical_slot);
 }
 
 // The counts em000 actually holds, so the arithmetic that made this change
@@ -232,9 +293,11 @@ void the_corpus_arithmetic_is_recorded() {
 
 int main() {
     a_companion_is_not_a_named_record();
+    an_m_companion_can_be_an_arbitrary_payload();
+    an_m_companion_slot_can_be_empty();
     a_pack_without_companions_is_unchanged();
     an_unexplained_extra_record_is_still_refused();
-    the_companion_is_a_constant();
+    the_observed_0x31_companion_shape_is_still_recognizable();
     the_kind_table_carries_what_the_corpus_holds();
     the_corpus_arithmetic_is_recorded();
     std::cout << "effect_pack_records_tests: all assertions held\n";

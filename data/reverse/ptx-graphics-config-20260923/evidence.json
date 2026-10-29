@@ -1,0 +1,114 @@
+{
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "profile_global": {
+    "pointer_slot": "0x140d6d300",
+    "static_storage": "0x140d6d310",
+    "zeroed_bytes": 176,
+    "known_bytes": "selected fields through +0x4e",
+    "known_word_offsets": {
+      "profile_x": "0x20",
+      "profile_y": "0x22",
+      "profile_width": "0x24",
+      "derived_height": "0x4a",
+      "pool_base": "0x4c",
+      "pool_limit": "0x4e"
+    }
+  },
+  "default_profile": {
+    "table": "0x1405d1b08",
+    "index": 1,
+    "record": "0x1405d1ae8",
+    "bytes": "010002000100020000020001e0000200",
+    "fields": {
+      "byte_00": 1,
+      "byte_02": 2,
+      "byte_04": 1,
+      "byte_06": 2,
+      "word_08": 512,
+      "word_0a": 256,
+      "word_0c": 224,
+      "byte_0e": 2
+    }
+  },
+  "derived_profile_bounds": {
+    "pool_base_word_4c": "0x1900",
+    "pool_limit_word_4e": "wrap16(0x1900 + word_4a)",
+    "word_4a_formula": "wrap16(factor*word_40 - word_46 - word_3c + 0x4000)",
+    "factor": "0xfffe if byte_06 != 0 else 0xffff",
+    "setup_caller": "0x140337c20 -> 0x140337c4c -> 0x140337cd0 -> 0x140337c5a -> 0x140332f00"
+  },
+  "pool_lifecycle_calls": [
+    {
+      "site": "0x14004f191",
+      "target": "0x140331910",
+      "bytes": "e87a272e00"
+    },
+    {
+      "site": "0x14004f438",
+      "target": "0x140331910",
+      "bytes": "e8d3242e00"
+    },
+    {
+      "site": "0x140238376",
+      "target": "0x140331910",
+      "bytes": "e895950f00"
+    },
+    {
+      "site": "0x140238498",
+      "target": "0x140331910",
+      "bytes": "e873940f00"
+    },
+    {
+      "site": "0x14004f1a2",
+      "target": "0x140331d90",
+      "bytes": "e8e92b2e00"
+    },
+    {
+      "site": "0x14004f449",
+      "target": "0x140331d90",
+      "bytes": "e842292e00"
+    },
+    {
+      "site": "0x140238387",
+      "target": "0x140331d90",
+      "bytes": "e8049a0f00"
+    },
+    {
+      "site": "0x1402384a9",
+      "target": "0x140331d90",
+      "bytes": "e8e2980f00"
+    },
+    {
+      "site": "0x140238c8b",
+      "target": "0x140331d90",
+      "bytes": "e800910f00"
+    },
+    {
+      "site": "0x14023c71f",
+      "target": "0x140331d90",
+      "bytes": "e86c560f00"
+    },
+    {
+      "site": "0x1402409dd",
+      "target": "0x140331d90",
+      "bytes": "e8ae130f00"
+    },
+    {
+      "site": "0x140240a77",
+      "target": "0x140331d90",
+      "bytes": "e814130f00"
+    },
+    {
+      "site": "0x140242c71",
+      "target": "0x140331d90",
+      "bytes": "e81af10e00"
+    },
+    {
+      "site": "0x140243166",
+      "target": "0x140331d90",
+      "bytes": "e825ec0e00"
+    }
+  ],
+  "relative_runtime_order": "Static direct calls are recovered; scene-wide initialization/shutdown reachability is not traced.",
+  "status": "STATIC_EXE_CONFIRMED_WITH_LIVE_DEFAULT_PRESET"
+}

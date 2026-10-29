@@ -25,7 +25,7 @@ Do not infer writer authority from filename, transformed texture data or an unre
 
 **Status:** ⚠️ REAL RETAIL PNST/PAC GATES EXIST / ORIGINAL-SELECTED LINEAGE OPEN
 
-MOD already has provenance-bound real retail PNST reintegration. SCM has hash-bound real same-layout alpha/translation/rotation edits reinserted into a real parent PAC with canonical reopen/extraction and exact inverse restoration. These are strong bounded container receipts but are not yet the original resolver-selected protected lineage.
+MOD already has provenance-bound real retail PNST reintegration. SCM has hash-bound real same-layout alpha/translation/rotation PAC receipts plus a real size-changing canonical SCM rebuild reinserted into real `st001.pac`, with canonical reopen/extraction, exact authored-child rematerialization and byte-exact preservation of every non-target top-level physical slot. These are strong bounded container receipts but are not yet the original resolver-selected protected lineage.
 
 Still required:
 
@@ -137,7 +137,7 @@ Closed domains include header/resource-code state, object alpha/flags/bounds, GS
 
 ### Writer/integration — bounded, separate
 
-**Status:** ✅ canonical bounded writer/rebuild + real same-layout PAC receipts / ❌ production + original-game acceptance open.
+**Status:** ✅ canonical bounded writer/rebuild + real same-layout and size-changing PAC receipts / ❌ production + NBZ + original-game acceptance open.
 
 Closed at current scopes:
 
@@ -148,14 +148,18 @@ Closed at current scopes:
 - fail-closed reflow on non-zero unmodeled source bytes;
 - bounded texture-companion coherence;
 - 78 paths / 68 unique inputs with 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical exact no-edit parity;
-- real hash-bound alpha, node-translation and node-rotation edits with parent PAC reintegration, reopen/extraction and exact inverse restoration.
+- real hash-bound alpha, node-translation and node-rotation edits with parent PAC reintegration, reopen/extraction and exact inverse restoration;
+- PR #386 real hash-bound `st001.scm` size-changing canonical rebuild: object 0 / mesh 0 grows 167 -> 168 vertices, SCM grows 887,760 -> 887,776 bytes while non-degenerate triangles remain 118;
+- PR #386 real `st001.pac` packed reflow: parent grows by the same 16 bytes, reopened slot 2 equals the authored SCM byte-for-byte, and all seven non-target top-level physical slots remain byte-identical.
+
+Machine authority for the size-changing gate: `data/reverse/dmc3-scm-real-size-changing-pac-reintegration-attestation-20260913.json`.
 
 Still open:
 
 - provenance-bound real geometry/normal/UV/filter/GS-CLAMP edit receipts where useful for writer promotion;
 - provenance-bound retail texture rewrite;
-- real-retail size-changing rebuild;
-- broader PNST/NBZ authored-resource delivery for SCM;
+- broader PNST authored-resource delivery for SCM;
+- retail NBZ authored-resource delivery and resolver selection;
 - original-game acceptance;
 - universal/100% production writer claim.
 
@@ -245,6 +249,7 @@ Targets remain `0x1402EF4D0`, `0x1402EF790`, `0x1400333E0`, `0x140033390`, `0x14
 - SCM canonical reverse completion (`2026-09-13` audit/receipt);
 - SCM selected writer stack + 68-unique/78-path no-edit corpus (#372);
 - SCM real same-layout alpha/translation/rotation PAC reintegration receipts;
+- SCM real size-changing canonical rebuild + real PAC packed reflow/reopen receipt (#386 branch evidence);
 - MOT canonical registry membership plus parser/IR/key-evaluation consolidation (#372 for the parser/IR and evaluation slice);
 - bounded compression-3 cached search + normal T/R/S channel/motion-group scalar bridge on `reverse/mod-completion-20260907`;
 - SO graph/volume/link canonical registry membership.

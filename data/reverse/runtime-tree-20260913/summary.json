@@ -1,0 +1,16 @@
+{
+  "schema": "dmc-rengine.runtime-structure-census.v1",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "image_base": "0x140000000",
+  "types": 407,
+  "locators": 915,
+  "vtable_anchors": 915,
+  "direct_inheritance_edges": 438,
+  "hierarchies": 396,
+  "virtual_base_occurrences": 0,
+  "runtime_ranges": 12235,
+  "chained_ranges": 4846,
+  "handler_ranges": 2210,
+  "logical_function_count": null,
+  "full_game_decompiled": false
+}

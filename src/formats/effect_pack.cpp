@@ -180,62 +180,50 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             "effect pack records slot is not a valid PNST container");
     }
 
-    std::vector<ContainerEntry> populated;
-    for (const auto& entry : inner.document->entries) {
-        if (entry.populated) {
-            populated.push_back(entry);
-        }
-    }
+    // The executable walks the inner PNST by physical slot, not by payload
+    // signature. One manifest record consumes one physical slot. Kind M is
+    // special: 0x1402C04C0 passes the current record plus the immediately
+    // following physical slot to 0x1402E35D0 and advances over both. The
+    // companion may be empty or populated with arbitrary bytes.
+    std::vector<ContainerEntry> physical = inner.document->entries;
     std::sort(
-        populated.begin(), populated.end(),
+        physical.begin(), physical.end(),
         [](const ContainerEntry& left, const ContainerEntry& right) {
             return left.slot_index < right.slot_index;
         });
 
-    // A pack may hold records the manifest does not name. This reader required
-    // the two counts to be equal, which was true of the two packs it was
-    // recovered from and is not a property of the format: the em000 pack holds
-    // 183 populated records against 173 manifest lines, and requiring equality
-    // refused the whole pack — so all 173 named records lost their names over
-    // ten the manifest never claimed.
-    //
-    // The ten are byte-identical companions. Setting those aside, line k names
-    // record k for all 173, kind and identifier, in order.
-    std::vector<ContainerEntry> named;
-    named.reserve(populated.size());
-    for (const auto& entry : populated) {
-        const auto record = records_bytes.subspan(
-            static_cast<std::size_t>(entry.offset),
-            static_cast<std::size_t>(entry.size));
-        if (Contract::is_companion_record(record)) {
-            document.companion_record_count += 1U;
-            continue;
-        }
-        named.push_back(entry);
-    }
-
     document.manifest_line_count = static_cast<std::uint32_t>(lines.size());
-    document.populated_record_count = static_cast<std::uint32_t>(populated.size());
-    if (document.manifest_line_count != named.size()) {
-        return fail(
-            EffectPackParseError::line_count_mismatch,
-            "effect manifest does not name exactly one entry per named record payload");
-    }
-    document.manifest_names_every_populated_record = true;
-    populated = std::move(named);
+    document.populated_record_count = static_cast<std::uint32_t>(
+        std::count_if(
+            physical.begin(), physical.end(),
+            [](const ContainerEntry& entry) { return entry.populated; }));
 
+    std::size_t cursor = 0U;
     bool extents_match = true;
-    document.records.reserve(populated.size());
-    for (std::size_t ordinal = 0U; ordinal < populated.size(); ++ordinal) {
-        const auto& entry = populated[ordinal];
-        const auto& line = lines[ordinal];
+    document.records.reserve(lines.size());
+
+    for (const auto& line : lines) {
+        if (cursor >= physical.size()) {
+            return fail(
+                EffectPackParseError::line_count_mismatch,
+                "effect manifest consumes more physical slots than the records PNST declares");
+        }
+
+        const auto& entry = physical[cursor++];
+        if (!entry.populated) {
+            return fail(
+                EffectPackParseError::line_count_mismatch,
+                "effect manifest names an empty physical record slot");
+        }
+
         const auto expected = Contract::extent_for(line.kind);
         const bool matches = expected != 0U &&
             entry.size == static_cast<std::uint64_t>(expected);
         if (expected != 0U && !matches) {
             extents_match = false;
         }
-        document.records.push_back(EffectRecord{
+
+        EffectRecord record{
             .slot_index = entry.slot_index,
             .kind = line.kind,
             .identifier = line.identifier,
@@ -245,8 +233,41 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             .extent = entry.size,
             .extent_matches_kind = matches,
             .kind_known = Contract::is_known_kind(line.kind),
-        });
+        };
+
+        if (line.kind == Contract::model_kind) {
+            if (cursor >= physical.size()) {
+                return fail(
+                    EffectPackParseError::line_count_mismatch,
+                    "effect M record is missing its following physical companion slot");
+            }
+            const auto& companion = physical[cursor++];
+            record.companion_slot_index = companion.slot_index;
+            record.companion_populated = companion.populated;
+            if (companion.populated) {
+                record.companion_offset = records_entry->offset + companion.offset;
+                record.companion_extent = companion.size;
+                document.companion_record_count += 1U;
+            }
+        }
+
+        document.records.push_back(std::move(record));
     }
+
+    // Trailing empty PNST slots are harmless capacity. Any populated slot not
+    // consumed by a manifest line or the mandatory M companion rule is
+    // unexplained and must remain a refusal.
+    for (; cursor < physical.size(); ++cursor) {
+        if (physical[cursor].populated) {
+            return fail(
+                EffectPackParseError::line_count_mismatch,
+                "effect records PNST contains a populated slot not consumed by the manifest");
+        }
+    }
+
+    document.manifest_names_every_populated_record =
+        document.manifest_line_count + document.companion_record_count ==
+        document.populated_record_count;
     document.extents_match_known_kinds = extents_match;
 
     if (!document.valid()) {
