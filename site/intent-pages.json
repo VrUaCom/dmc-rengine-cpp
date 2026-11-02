@@ -329,7 +329,7 @@
         {
           "heading": "Capability boundary",
           "items": [
-            "The canonical MOD reverse covers hierarchy, transforms, mesh streams, topology, skinning, texture slots and preservation contracts for unresolved semantics.",
+            "The canonical project status records MOD reverse complete for the defined reverse scope, covering hierarchy, transforms, mesh streams, topology, skinning, texture slots and preservation contracts for unresolved semantics.",
             "The Windows Native Reader does not advertise free-form editing, export, texture replacement, repacking or original-game acceptance.",
             "DMC Rengine has bounded preserve-layout writer and container reintegration evidence, but viewer success and game acceptance remain separate proof gates."
           ]
@@ -388,7 +388,7 @@
         {
           "heading": "Writer evidence is a separate gate",
           "items": [
-            "DMC Rengine models scene hierarchy, objects, meshes, streams, transforms and texture-facing state, and contains preserve-layout/canonical-rebuild authoring research.",
+            "DMC Rengine models scene hierarchy, objects, meshes, streams, transforms and texture-facing state, with preserve_layout and deterministic canonical_rebuild authoring paths; the consolidated no-edit corpus records 78/78 canonical rebuild + reparse passes.",
             "A bounded real size-changing SCM-to-PAC reintegration receipt exists, but it does not establish every retail SCM, universal stage editing, NBZ delivery or original dmc3.exe acceptance.",
             "The public Windows Native Reader remains read-only even though the core repository has stronger bounded writer research."
           ]
