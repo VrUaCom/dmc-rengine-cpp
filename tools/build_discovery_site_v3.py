@@ -350,6 +350,10 @@ def _augment_intent_graph(site: dict) -> dict:
     for route in ('/', '/tools/', '/status/', '/guides/start-modding-dmc3/', '/native-reader/android/'):
         _append_related(by_path[route], '/downloads/', 'Choose a public Native Reader package for your platform')
         _append_related(by_path[route], '/capabilities/', 'Compare operation support by product, platform and version')
+    for route in ('/guides/extract-nbz/', '/guides/inspect-mod/', '/guides/inspect-scm/', '/guides/extract-textures/'):
+        _append_related(by_path[route], '/tools/', 'Choose the first-party tool for this DMC3 task')
+        _append_related(by_path[route], '/downloads/', 'Download a verified Native Reader package when the leaf format is supported')
+        _append_related(by_path[route], '/capabilities/', 'Check read, edit, write and acceptance support separately')
 
     # Durable entry points from existing indexable routes into the new hub.
     _append_related(by_path["/"], "/en/", "Explore the multilingual DMC Modding Hub")
