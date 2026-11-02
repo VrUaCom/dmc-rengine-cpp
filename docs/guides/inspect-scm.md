@@ -1,59 +1,122 @@
 # How to Open and Inspect DMC3 SCM Files
 
-This guide targets searches such as **open DMC3 SCM file**, **DMC3 SCM viewer**, **DMC3 stage model format**, and **Devil May Cry 3 SCM format**.
+> **Direct answer:** for an already extracted DMC3 HD Collection `SCM` scene resource on Windows, use **DMC Native Reader v1.0.0 Preview**. Launch `DMC-Native-Reader.exe`, then open the file with **File > Open**, `Ctrl+O`, or drag-and-drop. The public Windows release is a read-only viewer; DMC Rengine's separate SCM writer/rebuild research is not exposed as a general editor in this app.
 
-SCM is a scene-oriented resource family. DMC Rengine models scene nodes, object bindings, meshes, streams, transforms and texture-facing state through the canonical parser/IR rather than collapsing the format into an editor-only representation.
+## Scope
 
-## What SCM inspection covers
+- **Game:** Devil May Cry 3: Special Edition in Devil May Cry HD Collection.
+- **OS:** Windows x64.
+- **Reader:** DMC Native Reader Windows v1.0.0 Preview.
+- **Checked:** 2026-11-02.
+- **Input:** extracted `SCM` leaf resource.
+- **Not interchangeable with:** `MOD` resources, DMC3 2006 PC assumptions, PS2 data.
 
-The canonical path exposes hierarchy, object/mesh relationships, positions, normals, UV data, topology reconstruction, transforms and evidence-backed rendering-facing fields.
+SCM is scene/stage-oriented. MOD and SCM can both contain geometry but have different physical and semantic contracts.
 
-## Current writer/rebuild authority
+## Prerequisites
 
-PR #372 promotes one selected canonical SCM authoring stack:
+1. Download the [Windows preview](https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview) or use the site's [Downloads](https://vruacom.github.io/dmc-rengine-cpp/downloads/) page.
+2. Extract the portable ZIP.
+3. Extract the target SCM from its NBZ/PAC/PNST path first.
+4. Record the source archive/container path and slot where possible.
 
-- `preserve_layout` for source-bound same-layout edits;
-- deterministic `canonical_rebuild` from typed IR;
-- typed edits for position, normal, UV, texture slot, alpha, nearest-filter bit, GS CLAMP REGION_REPEAT and node translation/rotation;
-- dependent metadata derivation;
-- mandatory canonical output reparse;
-- source-bound mutation guards;
-- fail-closed canonical reflow if retained source contains non-zero unmodeled bytes;
-- bounded SCM/texture-companion coherence through `ScmResourceBundleWriter` and the existing texture framing/reflow implementation.
+If you have not extracted the resource yet, start with the [NBZ extraction guide](extract-nbz.md).
 
-The consolidated no-edit corpus is:
+## Open the SCM
 
-```text
-paths                           78
-unique SHA-256 inputs           68
-parse                           78/78 PASS
-preserve-layout exact parity    78/78 PASS
-canonical rebuild + reparse     78/78 PASS
-canonical exact no-edit parity  78/78 PASS
-```
+1. Run `DMC-Native-Reader.exe`.
+2. Use **File > Open** or `Ctrl+O`.
+3. Select the extracted `.scm` file.
+4. Or drag the file into the reader.
+5. Inspect the rendered scene and structure view.
 
-Real hash-bound same-layout receipts additionally cover alpha-control, node translation and node rotation through parent PAC reintegration and canonical reopen/extraction.
+**Expected result:** a supported SCM is recognized and its scene geometry/structure can be inspected without altering the source.
 
-PR #386 adds a bounded real-retail size-changing path. On hash-bound `st001.scm`, `append_break_vertex_copy()` grows object 0 / mesh 0 from 167 to 168 vertices, keeps non-degenerate strip triangles at 118, grows the SCM by 16 bytes, reparses canonically, then reintegrates the authored child into physical slot 2 of real `st001.pac`. The parent grows by the same 16 bytes; re-extraction returns the exact authored SCM and all seven non-target top-level physical slots remain byte-identical.
+## What to verify
 
-Machine receipt: `data/reverse/dmc3-scm-real-size-changing-pac-reintegration-attestation-20260913.json`.
+A useful acceptance check for one resource is:
 
-This closes that explicit real-retail size-changing SCM -> PAC gate. It does **not** prove universal stage editing, every retail SCM variant, Capcom offline-tool equivalence, NBZ delivery or original-game acceptance.
+- the file is recognized as SCM;
+- scene geometry appears;
+- object/mesh relationships are populated in the structural view;
+- transforms/scene arrangement look internally coherent;
+- rotate/zoom/wireframe controls behave normally;
+- reopening the same source produces the same inspection result.
 
-## Still open
+If a scene is partially empty, do not immediately assume corruption. Some content may live in neighboring resources or depend on texture/companion data.
 
-- provenance-bound representative semantic edit receipts where additional writer-domain promotion is useful;
-- provenance-bound retail texture rewrite;
-- broader PNST authored-resource delivery for SCM;
-- retail NBZ authored-resource delivery and resolver selection;
-- original `dmc3.exe` acceptance.
+## Canonical SCM coverage
 
-## Why SCM is different from MOD
+DMC Rengine's canonical SCM path models:
 
-MOD and SCM both contain geometry-related information, but they serve different resource roles and have different physical/semantic contracts. Shared model-family infrastructure is not permission to copy field meanings across formats.
+- scene hierarchy and nodes;
+- object/mesh relationships;
+- position, normal and UV streams;
+- topology reconstruction;
+- transforms;
+- texture-facing state where evidence supports it.
 
-## Ecosystem workflow
+The repository also has a promoted authoring stack with:
 
-Use GDSpaces/PocketGDS to locate and materialize the containing resource, DMC Rengine for canonical SCM parsing/writing evidence, and DMC Native Reader where the current client exposes scene/model inspection capabilities.
+- source-bound `preserve_layout` edits;
+- deterministic `canonical_rebuild`;
+- selected typed geometry/material/transform edits;
+- mandatory reparse;
+- guarded source mutation;
+- bounded size-changing SCM -> PAC evidence on a real hash-bound resource.
 
-For the exact current authority boundary, use `docs/research/dmc3-model-formats-unified-frontier-2026-09-09.md` and `docs/status/current.md`.
+Those are core/research capabilities, not promises made by the Windows viewer UI.
+
+## Known evidence boundary
+
+A real size-changing SCM -> PAC reintegration receipt exists for a bounded case, but it does **not** establish:
+
+- every retail SCM variant;
+- a universal stage editor;
+- Capcom offline-tool equivalence;
+- arbitrary PNST/NBZ delivery;
+- original `dmc3.exe` acceptance of all authored scenes.
+
+Keep “viewer opens SCM” and “game accepts edited SCM” as separate claims.
+
+## Troubleshooting
+
+### Native Reader rejects the file
+
+Verify that it is the leaf SCM rather than a PAC/PNST container. Do not rename a different file to `.scm`.
+
+### SCM opens but looks like a model rather than a full level
+
+SCM is one scene-oriented resource family, not necessarily the entire stage definition. Related stage resources can exist outside that one file.
+
+### The same asset exists as MOD
+
+Do not reuse MOD field assumptions. Use the SCM parser/guide for SCM and the MOD parser/guide for MOD.
+
+### A community Blender importer accepts SCM
+
+That is useful independent evidence for that tool's workflow, but its import behavior is governed by its own implementation. See the [Blender guide](dmc3-blender-import.md) for attribution and version boundaries.
+
+## What was verified for this guide
+
+- Public Windows release notes state SCM viewing/inspection support.
+- Repository evidence for the SCM parser/writer boundary was reviewed at main commit `086868779495ecd309df531f5a1d1e4a72d724ce`.
+- No new game-runtime acceptance test or physical-device test was performed for this documentation pass.
+
+## Sources
+
+- [DMC Native Reader Windows v1.0.0 Preview](https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview)
+- [SCM format documentation](../formats/scm.md)
+- [Current status](../status/current.md)
+- [Capability matrix](../discovery/capabilities.md)
+- [DMC3HDC Import Tools](https://github.com/deshayu/DMC3HDC-Import-Tools) — independent community Blender project; cited only as a separate downstream workflow.
+
+**Author:** DMC Rengine project.  
+**Phase-1 evidence review:** 2026-11-02.
+
+## Next
+
+- [Open MOD files](inspect-mod.md)
+- [Extract stage models](extract-stage-models.md)
+- [Inspect DDS/PTX textures](extract-textures.md)
+- [Blender community-tool workflow](dmc3-blender-import.md)

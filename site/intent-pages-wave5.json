@@ -41,41 +41,59 @@
     {
       "path": "/guides/start-modding-dmc3/",
       "title": "How to Start Modding Devil May Cry 3 HD — Beginner Guide",
-      "description": "Start modding DMC3 HD safely: archives, model and texture inspection, first-party tools and version-specific limitations.",
-      "summary": "New to modding Devil May Cry 3: Special Edition from Devil May Cry HD Collection? Begin by separating five different operations: discover resources, extract them, inspect their structure, make a supported bounded change, and verify any rebuild against the actual game. This beginner guide routes each task to the appropriate first-party tool without conflating a viewer with a complete editor.",
+      "description": "Start DMC3 HD Collection modding safely: distinguish editions, back up archives, choose extraction vs inspection, use verified Native Reader releases, and validate one resource at a time.",
+      "summary": "For modern PC modding, first confirm you are working with DMC3 Special Edition inside Devil May Cry HD Collection, keep original game data untouched, preserve archive/container provenance, and use DMC Native Reader only for read-only inspection of supported extracted MOD/SCM/DDS/PTX resources. Instructions for DMC3 2006, PS2 and HD Collection are not interchangeable.",
       "source_path": "docs/guides/start-modding-dmc3.md",
       "sections": [
         {
-          "heading": "Preserve the original resources before inspection",
+          "heading": "Confirm the edition before choosing a tool",
           "items": [
-            "Use legitimately acquired game files, preserve their original bytes and make a separate workspace for analysis. DMC3 HD data can pass through numbered NBZ archives, nested PAC/PNST containers and typed leaf resources.",
-            "If you need to find or extract a resource, start with the GDSpaces archive and provenance workflow so that physical slots, empty records and nesting are not lost during the process."
+            "This guide targets Devil May Cry 3: Special Edition inside Devil May Cry HD Collection on Windows x64; checked 2026-11-02. DMC3 2006 Ubisoft PC and PS2 are separate targets.",
+            "Use legitimately obtained game files, back up anything you may touch and create a separate extraction/inspection workspace.",
+            "Steam updates can replace dmc3-0.nbz and executables, so edition/build/update state belongs in every reproducible modding report."
           ]
         },
         {
-          "heading": "Match each operation to a verified release",
+          "heading": "Choose the operation first",
           "items": [
-            "After identifying a real MOD, SCM, DDS or PTX resource, consult the corresponding DMC Native Reader release and format guide for preview or structural inspection that has been verified on your operating system.",
-            "Do not assume that previewing a model proves editable export or that successfully rebuilding a container proves acceptance by the original game. The canonical DMC Rengine evidence and current status records define those stronger support boundaries."
+            "Installing a prepared mod, extracting an archive, inspecting a resource, authoring bytes, rebuilding a container and proving original-game acceptance are different operations with different tools.",
+            "For discovery/extraction, follow NBZ -> PAC/PNST -> leaf resource and preserve the archive/member/slot path.",
+            "For an already extracted MOD, SCM, DDS or PTX on Windows, use DMC Native Reader v1.0.0 Preview as a read-only inspector; do not treat it as an editor or repacker."
+          ]
+        },
+        {
+          "heading": "Complete one verified first inspection",
+          "items": [
+            "Download the Windows Native Reader from the verified Downloads route, extract the portable ZIP and run DMC-Native-Reader.exe.",
+            "Open a known leaf resource with File > Open, Ctrl+O or drag-and-drop, confirm the intended parser recognizes it and check that the visual/structural view is plausible.",
+            "Record the resource source path and reader version. That proves inspection of that resource with that build, not writer support or in-game acceptance."
+          ]
+        },
+        {
+          "heading": "Avoid the most common DMC3 modding mistakes",
+          "items": [
+            "Do not apply a 2006-PC tutorial to HD Collection without an explicit compatibility statement.",
+            "Do not rename unknown bytes to MOD/SCM/DDS/PTX just to force a parser, and do not flatten archive/container paths if you may need to trace the resource later.",
+            "If you need Blender, use the separately attributed community-tool workflow today; the first-party Blender bridge does not yet have a public add-on release that can be promoted as a finished importer/exporter."
           ]
         }
       ],
       "related_links": [
         {
-          "path": "/tools/",
-          "label": "Compare the first-party DMC Rengine modding tools"
-        },
-        {
           "path": "/guides/extract-nbz/",
-          "label": "Learn how numbered NBZ game archive extraction works"
+          "label": "Start with safe DMC3 NBZ extraction"
         },
         {
-          "path": "/formats/",
-          "label": "Read evidence-backed DMC3 file-format specifications"
+          "path": "/downloads/",
+          "label": "Choose a verified Native Reader download"
+        },
+        {
+          "path": "/tools/",
+          "label": "Compare first-party DMC Rengine tools"
         },
         {
           "path": "/guides/",
-          "label": "Browse additional practical DMC3 resource inspection guides"
+          "label": "Continue with task-specific DMC3 guides"
         }
       ]
     },

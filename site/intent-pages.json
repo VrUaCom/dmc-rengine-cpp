@@ -26,11 +26,26 @@
         }
       ],
       "related_links": [
-        {"path": "/guides/", "label": "Choose a practical DMC3 HD guide"},
-        {"path": "/guides/extract-nbz/", "label": "Extract files from DMC3 NBZ archives"},
-        {"path": "/models/", "label": "Continue to DMC3 model extraction and inspection"},
-        {"path": "/textures/", "label": "Continue to DMC3 texture extraction and inspection"},
-        {"path": "/gdspaces/", "label": "Understand the GDSpaces materialization architecture"}
+        {
+          "path": "/guides/",
+          "label": "Choose a practical DMC3 HD guide"
+        },
+        {
+          "path": "/guides/extract-nbz/",
+          "label": "Extract files from DMC3 NBZ archives"
+        },
+        {
+          "path": "/models/",
+          "label": "Continue to DMC3 model extraction and inspection"
+        },
+        {
+          "path": "/textures/",
+          "label": "Continue to DMC3 texture extraction and inspection"
+        },
+        {
+          "path": "/gdspaces/",
+          "label": "Understand the GDSpaces materialization architecture"
+        }
       ]
     },
     {
@@ -58,10 +73,22 @@
         }
       ],
       "related_links": [
-        {"path": "/unpacker/", "label": "Start with the DMC3 HD unpacker and extractor entry point"},
-        {"path": "/guides/extract-models/", "label": "Learn how DMC3 model extraction is structured"},
-        {"path": "/guides/extract-textures/", "label": "Learn how DMC3 texture extraction is structured"},
-        {"path": "/formats/", "label": "Browse canonical DMC3 HD format research"}
+        {
+          "path": "/unpacker/",
+          "label": "Start with the DMC3 HD unpacker and extractor entry point"
+        },
+        {
+          "path": "/guides/extract-models/",
+          "label": "Learn how DMC3 model extraction is structured"
+        },
+        {
+          "path": "/guides/extract-textures/",
+          "label": "Learn how DMC3 texture extraction is structured"
+        },
+        {
+          "path": "/formats/",
+          "label": "Browse canonical DMC3 HD format research"
+        }
       ]
     },
     {
@@ -89,41 +116,81 @@
         }
       ],
       "related_links": [
-        {"path": "/guides/extract-nbz/", "label": "Go deeper into DMC3 NBZ extraction"},
-        {"path": "/guides/extract-models/", "label": "Continue from archives to DMC3 model resources"},
-        {"path": "/guides/extract-textures/", "label": "Continue from archives to DMC3 texture resources"},
-        {"path": "/status/", "label": "Check the latest extraction and reintegration proof gates"}
+        {
+          "path": "/guides/extract-nbz/",
+          "label": "Go deeper into DMC3 NBZ extraction"
+        },
+        {
+          "path": "/guides/extract-models/",
+          "label": "Continue from archives to DMC3 model resources"
+        },
+        {
+          "path": "/guides/extract-textures/",
+          "label": "Continue from archives to DMC3 texture resources"
+        },
+        {
+          "path": "/status/",
+          "label": "Check the latest extraction and reintegration proof gates"
+        }
       ]
     },
     {
       "path": "/guides/extract-nbz/",
       "title": "How to Extract Files from DMC3 NBZ Archives — DMC Rengine",
-      "description": "DMC3 NBZ extractor guide covering numbered archive materialization, integrity observations, PAC/PNST nesting and provenance.",
-      "summary": "Learn how DMC Rengine approaches DMC3 NBZ extraction as a provenance-aware materialization problem. The canonical path indexes classic ZIP-backed numbered volumes, materializes supported compression methods, verifies observations and continues through nested containers instead of assuming the outer archive member is always the final game resource.",
+      "description": "Safely inspect and extract DMC3 HD dmc3-0.nbz resources, preserve archive provenance, then continue through PAC/PNST to supported leaf readers.",
+      "summary": "For Devil May Cry 3 inside the HD Collection on Windows, work from a copy of dmc3-0.nbz, preserve each extracted member path, continue through PAC/PNST when the member is still a container, and only then open supported MOD/SCM/DDS/PTX leaves. Public community evidence confirms the ZIP-backed practical workflow; DMC Rengine separately provides provenance-aware NBZ materialization and does not present Native Reader as an archive extractor.",
       "source_path": "docs/guides/extract-nbz.md",
       "sections": [
         {
-          "heading": "NBZ extraction that preserves context",
+          "heading": "Scope, safety and prerequisites",
           "items": [
-            "The current product path supports classic ZIP-backed NBZ indexing/materialization together with STORE and raw-DEFLATE members, recording CRC, size, SHA and ByteProvenance rather than exposing only anonymous extracted bytes.",
-            "A materialized NBZ member may contain PAC or PNST, so recursive container expansion is part of reaching the useful leaf resource and not merely an optional post-processing trick.",
-            "Sparse, empty and aliased container slots remain part of the resource identity because those relationships can matter when a later workflow needs to rebuild or explain the exact source path."
+            "Scope: Devil May Cry 3: Special Edition inside Devil May Cry HD Collection on Windows; checked 2026-11-02. The 2006 Ubisoft PC release and PS2 are not treated as interchangeable inputs.",
+            "Keep the retail archive unchanged. Copy data/dmc3/dmc3-0.nbz into a working directory before inspecting it; Steam updates can replace the original archive.",
+            "For a practical user workflow, a ZIP-capable archive tool such as 7-Zip or WinRAR can inspect the copied NBZ. This is a third-party workflow, not the DMC Native Reader."
           ]
         },
         {
-          "heading": "After the archive member is extracted",
+          "heading": "Reproducible extraction steps",
           "items": [
-            "Route the leaf payload according to its real format: models may lead to MOD or SCM inspection, textures may lead to DDS/PTX framing, and configuration or other binary families retain their own canonical readers and evidence status.",
-            "Do not infer universal repacking support from a successful extraction; immutable-copy rebuild and bounded overlay authoring are narrower claims than complete edited-resource acceptance by the original runtime.",
-            "The canonical proof program still separates product-side reopen/rematerialization from protected-process resolver selection and deterministic consumer-visible acceptance, so those stronger claims remain clearly gated."
+            "Open the copied dmc3-0.nbz with the ZIP-capable tool, extract only the member or subtree you need, and preserve its original member path instead of flattening everything into one directory.",
+            "If the extracted member is PAC or PNST, continue through that container and preserve the slot/container identity. The useful leaf may still be one or more layers below the NBZ.",
+            "When the final resource is MOD, SCM, DDS or PTX, hand it to the matching DMC Native Reader workflow; the public Windows preview does not open NBZ/PAC/PNST directly."
+          ]
+        },
+        {
+          "heading": "Verify the result",
+          "items": [
+            "A defensible extraction check records the source archive, member path, output size and—where available—CRC or SHA. A second extraction should reproduce the same bytes.",
+            "For a supported leaf, open the extracted resource with the Windows Native Reader and confirm that the intended parser recognizes it rather than forcing a renamed file through a guessed parser.",
+            "DMC Rengine's canonical NBZ layer additionally preserves integrity/provenance observations, but no claim is made that every edited resource can be repacked and accepted by dmc3.exe."
+          ]
+        },
+        {
+          "heading": "Common failures and boundaries",
+          "items": [
+            "Cannot find the model/texture: it may still be nested inside PAC/PNST or live under a different path in another edition/language/update.",
+            "Native Reader rejects PAC/NBZ: expected; it is a read-only leaf-resource viewer for the promoted formats, not an archive browser.",
+            "Game update overwrote a modded NBZ: restore the original and use a non-destructive workflow. Archive extraction, container rebuild and original-game acceptance remain separate capabilities."
           ]
         }
       ],
       "related_links": [
-        {"path": "/archives/nbz/", "label": "Read the canonical DMC3 NBZ archive research"},
-        {"path": "/formats/pac/", "label": "Inspect PAC containers reached through NBZ"},
-        {"path": "/formats/pnst/", "label": "Inspect PNST containers reached through NBZ"},
-        {"path": "/unpacker/", "label": "Return to the broader DMC3 unpacker workflow"}
+        {
+          "path": "/guides/unpack-dmc3-hd/",
+          "label": "See the complete DMC3 HD unpacking path"
+        },
+        {
+          "path": "/unpacker/",
+          "label": "Return to the DMC3 unpacker and extractor hub"
+        },
+        {
+          "path": "/formats/pac/",
+          "label": "Understand the PAC container layer"
+        },
+        {
+          "path": "/status/",
+          "label": "Check the latest archive and reintegration proof gates"
+        }
       ]
     },
     {
@@ -151,103 +218,199 @@
         }
       ],
       "related_links": [
-        {"path": "/models/", "label": "Open the DMC3 model tools and research hub"},
-        {"path": "/guides/inspect-mod/", "label": "Inspect a DMC3 MOD model in detail"},
-        {"path": "/guides/inspect-scm/", "label": "Inspect a DMC3 SCM scene resource in detail"},
-        {"path": "/guides/extract-nbz/", "label": "Return to the archive extraction layer"}
+        {
+          "path": "/models/",
+          "label": "Open the DMC3 model tools and research hub"
+        },
+        {
+          "path": "/guides/inspect-mod/",
+          "label": "Inspect a DMC3 MOD model in detail"
+        },
+        {
+          "path": "/guides/inspect-scm/",
+          "label": "Inspect a DMC3 SCM scene resource in detail"
+        },
+        {
+          "path": "/guides/extract-nbz/",
+          "label": "Return to the archive extraction layer"
+        }
       ]
     },
     {
       "path": "/guides/extract-textures/",
-      "title": "How to Extract Textures from Devil May Cry 3 HD — DMC Rengine",
-      "description": "DMC3 texture extraction guide for DDS, PTX and descriptor-bearing texture resources reached through the archive hierarchy.",
-      "summary": "Extract and inspect DMC3 HD texture resources while keeping PTX bundle framing, descriptor-plus-DDS slots, extracted DDS bytes and runtime texture identities distinct. The guide connects archive materialization with the canonical DDS/PTX reader layer and with model-facing texture relationships without overstating replacement or reintegration maturity.",
+      "title": "How to Open DMC3 DDS and PTX Textures — DMC Rengine",
+      "description": "Open extracted DMC3 HD DDS/PTX textures with the read-only Windows Native Reader, inspect PTX child resources, and troubleshoot model-texture relationships.",
+      "summary": "For already extracted DMC3 HD DDS or supported PTX resources, use DMC Native Reader Windows v1.0.0 Preview to preview the texture and inspect structure. Keep PTX framing, descriptor-bearing slots, extracted DDS bytes and model-facing texture slots distinct; this workflow verifies inspection, not arbitrary replacement or game-ready repacking.",
       "source_path": "docs/guides/extract-textures.md",
       "sections": [
         {
-          "heading": "Reach the texture before interpreting it",
+          "heading": "Scope and prerequisites",
           "items": [
-            "Texture work starts by locating the correct NBZ member and nested PAC/PNST slot, because a visually recognizable image without archive and slot provenance is a weaker research artifact than the same bytes with their source path preserved.",
-            "The canonical reader distinguishes PTX bundle/container-like framing from descriptor-bearing DDS slots and directly recognizable DDS resources, avoiding a universal texture object that would erase physical representation differences.",
-            "Validated framing can expose dimensions, mip information, compression-facing data and related descriptor fields where evidence supports them, which makes recognition and inspection useful even before authoring is complete."
+            "Scope: DMC3 Special Edition in Devil May Cry HD Collection, Windows x64, DMC Native Reader Windows v1.0.0 Preview; checked 2026-11-02.",
+            "Extract the DDS/PTX leaf from the archive/container path first and preserve its NBZ/PAC/PNST provenance.",
+            "Use the verified Downloads route for the portable reader. The public Windows release previews supported DDS/PTX resources but does not edit them."
           ]
         },
         {
-          "heading": "Texture extraction versus texture replacement",
+          "heading": "Open DDS or PTX",
           "items": [
-            "Extract, recognize and inspect are supported concepts for the bounded canonical path, while arbitrary texel replacement, model-companion rewriting and production original-game reintegration require stronger writer and runtime acceptance evidence.",
-            "A MOD texture slot, a companion entry, a DDS-bearing payload and a runtime GPU texture are related but different identities, so a guide or viewer should never present them as one interchangeable numeric texture ID.",
-            "DMC Native Reader can expose user-facing texture previews and metadata where implemented, while DMC Rengine remains the technical parser authority and GDSpaces/PocketGDS supplies archive and resource navigation."
+            "Launch DMC-Native-Reader.exe and open the extracted texture with File > Open, Ctrl+O or drag-and-drop.",
+            "For DDS, confirm a plausible image/metadata view. For PTX, use supported child-resource navigation rather than assuming the entire PTX is one DDS file.",
+            "Record the recognized family, source path, reader version and any child index/path needed to reproduce the same preview."
+          ]
+        },
+        {
+          "heading": "Trace model texture relationships carefully",
+          "items": [
+            "A MOD/SCM texture-facing slot, companion entry, PTX framing, DDS-bearing payload and runtime GPU texture are related but not automatically one interchangeable ID.",
+            "If a model appears untextured, inspect the companion/texture resources separately and keep their source context.",
+            "A generic DDS editor can still be useful for image work; Native Reader's value is DMC3-specific structural inspection alongside model/scene resources."
+          ]
+        },
+        {
+          "heading": "Limits and common failures",
+          "items": [
+            "PTX rejected: verify that the complete supported resource was extracted; do not rename PTX to DDS as a workaround.",
+            "Prepared PAC texture mods installed through GData.afs are community installation workflows, not evidence that Native Reader can write DDS/PTX back to the game.",
+            "DMC Rengine has bounded texture framing/reflow research, but arbitrary replacement and original-game acceptance remain stronger evidence gates."
           ]
         }
       ],
       "related_links": [
-        {"path": "/textures/", "label": "Open the DMC3 texture tools and research hub"},
-        {"path": "/formats/textures/", "label": "Read canonical DDS and PTX texture research"},
-        {"path": "/guides/extract-models/", "label": "Relate extracted textures to DMC3 models"},
-        {"path": "/guides/extract-nbz/", "label": "Return to the archive extraction layer"}
+        {
+          "path": "/formats/textures/",
+          "label": "Read canonical DDS and PTX texture research"
+        },
+        {
+          "path": "/guides/inspect-mod/",
+          "label": "Relate textures back to MOD model resources"
+        },
+        {
+          "path": "/textures/",
+          "label": "Return to the DMC3 texture tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current texture authoring and acceptance boundaries"
+        }
       ]
     },
     {
       "path": "/guides/inspect-mod/",
       "title": "How to Open and Inspect DMC3 MOD Files — DMC Rengine",
-      "description": "DMC3 MOD viewer and inspection guide for hierarchy, transforms, meshes, texture slots, skinning and evidence boundaries.",
-      "summary": "Open and inspect DMC3 MOD model files using the canonical read-only research path. The promoted MOD evidence supports meaningful hierarchy, transform, mesh, texture-binding and skinning analysis while deliberately keeping writer authority, complete animation authoring and edited-file original-game acceptance outside the claim.",
+      "description": "Open an extracted DMC3 HD MOD file with the read-only Windows Native Reader, verify geometry/structure, troubleshoot missing textures, and keep writer claims separate.",
+      "summary": "Use DMC Native Reader Windows v1.0.0 Preview for an already extracted DMC3 HD MOD resource: launch the portable app, open or drag-drop the file, verify geometry and Inspector structure, then follow texture companions separately if needed. The viewer is read-only; DMC Rengine's bounded writer/reintegration evidence does not turn this release into a universal MOD editor.",
       "source_path": "docs/guides/inspect-mod.md",
       "sections": [
         {
-          "heading": "What a MOD viewer can safely expose",
+          "heading": "Scope and prerequisites",
           "items": [
-            "The promoted model-family work covers document, object and mesh structure, hierarchy/order relationships, local and world transforms, mesh texture slots, topology generation, object controls, inverse-rest ownership and packed skinning data.",
-            "Those capabilities support structural inspection, skeleton and weight visualization, texture-binding analysis and pose-aware research without discarding raw source/control bytes that remain authoritative for unresolved variants.",
-            "Evidence labels distinguish executable-confirmed, corpus-confirmed, structural, candidate and preserved-undecoded claims so a successful render cannot silently promote every observed field into canonical semantics."
+            "Scope: DMC3 Special Edition in Devil May Cry HD Collection, Windows x64, DMC Native Reader Windows v1.0.0 Preview; checked 2026-11-02.",
+            "Start with an extracted MOD leaf resource and keep its NBZ/PAC/PNST source path. If you still have a container, extract it first.",
+            "Download the Windows package from the verified Downloads route, extract the ZIP and run DMC-Native-Reader.exe. The public build is portable and read-only."
           ]
         },
         {
-          "heading": "Where MOD inspection stops",
+          "heading": "Open the MOD and inspect it",
           "items": [
-            "The canonical reader remains read-only: unrestricted MOD writing, byte-identical no-edit rebuild, complete mutation quantization, production texture replacement and original-game edited-MOD acceptance are not implied by inspection support.",
-            "Animation relationships intersect the separately evidenced MOT frontier, and model texture relationships cross into companion and DDS/PTX domains; those neighboring authorities should not be collapsed into a fictional all-in-one MOD schema.",
-            "Use DMC Native Reader for a user-facing viewer where the current build exposes MOD visualization, but use DMC Rengine's canonical documentation and status when deciding what a field or operation actually means."
+            "Use File > Open, Ctrl+O or drag-and-drop to load the extracted .mod resource.",
+            "Confirm the reader recognizes MOD, displays geometry and populates structural information. Rotate, zoom and wireframe are useful sanity checks for a meaningful parse.",
+            "Record the source path and reader version so a later report can distinguish the resource, game edition and client build."
+          ]
+        },
+        {
+          "heading": "Verify and troubleshoot",
+          "items": [
+            "If the file is rejected, verify that it is the complete leaf MOD rather than its PAC/PNST parent and do not rename unknown bytes just to force the parser.",
+            "If geometry appears but textures are absent, follow the companion/DDS/PTX relationship separately; a MOD texture slot is not automatically the same identity as a DDS/PTX payload.",
+            "If a Blender or 3ds Max workflow behaves differently, treat it as a separate implementation with its own support contract rather than using it to promote DMC Rengine semantics."
+          ]
+        },
+        {
+          "heading": "Capability boundary",
+          "items": [
+            "The canonical project status records MOD reverse complete for the defined reverse scope, covering hierarchy, transforms, mesh streams, topology, skinning, texture slots and preservation contracts for unresolved semantics.",
+            "The core Preserve-Layout Writer Gate 1 remains a separate bounded authoring path; the provenance-bound retail no-op corpus records 38/38 exact byte equality and canonical reopen, but the Windows Native Reader does not expose that writer as a general editor.",
+            "DMC Rengine has bounded preserve-layout writer and container reintegration evidence, but viewer success and game acceptance remain separate proof gates."
           ]
         }
       ],
       "related_links": [
-        {"path": "/formats/mod/", "label": "Read the canonical DMC3 MOD format research"},
-        {"path": "/models/", "label": "Return to the DMC3 model tools hub"},
-        {"path": "/guides/extract-textures/", "label": "Follow MOD texture relationships into DDS and PTX"},
-        {"path": "/status/", "label": "Check current canonical MOD maturity"}
+        {
+          "path": "/formats/mod/",
+          "label": "Read canonical DMC3 MOD format research"
+        },
+        {
+          "path": "/guides/extract-textures/",
+          "label": "Trace MOD texture relationships into DDS and PTX"
+        },
+        {
+          "path": "/models/",
+          "label": "Return to the DMC3 model tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current canonical MOD maturity"
+        }
       ]
     },
     {
       "path": "/guides/inspect-scm/",
       "title": "How to Open and Inspect DMC3 SCM Files — DMC Rengine",
-      "description": "DMC3 SCM viewer and inspection guide for scene hierarchy, objects, meshes, streams, transforms and writer boundaries.",
-      "summary": "Inspect DMC3 SCM scene resources through their canonical scene-node, object, mesh, stream and transform model. This guide is designed for practical SCM viewer and stage-model searches while separating structural inspection and rebuild research from any unsupported claim of universal stage editing or Capcom offline-tool equivalence.",
+      "description": "Open an extracted DMC3 HD SCM scene resource with the read-only Windows Native Reader, verify scene structure, and separate viewing from writer/runtime-acceptance claims.",
+      "summary": "Open an already extracted DMC3 HD SCM with DMC Native Reader Windows v1.0.0 Preview, verify the scene geometry and structural view, and record the resource's archive/container provenance. SCM is scene-oriented and distinct from MOD; DMC Rengine's bounded SCM writer/rebuild research remains a separate capability from this read-only viewer.",
       "source_path": "docs/guides/inspect-scm.md",
       "sections": [
         {
-          "heading": "What SCM inspection is for",
+          "heading": "Scope and prerequisites",
           "items": [
-            "SCM research exposes scene hierarchy, object and mesh relationships, position/normal/UV streams, topology reconstruction, transforms and texture-facing state where the evidence is strong enough to type those relationships.",
-            "That makes SCM a useful stage and world-geometry inspection surface while preserving the original node/object organization instead of flattening everything into a generic editor scene.",
-            "MOD and SCM both carry geometry-related information but have different roles and layouts, so DMC Rengine routes each through its own canonical parser rather than treating SCM as a MOD variant."
+            "Scope: DMC3 Special Edition in Devil May Cry HD Collection, Windows x64, DMC Native Reader Windows v1.0.0 Preview; checked 2026-11-02.",
+            "Extract the SCM leaf from NBZ/PAC/PNST first and record the parent path/slot. Do not assume a MOD parser or 2006-PC workflow applies to SCM.",
+            "Use the verified Downloads route for the portable Windows package; no traditional installer is required."
           ]
         },
         {
-          "heading": "Rebuild research is not universal authoring",
+          "heading": "Open and verify the scene",
           "items": [
-            "DMC Rengine has substantial SCM writer and rebuild research, but successful structural serialization alone does not prove equivalence with Capcom tooling or acceptance by every original-game loading path.",
-            "Public wording therefore uses open, inspect, parse and evidence-backed rebuild research carefully instead of advertising a universal stage editor before the relevant proof gates are closed.",
-            "Use the canonical SCM format documentation and status for exact writer modes and evidence; DMC Native Reader may present user-facing scene inspection where current platform builds expose that capability."
+            "Launch DMC-Native-Reader.exe and open the .scm with File > Open, Ctrl+O or drag-and-drop.",
+            "Confirm SCM recognition, visible scene geometry, populated object/mesh structure and internally coherent transforms. Reopening the same bytes should produce the same inspection result.",
+            "A single SCM is not necessarily the complete stage definition; related textures and stage resources can live elsewhere."
+          ]
+        },
+        {
+          "heading": "Troubleshooting",
+          "items": [
+            "Rejected file: verify that you extracted the SCM leaf rather than a containing PAC/PNST and that the extension was not guessed.",
+            "Partial or untextured scene: inspect neighboring/companion texture resources rather than interpreting missing material data as immediate parse failure.",
+            "Community Blender import succeeds: useful for that tool, but its import behavior is governed by its own implementation and does not prove DMC Rengine export or authoring support."
+          ]
+        },
+        {
+          "heading": "Writer evidence is a separate gate",
+          "items": [
+            "DMC Rengine models scene hierarchy, objects, meshes, streams, transforms and texture-facing state, with preserve_layout and deterministic canonical_rebuild authoring paths; the consolidated no-edit corpus records 78/78 canonical rebuild + reparse passes.",
+            "A bounded real size-changing SCM-to-PAC reintegration receipt exists, but it does not establish every retail SCM, universal stage editing, NBZ delivery or original dmc3.exe acceptance.",
+            "The public Windows Native Reader remains read-only even though the core repository has stronger bounded writer research."
           ]
         }
       ],
       "related_links": [
-        {"path": "/formats/scm/", "label": "Read the canonical DMC3 SCM format research"},
-        {"path": "/models/", "label": "Return to the DMC3 model and scene tools hub"},
-        {"path": "/guides/extract-models/", "label": "Return to model and scene extraction workflow"},
-        {"path": "/status/", "label": "Check current canonical SCM maturity"}
+        {
+          "path": "/formats/scm/",
+          "label": "Read canonical DMC3 SCM format research"
+        },
+        {
+          "path": "/guides/extract-models/",
+          "label": "Return to model and scene extraction workflow"
+        },
+        {
+          "path": "/models/",
+          "label": "Return to the DMC3 model and scene tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current canonical SCM maturity"
+        }
       ]
     },
     {
@@ -275,10 +438,22 @@
         }
       ],
       "related_links": [
-        {"path": "/guides/extract-models/", "label": "Follow the DMC3 model extraction guide"},
-        {"path": "/guides/inspect-mod/", "label": "Open and inspect DMC3 MOD models"},
-        {"path": "/guides/inspect-scm/", "label": "Open and inspect DMC3 SCM scenes"},
-        {"path": "/formats/", "label": "Browse all canonical DMC3 resource formats"}
+        {
+          "path": "/guides/extract-models/",
+          "label": "Follow the DMC3 model extraction guide"
+        },
+        {
+          "path": "/guides/inspect-mod/",
+          "label": "Open and inspect DMC3 MOD models"
+        },
+        {
+          "path": "/guides/inspect-scm/",
+          "label": "Open and inspect DMC3 SCM scenes"
+        },
+        {
+          "path": "/formats/",
+          "label": "Browse all canonical DMC3 resource formats"
+        }
       ]
     },
     {
@@ -306,10 +481,22 @@
         }
       ],
       "related_links": [
-        {"path": "/guides/extract-textures/", "label": "Follow the DMC3 texture extraction guide"},
-        {"path": "/formats/textures/", "label": "Read canonical DDS and PTX texture research"},
-        {"path": "/models/", "label": "Relate textures to DMC3 model resources"},
-        {"path": "/unpacker/", "label": "Return to the DMC3 archive extraction entry point"}
+        {
+          "path": "/guides/extract-textures/",
+          "label": "Follow the DMC3 texture extraction guide"
+        },
+        {
+          "path": "/formats/textures/",
+          "label": "Read canonical DDS and PTX texture research"
+        },
+        {
+          "path": "/models/",
+          "label": "Relate textures to DMC3 model resources"
+        },
+        {
+          "path": "/unpacker/",
+          "label": "Return to the DMC3 archive extraction entry point"
+        }
       ]
     },
     {
@@ -337,10 +524,22 @@
         }
       ],
       "related_links": [
-        {"path": "/unpacker/", "label": "Start with DMC3 HD unpacking and extraction"},
-        {"path": "/models/", "label": "Explore DMC3 model tools and research"},
-        {"path": "/textures/", "label": "Explore DMC3 texture tools and research"},
-        {"path": "/reverse-engineering/", "label": "Read the DMC Rengine evidence-first reverse approach"}
+        {
+          "path": "/unpacker/",
+          "label": "Start with DMC3 HD unpacking and extraction"
+        },
+        {
+          "path": "/models/",
+          "label": "Explore DMC3 model tools and research"
+        },
+        {
+          "path": "/textures/",
+          "label": "Explore DMC3 texture tools and research"
+        },
+        {
+          "path": "/reverse-engineering/",
+          "label": "Read the DMC Rengine evidence-first reverse approach"
+        }
       ]
     }
   ]

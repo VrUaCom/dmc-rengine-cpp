@@ -85,6 +85,9 @@ jobs:
           test -f _site/archives/nbz/index.html
           test -f _site/unpacker/index.html
           test -f _site/guides/index.html
+          test -f _site/guides/start-modding-dmc3/index.html
+          test -f _site/guides/extract-nbz/index.html
+          test -f _site/guides/extract-textures/index.html
           test -f _site/guides/extract-pac/index.html
           test -f _site/guides/browse-pnst/index.html
           test -f _site/guides/extract-models/index.html
@@ -121,6 +124,11 @@ jobs:
           ! grep -q 'provenance-bound retail PAC/PNST reintegration writer output' _site/formats/mod/lessons/01-what-is-mod/index.html
           ! grep -q 'broad no-edit byte parity' _site/formats/mod/lessons/01-what-is-mod/index.html
           grep -q 'Practical tutorial path' _site/formats/mot/index.html
+          grep -q 'Confirm the edition before choosing a tool' _site/guides/start-modding-dmc3/index.html
+          grep -q 'Reproducible extraction steps' _site/guides/extract-nbz/index.html
+          grep -q 'Open the MOD and inspect it' _site/guides/inspect-mod/index.html
+          grep -q 'Open and verify the scene' _site/guides/inspect-scm/index.html
+          grep -q 'Open DDS or PTX' _site/guides/extract-textures/index.html
           grep -q 'How to Extract DMC3 PAC Files' _site/guides/extract-pac/index.html
           grep -q 'MOD reverse complete' _site/guides/inspect-mod/index.html
           grep -q 'Preserve-Layout Writer Gate 1' _site/guides/inspect-mod/index.html

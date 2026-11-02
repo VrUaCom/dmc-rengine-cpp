@@ -66,39 +66,47 @@ def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
 
     inspect_mod = by_path["/guides/inspect-mod/"]
     inspect_mod["description"] = (
-        "DMC3 MOD reverse-complete viewer and bounded preserve-layout writer guide covering the "
-        "canonical model contract, retail PNST reintegration and remaining authoring gates."
+        "Open an extracted DMC3 HD MOD with DMC Native Reader Windows v1.0.0 Preview, "
+        "verify geometry and structure, troubleshoot texture relationships, and keep writer claims separate."
     )
     inspect_mod["summary"] = (
-        "Open and inspect DMC3 MOD files through the completed canonical reverse contract. Every "
-        "relevant serialized/runtime domain has a terminal evidence state, including deliberate "
-        "PRESERVED_UNDECODED outcomes where stronger semantic names are not proven. Preserve-Layout "
-        "Writer Gate 1 and real retail PNST reintegration are separate bounded authoring capabilities; "
-        "retail NBZ selection and original-game acceptance remain open."
+        "For an already extracted DMC3 HD Collection MOD on Windows, use DMC Native Reader "
+        "v1.0.0 Preview as a read-only viewer: open or drag-drop the file, verify geometry and "
+        "Inspector structure, then trace textures separately if needed. The canonical MOD reverse "
+        "is complete, while Preserve-Layout Writer Gate 1 and retail PNST reintegration remain "
+        "separate bounded core capabilities rather than features of the viewer."
     )
     inspect_mod["sections"] = [
         {
-            "heading": "MOD reverse complete",
+            "heading": "Scope and prerequisites",
             "items": [
-                "The canonical DMC3 HD MOD reverse is complete: document/object/mesh ABI, hierarchy and ordering, local/world transforms, skinning, topology, texture binding, runtime object projection, post-load relocation and the MOD-side animation boundary all have evidence-backed terminal states.",
-                "Reverse completeness does not require speculative artistic names. PRESERVED_UNDECODED, RESERVED_OBSERVED_ZERO and REJECTED are valid terminal outcomes when the strongest evidence supports preservation, bounded zero observation or rejection rather than a stronger semantic label.",
-                "Header +0x14, BLENDINDICES.x, source flag 0x00200000, mesh +0x0C/+0x38/+0x4C and transform +0x1C therefore no longer represent open MOD reverse work; their preservation/family-sensitive boundaries are the closed result."
+                "Scope: Devil May Cry 3: Special Edition inside Devil May Cry HD Collection, Windows x64, DMC Native Reader Windows v1.0.0 Preview; checked 2026-11-02.",
+                "Start with an extracted MOD leaf resource and preserve its NBZ/PAC/PNST source path. If the bytes are still inside a container, extract the leaf first.",
+                "Download the verified portable Windows package, extract it and launch DMC-Native-Reader.exe. The public application is intentionally read-only."
             ],
         },
         {
-            "heading": "Preserve-layout writer and retail PNST gate",
+            "heading": "Open the MOD and inspect it",
             "items": [
-                "Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and authorizes only fixed-size edits to already-typed spans such as object bounds and existing position, normal and UV streams.",
-                "The provenance-bound no-edit corpus gate passes 38/38 retail MOD files with exact source/output equality across 882,736 source bytes, while one controlled em000_021.mod bounding-radius edit changes exactly three authorized bytes and survives disk reread and canonical reopen.",
-                "PR #372 proves provenance-bound real retail PNST reintegration for the same-size authored MOD child: parent size and slot table remain unchanged, only the expected three child bytes change, and canonical reparse/re-expand returns the exact writer output."
+                "Use File > Open, Ctrl+O or drag-and-drop to load the extracted .mod resource.",
+                "Confirm MOD recognition, visible geometry and populated structural information; rotate, zoom and wireframe are useful checks that the parse is meaningful rather than merely accepted.",
+                "Record the source path and reader version. If geometry appears but textures do not, inspect the companion/DDS/PTX relationship separately instead of treating every texture-facing identifier as one universal ID."
             ],
         },
         {
-            "heading": "What remains after reverse completion",
+            "heading": "MOD reverse complete; viewer remains read-only",
             "items": [
-                "A synthetic MOD -> container -> NBZ overlay -> reopen chain is proven through the existing NBZ infrastructure, but provenance-bound retail NBZ selection and original dmc3.exe consumption remain separate acceptance gates.",
-                "Typed-IR-only layout synthesis/reflow, transform and skin authoring, material/source-flag/texture-binding authoring, texture-companion rewriting and broader mutation authority for preservation-only fields remain writer work rather than unfinished reverse.",
-                "The public surface may say MOD reverse complete or fully reverse-engineered within the canonical DMC3 HD scope, but it must not claim a full MOD writer, arbitrary original-game-safe editing or Capcom authoring-tool equivalence."
+                "The canonical DMC3 HD MOD reverse is complete for the defined scope, covering structure, hierarchy, transforms, mesh streams, topology, skinning, texture relationships and terminal preservation classifications.",
+                "Preserve-Layout Writer Gate 1 is a separate core authoring path. Its provenance-bound no-edit corpus passes 38/38 retail MOD files with exact equality and canonical reopen, and a bounded real retail PNST reintegration receipt exists.",
+                "Those writer receipts do not turn the Windows viewer into a general editor and do not prove arbitrary texture replacement, typed-IR layout synthesis, retail NBZ selection or original dmc3.exe acceptance."
+            ],
+        },
+        {
+            "heading": "Common failures and verification boundary",
+            "items": [
+                "Rejected file: verify that the resource is the complete MOD leaf, not its PAC/PNST parent, and do not rename unknown bytes just to force a parser.",
+                "Different Blender or 3ds Max behavior is evidence about that independent implementation, not automatic proof of DMC Rengine semantics.",
+                "A successful viewer session proves inspection of that resource with that reader build. It does not by itself prove writer support or in-game acceptance."
             ],
         },
     ]
@@ -169,30 +177,46 @@ def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
 def _promote_post_372_model_format_truth(by_path: dict[str, dict]) -> None:
     inspect_scm = by_path["/guides/inspect-scm/"]
     inspect_scm["description"] = (
-        "DMC3 SCM viewer and bounded writer/rebuild guide for scene hierarchy, geometry, "
-        "transforms, canonical_rebuild and current proof boundaries."
+        "Open an extracted DMC3 HD SCM scene with DMC Native Reader Windows v1.0.0 Preview, "
+        "verify scene structure and keep read-only viewing separate from bounded writer evidence."
     )
     inspect_scm["summary"] = (
-        "Inspect DMC3 SCM scene resources through the canonical parser and the selected bounded "
-        "authoring stack. PR #372 promotes preserve_layout and deterministic canonical_rebuild, "
-        "typed geometry and node-transform edits, output reparse and mutation guards, while "
-        "production reintegration and original-game acceptance remain stronger open gates."
+        "For an already extracted DMC3 HD Collection SCM on Windows, use DMC Native Reader "
+        "v1.0.0 Preview to inspect the scene and structural view while preserving archive/container "
+        "provenance. SCM is scene-oriented and distinct from MOD; preserve_layout, deterministic "
+        "canonical_rebuild and retail reintegration receipts belong to the separate core authoring stack."
     )
     inspect_scm["sections"] = [
         {
-            "heading": "Canonical SCM inspection and authoring stack",
+            "heading": "Scope and prerequisites",
             "items": [
-                "SCM inspection exposes scene hierarchy, object/mesh relationships, position/normal/UV streams, topology, transforms and texture-facing state without flattening the original scene organization.",
-                "The selected canonical writer supports preserve_layout for source-bound same-layout edits and deterministic canonical_rebuild from typed IR, including typed geometry, UV, texture-slot, alpha/filter, GS CLAMP REGION_REPEAT and node translation/rotation edits.",
-                "Writer output is canonically reparsed, source-bound mutation guards reject unauthorized state, and layout-changing rebuild fails closed when retained source bytes contain non-zero unmodeled data."
+                "Scope: Devil May Cry 3: Special Edition inside Devil May Cry HD Collection, Windows x64, DMC Native Reader Windows v1.0.0 Preview; checked 2026-11-02.",
+                "Extract the SCM leaf from NBZ/PAC/PNST first and record the parent path or slot when available. Do not reuse MOD or DMC3 2006 assumptions.",
+                "Use the verified portable Windows package. The public Native Reader is a viewer, not the repository's SCM writer UI."
             ],
         },
         {
-            "heading": "SCM corpus gate and remaining boundaries",
+            "heading": "Open and verify the scene",
             "items": [
-                "The consolidated receipt covers 78 paths / 68 unique SHA-256 inputs with 78/78 parse, 78/78 preserve-layout exact parity, 78/78 canonical rebuild + reparse and 78/78 canonical exact no-edit parity.",
-                "ScmResourceBundleWriter provides bounded SCM/texture-companion count and index coherence through the existing texture framing/reflow path.",
-                "Representative provenance-bound semantic edits, retail texture rewriting, real-retail size-changing rebuild, SCM PAC/PNST/NBZ reintegration and original dmc3.exe acceptance remain open, so no production or 100% SCM authoring claim is made."
+                "Launch DMC-Native-Reader.exe and use File > Open, Ctrl+O or drag-and-drop to load the .scm resource.",
+                "Confirm SCM recognition, visible scene geometry, populated object/mesh structure and internally coherent transforms; reopening the same bytes should produce the same inspection result.",
+                "A single SCM is not necessarily the entire stage. Missing textures or other content may live in neighboring resources and should be traced separately."
+            ],
+        },
+        {
+            "heading": "Canonical SCM writer evidence is a separate gate",
+            "items": [
+                "The core SCM authority supports preserve_layout for source-bound same-layout edits and deterministic canonical_rebuild from typed IR with output reparse and mutation guards.",
+                "The consolidated no-edit receipt covers 78 paths / 68 unique SHA-256 inputs, including 78/78 canonical rebuild + reparse and exact no-edit parity at that bounded scope.",
+                "A bounded real size-changing SCM-to-PAC reintegration receipt does not establish universal stage editing, every retail SCM, arbitrary NBZ delivery or original dmc3.exe acceptance."
+            ],
+        },
+        {
+            "heading": "Common failures and verification boundary",
+            "items": [
+                "Rejected file: confirm that you extracted the leaf SCM rather than its PAC/PNST container and that the extension was not guessed.",
+                "If a community Blender importer accepts the resource, follow that tool's own version and format contract; it does not prove first-party export or authoring support.",
+                "Viewer success establishes inspection of the selected SCM with the stated reader version, not game acceptance of an edited scene."
             ],
         },
     ]
@@ -350,6 +374,10 @@ def _augment_intent_graph(site: dict) -> dict:
     for route in ('/', '/tools/', '/status/', '/guides/start-modding-dmc3/', '/native-reader/android/'):
         _append_related(by_path[route], '/downloads/', 'Choose a public Native Reader package for your platform')
         _append_related(by_path[route], '/capabilities/', 'Compare operation support by product, platform and version')
+    for route in ('/guides/extract-nbz/', '/guides/inspect-mod/', '/guides/inspect-scm/', '/guides/extract-textures/'):
+        _append_related(by_path[route], '/tools/', 'Choose the first-party tool for this DMC3 task')
+        _append_related(by_path[route], '/downloads/', 'Download a verified Native Reader package when the leaf format is supported')
+        _append_related(by_path[route], '/capabilities/', 'Check read, edit, write and acceptance support separately')
 
     # Durable entry points from existing indexable routes into the new hub.
     _append_related(by_path["/"], "/en/", "Explore the multilingual DMC Modding Hub")
