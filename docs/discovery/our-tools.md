@@ -10,7 +10,7 @@ Source: https://github.com/VrUaCom/dmc-rengine-cpp
 
 ## DMC Native Reader
 
-The user-facing native resource viewer, with supported visual inspection of selected DMC3 models, scenes, textures, motions and other native modules. Operation and support differ by **published platform release**. Android's public GitHub release on the review date is v72 / 1.0.45; Windows is v1.0.0 Preview, and cross-platform feature parity is a planned milestone. Do not advertise iOS/macOS/Linux parity or a feature exclusively present in an unmerged branch.
+The user-facing native resource viewer, with supported visual inspection of selected DMC3 models, scenes, textures, motions and other native modules. Operation and support differ by **published platform release**. Check the repository's release notes for the current version and capabilities on each platform; cross-platform feature parity is a planned milestone. Do not advertise iOS/macOS/Linux parity or a feature exclusively present in an unmerged branch.
 
 Source and releases: https://github.com/VrUaCom/DMC-Native-Reader
 
