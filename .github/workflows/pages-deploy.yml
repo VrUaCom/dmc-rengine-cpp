@@ -10,6 +10,8 @@ on:
       - 'tools/build_discovery_site_v3.py'
       - 'tools/discovery_format_catalog.py'
       - 'tools/test_modding_hub_v1.py'
+      - 'tools/site_guide_markdown.py'
+      - 'tools/test_site_guide_markdown.py'
       - 'tools/site_product_catalog.py'
       - 'tools/test_site_product_catalog.py'
       - 'docs/discovery/**'
@@ -79,6 +81,9 @@ jobs:
       - name: Test public release catalog before production build
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         run: python tools/test_site_product_catalog.py
+      - name: Test complete Android guide before production build
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
+        run: python tools/test_site_guide_markdown.py
       - name: Build static discovery site
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         env:
@@ -173,6 +178,7 @@ jobs:
             "/ja/"
             "/downloads/"
             "/capabilities/"
+            "/native-reader/android/"
           )
 
           index=0
@@ -233,7 +239,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 31, pages
+          assert len(pages) == 32, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -301,6 +307,13 @@ jobs:
           assert 'id="capability-matrix-title"' in capabilities
           assert 'data-capability="reader-ios"' in capabilities and "Build only" in capabilities
           print("Version-bound downloads and capability matrix accepted on the live origin.")
+          android = Path("/tmp/live-pages/page-31.html").read_text(encoding="utf-8")
+          assert 'class="reader-guide"' in android and 'class="guide-toc"' in android
+          assert '7f8caeacac9b168de3954ee15fa42beb01d61f15' in android
+          assert '18. Architecture and pinned sources' in android
+          assert 'debug/device-test artifact' in android
+          assert '<table>' in android and 'V135' in android
+          print("Complete V142 Android guide accepted on the live origin.")
 
           png = Path("/tmp/social-preview.png").read_bytes()
           assert png[:8] == b"\x89PNG\r\n\x1a\n"

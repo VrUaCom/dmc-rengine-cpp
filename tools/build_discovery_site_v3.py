@@ -11,6 +11,7 @@ from pathlib import Path
 import build_discovery_site as base
 import build_discovery_site_v2 as v2
 import site_product_catalog as product_pages
+import site_guide_markdown as guide_markdown
 
 INTENT_WAVES = (
     base.ROOT / "site" / "intent-pages-wave2.json",
@@ -326,7 +327,7 @@ def _augment_intent_graph(site: dict) -> dict:
                 "items": [
                     "Find DMC3 character models through provenance-aware archive navigation and canonical MOD verification instead of relying on one guessed universal filename.",
                     "Use the enemy-model guide for the same typed resource pipeline across enemy assets and variants while keeping inspection distinct from authoring proof.",
-                    "Use the DMC Native Reader Android page to distinguish source capabilities, the promoted Android baseline and the public device-test APK. Downloads and Capabilities separately identify the Windows technical preview and unsigned iOS artifact.",
+                    "Use the complete Android Native Reader guide for models, stages, effects, cutscenes, collision and photo/video controls through development V142. It pins the source and separates branch features from the older downloadable APK and historical device tests.",
                 ],
             }
         )
@@ -347,7 +348,7 @@ def _augment_intent_graph(site: dict) -> dict:
         )
     _append_related(guides, "/guides/character-models/", "Find DMC3 character models")
     _append_related(guides, "/guides/enemy-models/", "Find and inspect DMC3 enemy models")
-    _append_related(guides, "/native-reader/android/", "Open the DMC Native Reader Android capability page")
+    _append_related(guides, "/native-reader/android/", "Read the complete Android reader guide through V142")
     _append_related(guides, "/guides/vergil-model-textures/", "Find Vergil models and textures through canonical resource evidence")
     _append_related(guides, "/guides/weapon-models/", "Find Yamato, Rebellion, Beowulf and other DMC3 weapon resources")
     _append_related(guides, "/guides/blender-import/", "Connect DMC3 extraction and inspection to community Blender workflows")
@@ -573,6 +574,14 @@ def _render_site_chrome(document: str, site: dict, page: dict, base_url: str | N
 
 def render_page(site: dict, page: dict, base_url: str | None) -> str:
     document = _V2_RENDER_PAGE(site, page, base_url)
+    if page['path'] == '/native-reader/android/':
+        original = base.content_sections_html(page)
+        if original not in document:
+            raise SystemExit('Android guide content insertion point is missing')
+        content = (base.ROOT / page['source_path']).read_text(encoding='utf-8')
+        document = document.replace(original, guide_markdown.render(content, base_url), 1)
+        document = document.replace('Devil May Cry 3 HD Collection · Evidence-first C++20 research',
+                                    'DMC3 · HD Collection · Android manual · C++23', 1)
     document = _render_tool_directory(document, page, base_url)
     document = _render_product_pages(document, page, base_url)
     document = _render_hub_invitation(document, page, base_url)

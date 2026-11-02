@@ -65,9 +65,9 @@
     },
     {
       "path": "/native-reader/android/",
-      "title": "DMC Native Reader for Android — DMC3 Model & Texture Inspection",
-      "description": "Android DMC Native Reader for DMC3 HD Collection resources: MOD/SCM and DDS/PTX inspection, with exact release, test-build and platform boundaries.",
-      "summary": "Use DMC Native Reader to inspect supported resources from Devil May Cry 3: Special Edition in Devil May Cry HD Collection on Android. MOD, SCM, DDS and PTX are the starting families described here. Choose an exact package in Downloads and check Capabilities: the source registry, promoted Android baseline and downloadable device-test APK are separate evidence surfaces.",
+      "title": "DMC Native Reader for Android — Complete V142 Guide",
+      "description": "Complete NR-Luna-v73 Android guide through V142: formats, Stage Ops, effects, cutscenes, photo/video, gyro, ARCore, File Health and exact evidence limits.",
+      "summary": "Explore the Android NR-Luna-v73 development branch through V142: models and textures, assembled stages, motions, effects, collision, cutscenes and a virtual photo/video camera. This complete guide pins source 7f8caea and distinguishes implemented features from historical device tests and the older downloadable APK.",
       "source_path": "docs/guides/native-reader-android.md",
       "sections": [
         {
