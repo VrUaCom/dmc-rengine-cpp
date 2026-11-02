@@ -10,6 +10,8 @@ on:
       - 'tools/build_discovery_site_v3.py'
       - 'tools/discovery_format_catalog.py'
       - 'tools/test_modding_hub_v1.py'
+      - 'tools/site_product_catalog.py'
+      - 'tools/test_site_product_catalog.py'
       - 'docs/discovery/**'
       - 'docs/guides/**'
       - 'docs/formats/**'
@@ -74,6 +76,9 @@ jobs:
       - name: Test multilingual hub before production build
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         run: python tools/test_modding_hub_v1.py
+      - name: Test public release catalog before production build
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
+        run: python tools/test_site_product_catalog.py
       - name: Build static discovery site
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         env:
@@ -162,6 +167,8 @@ jobs:
             "/pt-br/"
             "/uk/"
             "/ja/"
+            "/downloads/"
+            "/capabilities/"
           )
 
           index=0
@@ -222,7 +229,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 25, pages
+          assert len(pages) == 27, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -284,6 +291,12 @@ jobs:
               for alternate, alternate_route in locales.items():
                   assert f'<link rel="alternate" hreflang="{alternate}" href="{site}{alternate_route}">' in document, (route, alternate)
           print("Responsive homepage and five reciprocal language routes accepted on the live origin.")
+          downloads = Path("/tmp/live-pages/page-25.html").read_text(encoding="utf-8")
+          capabilities = Path("/tmp/live-pages/page-26.html").read_text(encoding="utf-8")
+          assert 'id="choose-build"' in downloads and 'Download unsigned IPA' in downloads
+          assert 'id="capability-matrix-title"' in capabilities
+          assert 'data-capability="reader-ios"' in capabilities and "Build only" in capabilities
+          print("Version-bound downloads and capability matrix accepted on the live origin.")
 
           png = Path("/tmp/social-preview.png").read_bytes()
           assert png[:8] == b"\x89PNG\r\n\x1a\n"
@@ -348,6 +361,8 @@ jobs:
               "/pt-br/",
               "/uk/",
               "/ja/",
+              "/downloads/",
+              "/capabilities/",
           ):
               assert required in paths, required
           print(

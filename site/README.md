@@ -42,13 +42,13 @@ Drive, sandbox, temporary artifact and expiring URLs are not valid share-card im
 ## Build locally
 
 ```bash
-python tools/build_discovery_site.py --output _site
+python tools/build_discovery_site_v3.py --output _site
 ```
 
 To generate the production-style canonical tags and sitemap for the GitHub Pages URL:
 
 ```bash
-python tools/build_discovery_site.py \
+python tools/build_discovery_site_v3.py \
   --output _site \
   --base-url https://vruacom.github.io/dmc-rengine-cpp
 ```
@@ -113,3 +113,19 @@ full desktop page. Home, tools, Ukrainian landing, format catalog and the first
 MOD lesson had no document-level horizontal overflow after the format-card
 word-wrapping fix. Native menu activation was checked with a pointer and the
 keyboard in Chromium; physical mobile devices and Safari were not tested.
+
+## Release-bound catalog
+
+`site/tool-catalog.json` v2 supplies first-party product cards, exact public
+package identities and operation-specific capability entries. The v3 builder
+adds `/downloads/` and `/capabilities/` from intent wave 6. Package SHA-256,
+size, source revision and verification date are mandatory. The catalog refuses
+private/unregistered binary URLs, an unverified stable release promotion,
+reader editing/write claims and accepted-runtime claims inferred from builds.
+
+`tools/test_site_product_catalog.py` checks rejected unsafe identities and
+capability promotions as well as generated package links, project-base
+handling, source references and sitemap coverage. The production acceptance
+job fetches both new routes in its 27-route live sample. The three packages
+in the 2026-11-02 snapshot were downloaded and independently matched to
+GitHub-provided byte sizes and SHA-256 values; no new device tests were run.

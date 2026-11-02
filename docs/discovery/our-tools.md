@@ -31,3 +31,12 @@ Project repository: https://github.com/VrUaCom/DMC-Native-Blender-Reader
 Every public tool card should eventually carry platform, release tag, supported operations, version-specific status, documentation and a trustworthy download URL. New ecosystem tools are added as entries to a catalog rather than being hard-coded into each article. Individual guides should show the *most relevant* first-party tool and provide an honest answer even when no first-party implementation is available.
 
 See [website strategy](modding-hub-strategy.md) and [canonical implementation status](../status/current.md).
+
+## Version-specific support and downloads
+
+See [the capability matrix](capabilities.md) for operation-level evidence and
+[public downloads](downloads.md) for exact packages, source identities and
+SHA-256 checksums. These two pages share the structured v2 tool catalog.
+Android test packages, Windows previews and unsigned iOS artifacts are
+deliberately separate release stages; source-only projects have no guessed
+binary download. The current release verification snapshot is 2026-11-02.

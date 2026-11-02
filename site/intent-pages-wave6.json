@@ -1,0 +1,81 @@
+{
+  "schema": "dmc-rengine.site-intent-pages-wave6.v1",
+  "pages": [
+    {
+      "path": "/downloads/",
+      "title": "DMC Native Reader Downloads — Android, Windows and iOS",
+      "description": "Choose a verified public Native Reader package: Android device-test APK, Windows technical preview or unsigned iOS developer artifact, with SHA-256 checksums.",
+      "summary": "Choose your platform: an Android test APK, a Windows preview or an unsigned iOS developer build. Each package has its own features, installation steps and limitations.",
+      "source_path": "docs/discovery/downloads.md",
+      "sections": [
+        {
+          "heading": "Choose a package by release stage",
+          "items": [
+            "Android is a debug/device-test APK and Windows is a read-only technical preview. Each card names the exact version, platform, package, release notes and current limitations rather than presenting every file as a production release.",
+            "The Android release contains two APKs under one version label. This directory pins the newer 7d1188e source build and its exact checksum; its physical-device acceptance is not established by the publication of the file."
+          ]
+        },
+        {
+          "heading": "Source projects and developer artifacts",
+          "items": [
+            "The unsigned iOS IPA is available under the developer-artifact disclosure. It needs signing and does not establish an app launched on an iPhone; it is not an App Store, TestFlight or tappable signed installation.",
+            "DMC Rengine C++ and GDSpaces provide source and documentation, while the Blender bridge has no released add-on in the checked public repository. For Pocket GDS, macOS and Linux, no public binary package is verified in this catalog; see the tool directory for project status."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/capabilities/",
+          "label": "Compare support by product, platform and version"
+        },
+        {
+          "path": "/tools/",
+          "label": "Find the right DMC Rengine tool for your task"
+        },
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Read the DMC3 modding orientation guide"
+        }
+      ],
+      "display_title": "Get DMC Native Reader."
+    },
+    {
+      "path": "/capabilities/",
+      "title": "DMC Rengine Capability Matrix — Support by Product and Platform",
+      "description": "Compare recognition, parsing, preview, editing, rebuild and original-game acceptance for Native Reader, C++ research, GDSpaces and the planned Blender bridge.",
+      "summary": "Check reading, preview and authoring support for each product, platform and version. Follow the evidence links to see the exact scope and validation behind each capability.",
+      "source_path": "docs/discovery/capabilities.md",
+      "sections": [
+        {
+          "heading": "Read the evidence at the right level",
+          "items": [
+            "Release notes, pinned source documentation, compile checks and bounded development receipts provide different evidence. The matrix labels each operation separately; public availability of a package does not prove every feature or physical-device acceptance.",
+            "Native Reader remains a read-only inspection application. Editing and writer work belong to the canonical C++ framework or separate authoring tools, and source-side rebuild/reopen tests do not automatically establish original-game acceptance."
+          ]
+        },
+        {
+          "heading": "Keep platform and format boundaries explicit",
+          "items": [
+            "Windows preview support is scoped to its published MOD/SCM/DDS/PTX snapshot. The Android test APK and unsigned iOS developer artifact carry their own limitations instead of inheriting the latest source-branch capability list as accepted behavior.",
+            "Canonical MOD and SCM authoring are recorded separately because their proven edit and reintegration cases differ. GDSpaces source infrastructure, a future Blender bridge and potential macOS/Linux releases are not advertised as equivalent downloadable applications."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/downloads/",
+          "label": "Choose an exact public package and verify its checksum"
+        },
+        {
+          "path": "/status/",
+          "label": "Read the canonical project status and evidence boundaries"
+        },
+        {
+          "path": "/tools/",
+          "label": "Browse the first-party product directory"
+        }
+      ],
+      "display_title": "Compare capabilities."
+    }
+  ]
+}

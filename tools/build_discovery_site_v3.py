@@ -10,12 +10,14 @@ from pathlib import Path
 
 import build_discovery_site as base
 import build_discovery_site_v2 as v2
+import site_product_catalog as product_pages
 
 INTENT_WAVES = (
     base.ROOT / "site" / "intent-pages-wave2.json",
     base.ROOT / "site" / "intent-pages-wave3.json",
     base.ROOT / "site" / "intent-pages-wave4.json",
     base.ROOT / "site" / "intent-pages-wave5.json",
+    base.ROOT / "site" / "intent-pages-wave6.json",
 )
 _V2_LOAD_MANIFEST = v2.load_manifest
 _V2_RENDER_PAGE = v2.render_page
@@ -345,6 +347,10 @@ def _augment_intent_graph(site: dict) -> dict:
 
     _promote_mod_writer_gate(by_path)
     _promote_post_372_model_format_truth(by_path)
+    for route in ('/', '/tools/', '/status/', '/guides/start-modding-dmc3/', '/native-reader/android/'):
+        _append_related(by_path[route], '/downloads/', 'Choose a public Native Reader package for your platform')
+        _append_related(by_path[route], '/capabilities/', 'Compare operation support by product, platform and version')
+
     # Durable entry points from existing indexable routes into the new hub.
     _append_related(by_path["/"], "/en/", "Explore the multilingual DMC Modding Hub")
     _append_related(by_path["/"], "/tools/", "Explore the verified first-party DMC Rengine tools")
@@ -384,12 +390,10 @@ _EN_SOURCE_NOTE = "This page is a public discovery and readability layer. It doe
 _EN_EVIDENCE_NOTE = "A parser is not automatically a writer. A successful writer is not automatically equivalent to Capcom's offline tools. Synthetic validation does not establish original-game behavioral equivalence."
 
 
-def _render_tool_directory(document: str, page: dict) -> str:
+def _render_tool_directory(document: str, page: dict, base_url: str | None) -> str:
     if page.get("path") != "/tools/":
         return document
-    catalog = json.loads(PRODUCT_CATALOG.read_text(encoding="utf-8"))
-    if catalog.get("schema") != "dmc-rengine.first-party-tool-catalog.v1":
-        raise SystemExit("unrecognized first-party tool catalog schema")
+    catalog = product_pages.load_catalog(PRODUCT_CATALOG)
     products = catalog.get("products")
     if not isinstance(products, list) or not products:
         raise SystemExit("empty first-party tool catalog")
@@ -414,13 +418,32 @@ def _render_tool_directory(document: str, page: dict) -> str:
             + '<h3>' + html.escape(name) + '</h3>'
             + '<p class="tool-role">' + html.escape(role) + '</p>'
             + '<p>' + html.escape(note) + '</p>'
+            + '<a class="tool-action" href="' + html.escape(base.public_url(base_url, item['action_path']), quote=True)
+            + '">' + html.escape(item['action_label']) + ' →</a>'
             + '<a rel="noopener noreferrer" href="' + html.escape(url, quote=True)
             + '">Source and project information ↗</a></article>'
         )
-    marker = '<section class="related">'
+    marker = '<section class="content-block">'
     if marker not in document:
         raise SystemExit("tool directory injection marker missing")
     extra = '<section class="content-block"><h2>Our ecosystem tools</h2><div class="tool-grid">' + "".join(cards) + '</div></section>'
+    return document.replace(marker, extra + marker, 1)
+
+
+def _render_product_pages(document: str, page: dict, base_url: str | None) -> str:
+    if page['path'] not in ('/downloads/', '/capabilities/'):
+        return document
+    catalog = product_pages.load_catalog(PRODUCT_CATALOG)
+    if page.get('display_title'):
+        document = document.replace('<h1>' + html.escape(page['title']) + '</h1>',
+                                    '<h1>' + html.escape(page['display_title']) + '</h1>', 1)
+    if page['path'] == '/downloads/':
+        extra = product_pages.downloads_html(catalog, base.public_url(base_url, '/capabilities/'))
+    else:
+        extra = product_pages.capabilities_html(catalog, base.public_url(base_url, '/downloads/'))
+    marker = '<section class="content-block">'
+    if marker not in document:
+        raise SystemExit('product page insertion marker missing')
     return document.replace(marker, extra + marker, 1)
 
 
@@ -472,11 +495,11 @@ def _render_hub_invitation(document: str, page: dict, base_url: str | None) -> s
 
 
 _NAV_LABELS = {
-    "en": ("Home", "Guides", "Tools", "Formats", "Research", "Status", "Unpacker", "Models", "Textures", "Modding", "Menu", "Skip to content"),
-    "es": ("Inicio", "Guías", "Herramientas", "Formatos", "Investigación", "Estado", "Extracción", "Modelos", "Texturas", "Modding", "Menú", "Saltar al contenido"),
-    "pt-BR": ("Início", "Guias", "Ferramentas", "Formatos", "Pesquisa", "Status", "Extração", "Modelos", "Texturas", "Modding", "Menu", "Ir para o conteúdo"),
-    "uk": ("Головна", "Посібники", "Інструменти", "Формати", "Дослідження", "Статус", "Розпакування", "Моделі", "Текстури", "Модифікації", "Меню", "Перейти до вмісту"),
-    "ja": ("ホーム", "ガイド", "ツール", "形式", "研究", "進捗", "展開", "モデル", "テクスチャ", "Mod制作", "メニュー", "本文へ移動"),
+    "en": ("Home", "Guides", "Tools", "Formats", "Research", "Status", "Unpacker", "Models", "Textures", "Modding", "Downloads", "Capabilities", "Menu", "Skip to content"),
+    "es": ("Inicio", "Guías", "Herramientas", "Formatos", "Investigación", "Estado", "Extracción", "Modelos", "Texturas", "Modding", "Descargas", "Funciones", "Menú", "Saltar al contenido"),
+    "pt-BR": ("Início", "Guias", "Ferramentas", "Formatos", "Pesquisa", "Status", "Extração", "Modelos", "Texturas", "Modding", "Downloads", "Recursos", "Menu", "Ir para o conteúdo"),
+    "uk": ("Головна", "Посібники", "Інструменти", "Формати", "Дослідження", "Статус", "Розпакування", "Моделі", "Текстури", "Модифікації", "Завантаження", "Можливості", "Меню", "Перейти до вмісту"),
+    "ja": ("ホーム", "ガイド", "ツール", "形式", "研究", "進捗", "展開", "モデル", "テクスチャ", "Mod制作", "ダウンロード", "対応機能", "メニュー", "本文へ移動"),
 }
 
 
@@ -484,7 +507,7 @@ def _render_site_chrome(document: str, site: dict, page: dict, base_url: str | N
     """Shared, script-free navigation; all legacy destinations remain reachable."""
     labels = _NAV_LABELS.get(page.get('locale'), _NAV_LABELS['en'])
     routes = ('/', '/guides/', '/tools/', '/formats/', '/reverse-engineering/', '/status/',
-              '/unpacker/', '/models/', '/textures/', '/modding/')
+              '/unpacker/', '/models/', '/textures/', '/modding/', '/downloads/', '/capabilities/')
     valid = {item['path'] for item in site['pages']}
     links = []
     for route, label in zip(routes, labels):
@@ -496,7 +519,7 @@ def _render_site_chrome(document: str, site: dict, page: dict, base_url: str | N
         destination = page['path'] if route == '/' and page.get('locale') else route
         links.append((route, '<a href="' + html.escape(base.public_url(base_url, destination), quote=True)
                       + '"' + state + '>' + html.escape(label) + '</a>'))
-    primary = ''.join(link for route, link in links if route in routes[1:6])
+    primary = ''.join(dict(links)[route] for route in ('/guides/', '/tools/', '/downloads/', '/formats/', '/status/') if route in dict(links))
     all_links = ''.join(link for _, link in links)
     home = html.escape(base.public_url(base_url, '/'), quote=True)
     repo = html.escape(site['repository_url'], quote=True)
@@ -505,24 +528,25 @@ def _render_site_chrome(document: str, site: dict, page: dict, base_url: str | N
         '<a class="brand" href="' + home + '" aria-label="DMC Rengine — ' + html.escape(labels[0], quote=True) + '">'
         '<span class="brand-mark" aria-hidden="true">D<span>/</span>R</span>'
         '<span class="brand-name">DMC Rengine<span>MODDING HUB</span></span></a>'
-        '<nav class="desktop-nav" aria-label="' + html.escape(labels[10], quote=True) + '">' + primary + '</nav>'
+        '<nav class="desktop-nav" aria-label="' + html.escape(labels[-2], quote=True) + '">' + primary + '</nav>'
         '<a class="header-source" href="' + repo + '">GitHub <span aria-hidden="true">↗</span></a>'
-        '<details class="mobile-menu"><summary>' + html.escape(labels[10]) + '<span class="menu-icon" aria-hidden="true"></span></summary>'
-        '<nav aria-label="' + html.escape(labels[10], quote=True) + '">' + all_links + '</nav></details></div></header>'
+        '<details class="mobile-menu"><summary>' + html.escape(labels[-2]) + '<span class="menu-icon" aria-hidden="true"></span></summary>'
+        '<nav aria-label="' + html.escape(labels[-2], quote=True) + '">' + all_links + '</nav></details></div></header>'
     )
     start = document.index('<header class="site-header">')
     end = document.index('</header>', start) + len('</header>')
     document = document[:start] + header + document[end:]
-    document = document.replace('<body>', '<body>\n<a class="skip-link" href="#main-content">' + html.escape(labels[11]) + '</a>', 1)
+    document = document.replace('<body>', '<body>\n<a class="skip-link" href="#main-content">' + html.escape(labels[-1]) + '</a>', 1)
     document = document.replace('<main>', '<main id="main-content" tabindex="-1">', 1)
     document = document.replace('<footer>', '<footer><div class="footer-heading"><span class="footer-brand">DMC Rengine<span> / MODDING HUB</span></span>'
-                                '<a href="#main-content" aria-label="' + html.escape(labels[11], quote=True) + '">↑</a></div><nav class="footer-nav" aria-label="' + html.escape(labels[10], quote=True) + '">' + all_links + '</nav>', 1)
+                                '<a href="#main-content" aria-label="' + html.escape(labels[-1], quote=True) + '">↑</a></div><nav class="footer-nav" aria-label="' + html.escape(labels[-2], quote=True) + '">' + all_links + '</nav>', 1)
     return document
 
 
 def render_page(site: dict, page: dict, base_url: str | None) -> str:
     document = _V2_RENDER_PAGE(site, page, base_url)
-    document = _render_tool_directory(document, page)
+    document = _render_tool_directory(document, page, base_url)
+    document = _render_product_pages(document, page, base_url)
     document = _render_hub_invitation(document, page, base_url)
     document = _render_site_chrome(document, site, page, base_url)
     locale = page.get("locale")
