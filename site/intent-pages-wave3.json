@@ -66,40 +66,69 @@
     {
       "path": "/native-reader/android/",
       "title": "DMC Native Reader for Android — DMC3 Model & Texture Inspection",
-      "description": "Current DMC Native Reader Android baseline for DMC3 MOD, SCM, DDS and PTX inspection, with explicit platform and capability boundaries.",
-      "summary": "DMC Native Reader is the Android-facing inspection application in the DMC Rengine ecosystem. Its current main branch intentionally promotes MOD, SCM, DDS and PTX only, using canonical DMC Rengine readers and a capability-driven UI. This page targets DMC3 Android viewer searches without claiming an all-platform release or unsupported editor capabilities.",
+      "description": "Android DMC Native Reader for DMC3 HD Collection resources: MOD/SCM and DDS/PTX inspection, with exact release, test-build and platform boundaries.",
+      "summary": "Use DMC Native Reader to inspect supported resources from Devil May Cry 3: Special Edition in Devil May Cry HD Collection on Android. MOD, SCM, DDS and PTX are the starting families described here. Choose an exact package in Downloads and check Capabilities: the source registry, promoted Android baseline and downloadable device-test APK are separate evidence surfaces.",
       "source_path": "docs/guides/native-reader-android.md",
       "sections": [
         {
-          "heading": "Current Android application surface",
+          "heading": "Choose an exact Android build",
           "items": [
-            "MOD uses the canonical DMC Rengine structural reader and Architecture v2 adapter for model/inspection output; SCM follows the corresponding canonical scene reader path.",
-            "DDS provides bounded DMC3 texture validation and image preview, while PTX provides bounded texture-bundle reading with DDS child resources and parent navigation.",
-            "Unknown or unpromoted formats fail closed in the Android application's main module registry instead of being exposed through a wildcard parser."
+            "The Native Reader README identifies v68 / 1.0.41 as the promoted Android baseline. Its current source registry describes additional bounded modules beyond MOD, SCM, DDS and PTX; a source-module list is not an acceptance result for every downloadable APK.",
+            "The download catalog separately selects the public code-72 / 1.0.45 APK from source build 7d1188e. It is a debug/device-test artifact, not a stable release or a new physical-device acceptance result.",
+            "Use Downloads for the selected asset, source revision, size and SHA-256; use Capabilities and the pinned release notes for the operation and version you intend to use."
           ]
         },
         {
-          "heading": "DMC Native Reader app is not the same as the wider C++ integration registry",
+          "heading": "Start with a supported resource",
           "items": [
-            "DMC Rengine contains a broader Native Reader integration registry for canonical C++20 parser modules, but registry presence does not automatically mean the Android application has promoted the same user-facing capability.",
-            "Archive traversal and provenance remain GDSpaces/PocketGDS responsibilities; the Android reader receives typed materialized resources when its current app module set supports them.",
-            "This separation keeps product claims tied to the application build while allowing the C++ core to evolve independently as reverse evidence is promoted."
+            "MOD and SCM workflows cover model and scene inspection; DDS and PTX workflows cover texture and texture-bundle inspection. Check the selected build before relying on a specific viewing or navigation feature.",
+            "The practical MOD, SCM and texture walkthroughs currently identify Windows v1.0.0 Preview explicitly. Their UI instructions are not presented as an Android walkthrough or proof of Android/Windows parity.",
+            "Use the NBZ guide to prepare a materialized leaf resource while preserving archive/member/slot provenance. That separate extraction workflow does not imply NBZ unpacking, editing or repacking in Native Reader.",
+            "Unknown or unsupported inputs must remain unsupported rather than being assigned a guessed parser."
           ]
         },
         {
-          "heading": "Platform and authoring boundary",
+          "heading": "Other platform packages have their own limits",
           "items": [
-            "The current product evidence supports Android. Windows, Web and iOS are not advertised here as shipped Native Reader platforms until their own implementation and build evidence are promoted.",
-            "MOD/SCM reading does not imply unrestricted model or scene editing, and DDS/PTX inspection does not imply arbitrary production texture replacement or original-game acceptance.",
-            "Use the format and status pages for the canonical technical maturity of each underlying reader or writer capability."
+            "A public Windows x64 v1.0.0 technical preview provides release-documented read-only MOD, SCM, DDS and PTX viewing. It is an earlier snapshot than the newer Android line.",
+            "The public iOS IPA is an unsigned developer artifact requiring signing; its pinned evidence establishes build checks, not an app launched and accepted on iPhone.",
+            "Native Reader is read-only. Parsing, visual preview, editing, writing and original-game acceptance remain separate capabilities; compare them in the version-bound capability matrix."
           ]
         }
       ],
       "related_links": [
-        {"path": "/models/", "label": "Explore DMC3 model and scene inspection"},
-        {"path": "/textures/", "label": "Explore DDS and PTX texture inspection"},
-        {"path": "/guides/character-models/", "label": "Find DMC3 character models for inspection"},
-        {"path": "/status/", "label": "Check current DMC Rengine technical maturity"}
+        {
+          "path": "/downloads/",
+          "label": "Choose an exact public Native Reader package"
+        },
+        {
+          "path": "/capabilities/",
+          "label": "Compare platform, version and operation support"
+        },
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Confirm your DMC3 edition and prepare a workspace"
+        },
+        {
+          "path": "/guides/extract-nbz/",
+          "label": "Prepare a resource through the NBZ extraction workflow"
+        },
+        {
+          "path": "/guides/inspect-mod/",
+          "label": "Read the Windows MOD inspection walkthrough"
+        },
+        {
+          "path": "/guides/inspect-scm/",
+          "label": "Read the Windows SCM inspection walkthrough"
+        },
+        {
+          "path": "/guides/extract-textures/",
+          "label": "Read the DDS/PTX workflow and its version scope"
+        },
+        {
+          "path": "/status/",
+          "label": "Check canonical DMC Rengine technical maturity"
+        }
       ]
     }
   ]

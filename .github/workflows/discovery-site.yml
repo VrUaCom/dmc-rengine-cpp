@@ -150,7 +150,11 @@ jobs:
           grep -q 'independent community Blender projects' _site/guides/blender-import/index.html
           grep -q 'How to Inspect DMC3 Animations' _site/guides/animations/index.html
           grep -q 'DMC Native Reader for Android' _site/native-reader/android/index.html
-          grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
+          grep -q 'Choose an exact Android build' _site/native-reader/android/index.html
+          grep -q 'debug/device-test artifact' _site/native-reader/android/index.html
+          grep -q 'Windows x64 v1.0.0 technical preview' _site/native-reader/android/index.html
+          grep -q 'unsigned developer artifact' _site/native-reader/android/index.html
+          ! grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
           grep -q 'retail PNST' docs/status/current.md
           grep -q 'SO graph' docs/status/current.md
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/assets/style.css' _site/index.html

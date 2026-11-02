@@ -326,7 +326,7 @@ def _augment_intent_graph(site: dict) -> dict:
                 "items": [
                     "Find DMC3 character models through provenance-aware archive navigation and canonical MOD verification instead of relying on one guessed universal filename.",
                     "Use the enemy-model guide for the same typed resource pipeline across enemy assets and variants while keeping inspection distinct from authoring proof.",
-                    "Use the DMC Native Reader Android page for the current app-facing MOD, SCM, DDS and PTX boundary; Windows, Web and iOS are not advertised as shipped platforms without implementation evidence.",
+                    "Use the DMC Native Reader Android page to distinguish source capabilities, the promoted Android baseline and the public device-test APK. Downloads and Capabilities separately identify the Windows technical preview and unsigned iOS artifact.",
                 ],
             }
         )
