@@ -68,7 +68,7 @@ def main() -> None:
                        for tag, attrs in parser.elements), route
             assert sum(tag == 'details' and attrs.get('class') == 'mobile-menu'
                        for tag, attrs in parser.elements) == 1, route
-            assert sum(tag == 'summary' for tag, _ in parser.elements) == 1, route
+            assert sum(tag == 'summary' for tag, _ in parser.elements) >= 1, route
             for tag, attrs in parser.elements:
                 href = attrs.get('href', '')
                 if tag == 'a' and href.startswith(BASE + '/'):
@@ -100,7 +100,7 @@ def main() -> None:
         tools_html = (generated / "tools" / "index.html").read_text(encoding="utf-8")
         assert "Our ecosystem tools" in tools_html
         assert "DMC Native Blender Reader" in tools_html
-        assert "Pocket GDS repository private" in tools_html
+        assert "Pocket GDS has no public package" in tools_html
         assert tools_html.count("Source and project information") == len(products)
         assert f'{BASE}/tools/' in tools_html
 

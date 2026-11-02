@@ -1,20 +1,24 @@
 {
-  "schema": "dmc-rengine.first-party-tool-catalog.v1",
+  "schema": "dmc-rengine.first-party-tool-catalog.v2",
+  "verified_on": "2026-11-02",
+  "verification_scope": "Public release metadata and pinned source documentation. Device/runtime behavior was not independently tested during this website review.",
   "products": [
     {
       "id": "rengine-cpp",
       "name": "DMC Rengine C++",
-      "role": "Canonical reverse-engineering and resource framework",
+      "role": "Format research and bounded resource authoring",
       "status": "research-and-development",
       "repo_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
       "public_repository": true,
       "verified_platforms": [],
-      "notes": "Canonical C++ code and evidence, not a consumer app download."
+      "notes": "C++ source and evidence. MOD and SCM authoring have separate, bounded validation gates.",
+      "action_path": "/capabilities/",
+      "action_label": "Compare authoring capabilities"
     },
     {
       "id": "native-reader",
       "name": "DMC Native Reader",
-      "role": "Native DMC3 resource inspection and preview",
+      "role": "Read-only resource inspection and preview",
       "status": "published-platform-specific",
       "repo_url": "https://github.com/VrUaCom/DMC-Native-Reader",
       "public_repository": true,
@@ -22,27 +26,395 @@
         "Android",
         "Windows"
       ],
-      "notes": "Feature sets differ by release; iOS/macOS/Linux parity must not be claimed before tested releases."
+      "notes": "Android test APK, Windows technical preview and unsigned iOS developer artifact. Each has its own evidence boundary.",
+      "action_path": "/downloads/",
+      "action_label": "Choose a platform and build"
     },
     {
       "id": "gdspaces",
       "name": "GDS / GDSpaces / Pocket GDS",
-      "role": "Archive/container materialization and resource provenance",
+      "role": "Archive navigation and resource provenance",
       "status": "research-and-development",
       "repo_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
       "public_repository": false,
       "verified_platforms": [],
-      "notes": "Pocket GDS repository private; canonical GDSpaces documentation is public."
+      "notes": "Pocket GDS has no public package in this catalog. Public documentation describes the canonical GDSpaces resource layer.",
+      "action_path": "/gdspaces/",
+      "action_label": "Read GDSpaces documentation"
     },
     {
       "id": "blender-reader",
       "name": "DMC Native Blender Reader",
-      "role": "Developing Blender integration bridge",
+      "role": "Planned Blender integration bridge",
       "status": "pre-release",
       "repo_url": "https://github.com/VrUaCom/DMC-Native-Blender-Reader",
       "public_repository": true,
       "verified_platforms": [],
-      "notes": "No verified released Blender importer/exporter in the current public repository."
+      "notes": "No public add-on release or implemented importer is established by the checked repository.",
+      "action_path": "/capabilities/",
+      "action_label": "Check Blender project status"
+    }
+  ],
+  "releases": [
+    {
+      "id": "android",
+      "tag": "android-v72-1.0.45",
+      "source_commit": "7d1188e30b447213156fdd7bdcb66a290805eaee",
+      "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/download/android-v72-1.0.45/DMC-Native-Reader-v72-1.0.45-7d1188e.apk",
+      "file_name": "DMC-Native-Reader-v72-1.0.45-7d1188e.apk",
+      "size_bytes": 1409548,
+      "sha256": "51f2c90841c2bae57236bdd8d94ee6fa113d5d7db31ea8f44fa07ee9a46e46f4",
+      "release_url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/android-v72-1.0.45",
+      "published_at": "2026-09-29T15:08:50Z",
+      "asset_uploaded_at": "2026-09-30T10:05:25Z",
+      "platform": "Android",
+      "architecture": "ARM64",
+      "version": "1.0.45 · code 72",
+      "stage": "test",
+      "stage_label": "Device-test build",
+      "format": "APK",
+      "description": "Test the Android reader on your own DMC3 resources.",
+      "limitations": "Published as an NR Luna v73 test build with package version 1.0.45 (code 72). Physical-device acceptance is not established for this APK.",
+      "install": "Download the APK, then open it on a compatible Android ARM64 device. This is a debug/device-test package.",
+      "selection_note": "This card selects source build 7d1188e, uploaded on 30 September 2026. The same release also contains the older 55f874d APK.",
+      "notes_url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/7d1188e30b447213156fdd7bdcb66a290805eaee/docs/releases/android-v72-1.0.45.md",
+      "product_id": "native-reader",
+      "bytes_verified_on": "2026-11-02"
+    },
+    {
+      "id": "windows",
+      "tag": "windows-v1.0.0-preview",
+      "source_commit": "c74589fe27e405341489cdea56e5227215da1612",
+      "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/download/windows-v1.0.0-preview/DMC-Native-Reader-Windows-v1.0.0-preview.zip",
+      "file_name": "DMC-Native-Reader-Windows-v1.0.0-preview.zip",
+      "size_bytes": 161711,
+      "sha256": "774ea09a8a79dce7d1d91f50c5c9df4b4db00e76152240d30faf3d01daa16afa",
+      "release_url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview",
+      "published_at": "2026-09-20T11:49:01Z",
+      "asset_uploaded_at": "2026-09-20T11:49:00Z",
+      "platform": "Windows",
+      "architecture": "x64",
+      "version": "1.0.0 Preview",
+      "stage": "preview",
+      "stage_label": "Technical preview",
+      "format": "ZIP",
+      "description": "Inspect MOD/SCM models and DDS/PTX textures on Windows.",
+      "limitations": "An earlier read-only snapshot. It is not feature-identical to the newer Android source and has no equivalent physical-device acceptance claim.",
+      "install": "Download and extract the ZIP, then run the reader. Open-With registration scripts are optional.",
+      "selection_note": "The preview release documents the four format families and interactive viewing overlays.",
+      "notes_url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview",
+      "product_id": "native-reader",
+      "bytes_verified_on": "2026-11-02"
+    },
+    {
+      "id": "ios",
+      "tag": "ios-unsigned-latest",
+      "source_commit": "c54d1c006f9b8cc7f8005c8ced925e2e84adae23",
+      "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/download/ios-unsigned-latest/DMCReader-unsigned.ipa",
+      "file_name": "DMCReader-unsigned.ipa",
+      "size_bytes": 72367,
+      "sha256": "cad9ff14fa64093011cdcae93bf0db2aa38a90d90067ea7eec28a4d4544fc86b",
+      "release_url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/ios-unsigned-latest",
+      "published_at": "2026-08-27T09:45:56Z",
+      "asset_uploaded_at": "2026-08-27T09:45:54Z",
+      "platform": "iOS",
+      "architecture": "ARM64",
+      "version": "0.10.1 · build 11",
+      "stage": "unsigned",
+      "stage_label": "Unsigned developer build",
+      "format": "IPA",
+      "description": "An unsigned iPhone/iPad artifact for developer evaluation.",
+      "limitations": "This IPA cannot be installed by tapping it. Signing is required. The pinned status records compile/build checks, not an app launched or tested on iPhone.",
+      "install": "Read the release instructions and use your own signing setup. This page does not offer an App Store, TestFlight or signed installer.",
+      "selection_note": "Advanced developer artifact. Do not infer Android/Windows feature parity from the shared decoder.",
+      "notes_url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/c54d1c006f9b8cc7f8005c8ced925e2e84adae23/docs/STATUS.md",
+      "product_id": "native-reader",
+      "bytes_verified_on": "2026-11-02"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "reader-android",
+      "product_id": "native-reader",
+      "platform": "Android ARM64",
+      "version": "1.0.45 · code 72 · 7d1188e",
+      "stage": "test",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "MOD",
+        "SCM",
+        "DDS",
+        "PTX"
+      ],
+      "operations": {
+        "recognition": "documented",
+        "parsing": "documented",
+        "preview": "documented",
+        "editing": "unsupported",
+        "writer": "unsupported",
+        "acceptance": "not-established"
+      },
+      "notes": "The pinned source README lists reader modules and a separate promoted v68 baseline. The downloadable code-72 APK is a test artifact; these source descriptions do not establish device acceptance or every format's behavior in that APK.",
+      "evidence": [
+        {
+          "label": "Pinned source README",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/7d1188e30b447213156fdd7bdcb66a290805eaee/README.md"
+        },
+        {
+          "label": "Test-build release notes",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/7d1188e30b447213156fdd7bdcb66a290805eaee/docs/releases/android-v72-1.0.45.md"
+        }
+      ],
+      "release_id": "android"
+    },
+    {
+      "id": "reader-windows",
+      "product_id": "native-reader",
+      "platform": "Windows x64",
+      "version": "1.0.0 Preview",
+      "stage": "preview",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "MOD",
+        "SCM",
+        "DDS",
+        "PTX"
+      ],
+      "operations": {
+        "recognition": "release-notes",
+        "parsing": "release-notes",
+        "preview": "release-notes",
+        "editing": "unsupported",
+        "writer": "unsupported",
+        "acceptance": "not-established"
+      },
+      "notes": "Release notes document 3D viewing, overlays and texture preview. Windows parity with the newer Android line is not established.",
+      "evidence": [
+        {
+          "label": "Windows preview release notes",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview"
+        },
+        {
+          "label": "Pinned baseline status",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/c74589fe27e405341489cdea56e5227215da1612/docs/STATUS.md"
+        }
+      ],
+      "release_id": "windows"
+    },
+    {
+      "id": "reader-ios",
+      "product_id": "native-reader",
+      "platform": "iOS ARM64",
+      "version": "0.10.1 · build 11 · unsigned",
+      "stage": "unsigned",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "SCM",
+        "MOD",
+        "HITS",
+        "stage TXT",
+        ".index"
+      ],
+      "operations": {
+        "recognition": "build-only",
+        "parsing": "build-only",
+        "preview": "build-only",
+        "editing": "unsupported",
+        "writer": "unsupported",
+        "acceptance": "not-established"
+      },
+      "notes": "The pinned status documents the shared decoder and compiled iOS target, but says the app has not been launched. No on-device preview or signed installation is claimed.",
+      "evidence": [
+        {
+          "label": "Pinned iOS build and runtime boundary",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/blob/c54d1c006f9b8cc7f8005c8ced925e2e84adae23/docs/STATUS.md"
+        },
+        {
+          "label": "Unsigned IPA release",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/ios-unsigned-latest"
+        }
+      ],
+      "release_id": "ios"
+    },
+    {
+      "id": "core-mod",
+      "product_id": "rengine-cpp",
+      "platform": "C++ source",
+      "version": "85c45ad source snapshot",
+      "stage": "development",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "MOD"
+      ],
+      "operations": {
+        "recognition": "tested-dev",
+        "parsing": "tested-dev",
+        "preview": "not-applicable",
+        "editing": "bounded",
+        "writer": "bounded",
+        "acceptance": "not-established"
+      },
+      "notes": "Preserve-layout authoring and a bounded real PNST reintegration case are documented. Source changes, source-preserving reopen and original-game acceptance remain separate gates.",
+      "evidence": [
+        {
+          "label": "Canonical MOD status and receipts",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/status/current.md#mod--model-family-state"
+        }
+      ],
+      "release_id": null
+    },
+    {
+      "id": "core-scm",
+      "product_id": "rengine-cpp",
+      "platform": "C++ source",
+      "version": "85c45ad source snapshot",
+      "stage": "development",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "SCM"
+      ],
+      "operations": {
+        "recognition": "tested-dev",
+        "parsing": "tested-dev",
+        "preview": "not-applicable",
+        "editing": "bounded",
+        "writer": "bounded",
+        "acceptance": "not-established"
+      },
+      "notes": "Selected semantic edits and a real size-changing SCM-to-PAC rebuild/reopen are documented. This is not a universal editor or original-game acceptance claim.",
+      "evidence": [
+        {
+          "label": "Canonical SCM status and receipts",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/status/current.md#scm-state"
+        }
+      ],
+      "release_id": null
+    },
+    {
+      "id": "gdspaces-core",
+      "product_id": "gdspaces",
+      "platform": "Canonical source / docs",
+      "version": "85c45ad source snapshot",
+      "stage": "research",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "NBZ",
+        "PAC",
+        "PNST"
+      ],
+      "operations": {
+        "recognition": "documented",
+        "parsing": "documented",
+        "preview": "not-applicable",
+        "editing": "not-applicable",
+        "writer": "bounded",
+        "acceptance": "not-established"
+      },
+      "notes": "This row describes the public resource layer, not a released Pocket GDS app. Original NBZ archives stay read-only; bounded container/overlay authoring paths require their own receipts.",
+      "evidence": [
+        {
+          "label": "GDSpaces resource contract",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/gdspaces-contract.md"
+        },
+        {
+          "label": "Current integration boundaries",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/status/current.md"
+        }
+      ],
+      "release_id": null
+    },
+    {
+      "id": "blender-bridge",
+      "product_id": "blender-reader",
+      "platform": "Blender",
+      "version": "No public add-on release",
+      "stage": "planned",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "Native-format bridge planned"
+      ],
+      "operations": {
+        "recognition": "planned",
+        "parsing": "planned",
+        "preview": "planned",
+        "editing": "not-established",
+        "writer": "not-established",
+        "acceptance": "not-established"
+      },
+      "notes": "The checked public repository has no released add-on. No working import/export capability is promoted.",
+      "evidence": [
+        {
+          "label": "Public project repository",
+          "url": "https://github.com/VrUaCom/DMC-Native-Blender-Reader"
+        },
+        {
+          "label": "Public release listing",
+          "url": "https://github.com/VrUaCom/DMC-Native-Blender-Reader/releases"
+        }
+      ],
+      "release_id": null
+    },
+    {
+      "id": "reader-macos",
+      "product_id": "native-reader",
+      "platform": "macOS",
+      "version": "No public package verified",
+      "stage": "planned",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "Platform parity planned"
+      ],
+      "operations": {
+        "recognition": "planned",
+        "parsing": "planned",
+        "preview": "planned",
+        "editing": "unsupported",
+        "writer": "unsupported",
+        "acceptance": "not-established"
+      },
+      "notes": "No macOS package was present in the checked Native Reader release listing. Future platform alignment remains a roadmap item.",
+      "evidence": [
+        {
+          "label": "Published Native Reader releases",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases"
+        },
+        {
+          "label": "Platform roadmap",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/discovery/modding-hub-strategy.md"
+        }
+      ],
+      "release_id": null
+    },
+    {
+      "id": "reader-linux",
+      "product_id": "native-reader",
+      "platform": "Linux",
+      "version": "No public package verified",
+      "stage": "planned",
+      "game": "Devil May Cry 3: Special Edition (HD Collection)",
+      "formats": [
+        "Possible later platform"
+      ],
+      "operations": {
+        "recognition": "not-established",
+        "parsing": "not-established",
+        "preview": "not-established",
+        "editing": "unsupported",
+        "writer": "unsupported",
+        "acceptance": "not-established"
+      },
+      "notes": "No Linux package was present in the checked Native Reader release listing. Linux remains a possible later platform, rather than a committed release.",
+      "evidence": [
+        {
+          "label": "Published Native Reader releases",
+          "url": "https://github.com/VrUaCom/DMC-Native-Reader/releases"
+        },
+        {
+          "label": "Platform roadmap",
+          "url": "https://github.com/VrUaCom/dmc-rengine-cpp/blob/85c45ad245122f237ed9c6f3ab3bd9a5f959ac54/docs/discovery/modding-hub-strategy.md"
+        }
+      ],
+      "release_id": null
     }
   ]
 }
