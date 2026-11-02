@@ -92,3 +92,24 @@ Repository metadata issue #294 may remain separately open while Topics are owner
 If a custom domain is configured later in GitHub Pages, the deploy workflow consumes the new Pages `base_url` automatically on the next run. The public site still requires a fresh acceptance check after an origin change.
 
 The generated site intentionally contains no proprietary game assets or binaries and does not require JavaScript or third-party analytics.
+
+## Responsive presentation
+
+The v3 renderer uses one homepage introduction, a linked resource-family panel,
+and a shared header and footer. Five primary destinations stay visible on wide
+screens. At 800 CSS pixels and below, a native `details`/`summary` menu exposes
+all existing navigation destinations without JavaScript. Locale landing pages
+have translated menu labels, a native-language chooser and a current-language
+Home link.
+
+Styles keep long format identifiers inside their cards, allow breadcrumbs and
+language links to wrap, and contain code scrolling within lesson blocks. Skip
+links, visible keyboard focus, current-page states, reduced-motion preferences
+and 44-pixel navigation targets are supported. The existing project-base URL,
+canonical, social-image and evidence contracts remain in place.
+
+Browser QA on 2026-11-02 covered 320/390/768/1024-pixel iframe viewports and a
+full desktop page. Home, tools, Ukrainian landing, format catalog and the first
+MOD lesson had no document-level horizontal overflow after the format-card
+word-wrapping fix. Native menu activation was checked with a pointer and the
+keyboard in Chromium; physical mobile devices and Safari were not tested.

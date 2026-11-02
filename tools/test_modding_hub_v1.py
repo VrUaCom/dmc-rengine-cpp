@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +17,15 @@ import build_discovery_site_v3 as site  # noqa: E402
 
 BASE = "https://vruacom.github.io/dmc-rengine-cpp"
 LOCALES = {"en": "/en/", "es": "/es/", "pt-BR": "/pt-br/", "uk": "/uk/", "ja": "/ja/"}
+
+
+class NavigationParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.elements = []
+
+    def handle_starttag(self, tag, attrs):
+        self.elements.append((tag, dict(attrs)))
 
 
 def main() -> None:
@@ -46,6 +56,25 @@ def main() -> None:
         assert (generated / "formats" / "mod" / "index.html").is_file()
         assert (generated / "guides" / "start-modding-dmc3" / "index.html").is_file()
 
+        # Every route gets an operable, script-free mobile menu, a skip target,
+        # one primary heading, and base-path-safe navigation destinations.
+        for route in pages:
+            parser = NavigationParser()
+            parser.feed(site.base.page_output(generated, route).read_text(encoding="utf-8"))
+            assert sum(tag == 'h1' for tag, _ in parser.elements) == 1, route
+            assert sum(tag == 'main' and attrs.get('id') == 'main-content'
+                       for tag, attrs in parser.elements) == 1, route
+            assert any(tag == 'a' and attrs.get('href') == '#main-content'
+                       for tag, attrs in parser.elements), route
+            assert sum(tag == 'details' and attrs.get('class') == 'mobile-menu'
+                       for tag, attrs in parser.elements) == 1, route
+            assert sum(tag == 'summary' for tag, _ in parser.elements) == 1, route
+            for tag, attrs in parser.elements:
+                href = attrs.get('href', '')
+                if tag == 'a' and href.startswith(BASE + '/'):
+                    target = href[len(BASE):].split('#', 1)[0]
+                    assert target in pages, (route, target)
+
         links = [f'<link rel="alternate" hreflang="{lang}" href="{BASE}{route}">'
                  for lang, route in LOCALES.items()]
         for lang, route in LOCALES.items():
@@ -64,6 +93,9 @@ def main() -> None:
         assert "Канонічне джерело" in uk
         assert "Esta página facilita la consulta" in es
         assert "Основним джерелом технічних фактів" in uk
+        assert '>Меню<' in uk
+        assert f'href="{BASE}/uk/" aria-current="page">Головна</a>' in uk
+        assert 'href="#main-content">Перейти до вмісту</a>' in uk
 
         tools_html = (generated / "tools" / "index.html").read_text(encoding="utf-8")
         assert "Our ecosystem tools" in tools_html
