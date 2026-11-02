@@ -1,93 +1,128 @@
 # How to Open and Inspect DMC3 MOD Files
 
-This guide targets searches such as **open DMC3 MOD file**, **DMC3 MOD viewer**, **DMC3 model viewer**, **DMC3 MOD editor**, and **Devil May Cry 3 MOD format**.
+> **Direct answer:** if you already have an extracted DMC3 HD Collection `MOD` resource, the simplest current first-party viewer on Windows is **DMC Native Reader v1.0.0 Preview**. Extract the portable ZIP, run `DMC-Native-Reader.exe`, then use **File > Open**, `Ctrl+O`, or drag the `.mod` file into the window. The release is read-only: it does not edit, export or repack the model.
 
-## MOD reverse status
+## Scope
 
-**DMC3 HD `.MOD` reverse is complete for the canonical project scope.**
+- **Game:** Devil May Cry 3: Special Edition in Devil May Cry HD Collection.
+- **OS:** Windows x64.
+- **Reader:** DMC Native Reader Windows v1.0.0 Preview.
+- **Release:** https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview
+- **Checked:** 2026-11-02.
+- **Input:** already extracted `MOD` resource.
+- **Not covered:** 2006 Ubisoft PC MOD assumptions unless separately proven; PS2 resources; arbitrary editing/repacking.
 
-That means the serialized format, runtime-facing structure and preservation boundaries have all reached terminal evidence states. Some bytes intentionally remain `PRESERVED_UNDECODED`: their storage and runtime carriage are understood, but the project does not invent artistic/material names that the executable evidence does not prove.
+If your file is still inside NBZ/PAC/PNST, extract it first. Native Reader does not replace that step.
 
-This is a completed reverse contract, not a promise that every field is freely writable.
+## Prerequisites
 
-## What the canonical MOD reader exposes
+1. Download the Windows preview from the [release page](https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview) or [Downloads](https://vruacom.github.io/dmc-rengine-cpp/downloads/).
+2. Extract the ZIP to a writable folder.
+3. Keep your game resources in a separate read-only/source folder.
+4. Have one known DMC3 HD `MOD` resource with its source path recorded.
 
-The completed MOD model covers:
+The reader is portable; no traditional installer is required.
 
-- document, object and mesh records;
-- position, normal and fixed-point UV streams;
-- blend indices, packed skin weights and topology control;
-- hierarchy/order relationships and default-joint behavior;
-- local transforms, world propagation and inverse-rest/current-world skin palette construction;
-- mesh texture slots, texture-companion validation and runtime texture descriptor relationships;
-- post-load relocation and generated topology workspace behavior;
-- object bounds, alpha/runtime flag projection and legacy GS-facing state;
-- the MOD-side boundary into MOT/CMotion animation evaluation;
-- source-byte preservation for fields whose strongest honest semantic remains preservation-only.
+## Open the MOD
 
-That is enough for structural inspection, skeleton and weight visualization, texture-binding analysis, pose-aware research and a complete evidence-backed map of the MOD resource.
+1. Launch `DMC-Native-Reader.exe`.
+2. Choose **File > Open** or press `Ctrl+O`.
+3. Select the extracted `.mod` file.
+4. Alternatively, drag and drop the file onto the application window.
+5. Wait for parsing and the 3D/Inspector view to populate.
 
-## Why “reverse complete” can still include preserved fields
+**Expected result:** supported geometry is displayed and structural information is available for inspection. The release also exposes interaction such as rotate/zoom/wireframe/reset according to its published notes.
 
-Reverse engineering is complete when every relevant byte/field/path has a defensible terminal classification, not when every value has a convenient English label.
+## Verify that the result is meaningful
 
-Examples:
+Do not stop at “a window opened.” Check:
 
-- header `+0x14` is runtime-carried, while the old universal decimal interpretation is rejected;
-- `BLENDINDICES.x` is part of the serialized ABI but is not consumed by the audited shader path;
-- source flag `0x00200000` is preserved through the recovered runtime state without a proven artistic label;
-- mesh `+0x0C/+0x4C`, mesh `+0x38` and transform `+0x1C` have explicit preservation/family-sensitive contracts.
+1. the reader identifies the resource as MOD rather than an unknown format;
+2. geometry appears rather than an empty/garbled scene;
+3. the structure/Inspector view contains model/object/mesh information;
+4. rotate and zoom work on the loaded model;
+5. if wireframe is enabled, topology remains consistent with the visible geometry;
+6. record the reader version and the source path of the resource.
 
-Those are closed evidence outcomes rather than remaining MOD reverse tasks.
+If the model renders but some material/texture information is absent, that does not necessarily mean the MOD parse failed. Texture relationships cross into companion/DDS/PTX resources.
 
-## What the preserve-layout writer can do
+## What the canonical MOD research understands
 
-MOD Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and allows only fixed-size edits whose byte spans are already authorized. The current edit surface includes object bounding center/radius and existing position, normal and UV values.
+The DMC Rengine MOD authority covers the serialized model structure and a large runtime-facing surface, including:
 
-The writer protects every byte outside those spans and reparses output through the canonical MOD parser before success.
+- document/object/mesh records;
+- hierarchy and transform relationships;
+- positions, normals and fixed-point UV streams;
+- topology controls;
+- packed skin weights and blend indices;
+- texture slots and companion relationships;
+- bounds and selected runtime-facing flags;
+- preservation contracts for bytes whose artistic meaning is not proven.
 
-The provenance-bound retail no-op corpus gate passes:
+The project treats **reverse completeness** and **writer completeness** as different gates. Preserved/undecoded fields can be a valid terminal reverse outcome when their storage/runtime carriage is known but a semantic label is not justified.
 
-```text
-38 / 38 MOD files
-882,736 source bytes
-38 / 38 exact byte equality
-38 / 38 canonical reopen
-0 unauthorized modified bytes
-```
+## Reader versus writer
 
-A controlled retail edit to `em000_021.mod` changes exactly three bytes inside the serialized `bounding_radius` span and passes independent raw diff, disk hash/reread and canonical reopen.
+The Windows Native Reader is read-only.
 
-## Container reintegration already proved
+The DMC Rengine core has a bounded preserve-layout MOD writer and evidence-backed reintegration receipts for selected fields/containers. That does not make this viewer a general MOD editor and does not prove arbitrary edited models are accepted by `dmc3.exe`.
 
-The authored MOD child has a provenance-bound real retail PNST reintegration receipt in `m20_s00_012.pac` physical slot 23:
+Do not advertise:
 
-- parent size unchanged;
-- slot table unchanged;
-- only the expected authored child bytes changed;
-- canonical parent reparse/re-expand reproduces the exact MOD writer output.
+- free-form mesh editing;
+- skeleton authoring;
+- texture replacement;
+- general MOD export;
+- universal PNST/NBZ repacking;
+- original-game acceptance
 
-A synthetic MOD -> container -> NBZ overlay -> reopen chain also passes through the existing NBZ infrastructure.
+as features of the Windows reader.
 
-## What remains outside the claim
+## Troubleshooting
 
-These are authoring/integration/acceptance tasks, not unfinished MOD reverse:
+### The file is rejected
 
-- typed-IR-only layout synthesis and structural reflow;
-- transform and skin authoring;
-- material/source-flag/texture-binding authoring;
-- texture-companion rewriting;
-- unrestricted mutation of preservation-only fields;
-- provenance-bound retail NBZ acceptance;
-- original `dmc3.exe` selection and acceptance of rebuilt or edited MOD resources;
-- rollback-backed original-game acceptance.
+Check that:
 
-The project therefore distinguishes **MOD reverse complete** from **full MOD writer complete**.
+- it is an extracted leaf resource, not the containing PAC/PNST/NBZ;
+- it belongs to DMC3 HD Collection;
+- the extension was not guessed/renamed;
+- the file is complete and non-zero length.
 
-## Related resources
+Unknown/unsupported resources are intentionally rejected rather than forced through the wrong parser.
 
-Animation evaluation is owned by the neighboring MOT/CMotion authority, and texture payload authoring belongs to the texture-companion/TIM2/DDS/PTX stack. Those dependencies do not reopen the MOD binary reverse.
+### Geometry is visible but textures are missing/wrong
 
-Use DMC Native Reader where the current application exposes model inspection, and GDSpaces/PocketGDS to reach the physical archive/container slot that supplied the file.
+Follow the texture relationship separately. Use [DDS/PTX inspection](extract-textures.md) and preserve the source container/slot information. A MOD texture slot, companion entry and DDS/PTX payload are related but not one universal ID.
 
-For exact field-level evidence and writer receipts, follow the canonical MOD research and status documents linked from the format page.
+### A Blender tool imports the file differently
+
+That is a separate implementation. Compare the DMC Rengine canonical structure with the independent Blender tool's own documented support; do not use one tool's successful import to silently promote another tool's semantics.
+
+### The resource came from DMC3 2006 or PS2
+
+Treat it as a different target until binary compatibility is proven. This guide's verified scope is HD Collection.
+
+## Evidence and limitations
+
+The canonical MOD reverse is complete for the project's defined reverse scope, while the public reader remains intentionally read-only. Exact field semantics, writer receipts and unresolved authoring gates live in the format/status documents.
+
+No new model screenshot or physical-device test was fabricated for this phase. The documentation uses the published Windows release contract and repository evidence.
+
+## Sources
+
+- [Windows v1.0.0 Preview release](https://github.com/VrUaCom/DMC-Native-Reader/releases/tag/windows-v1.0.0-preview)
+- [DMC3 MOD format](../formats/mod.md)
+- [Current project status](../status/current.md)
+- [Capability matrix](../discovery/capabilities.md)
+- [Nexus Native Reader page](https://www.nexusmods.com/devilmaycryhdcollection/mods/533) — independent distribution/community surface for the same public Windows tool.
+
+**Author:** DMC Rengine project.  
+**Phase-1 evidence review:** 2026-11-02.
+
+## Next
+
+- [Inspect SCM stage/scene resources](inspect-scm.md)
+- [Inspect DDS/PTX textures](extract-textures.md)
+- [Find character models](character-models.md)
+- [Downloads](../discovery/downloads.md)
