@@ -176,20 +176,20 @@
       ],
       "related_links": [
         {
-          "path": "/guides/extract-pac/",
-          "label": "Continue into a DMC3 PAC container"
+          "path": "/guides/unpack-dmc3-hd/",
+          "label": "See the complete DMC3 HD unpacking path"
         },
         {
-          "path": "/guides/browse-pnst/",
-          "label": "Continue into a DMC3 PNST container"
+          "path": "/unpacker/",
+          "label": "Return to the DMC3 unpacker and extractor hub"
         },
         {
-          "path": "/downloads/",
-          "label": "Download a verified Native Reader package for leaf inspection"
+          "path": "/formats/pac/",
+          "label": "Understand the PAC container layer"
         },
         {
-          "path": "/capabilities/",
-          "label": "Check which operations are supported by product and platform"
+          "path": "/status/",
+          "label": "Check the latest archive and reintegration proof gates"
         }
       ]
     },
@@ -278,20 +278,20 @@
       ],
       "related_links": [
         {
-          "path": "/downloads/",
-          "label": "Download a verified Native Reader package"
-        },
-        {
           "path": "/formats/textures/",
-          "label": "Read canonical DDS and PTX format research"
+          "label": "Read canonical DDS and PTX texture research"
         },
         {
           "path": "/guides/inspect-mod/",
           "label": "Relate textures back to MOD model resources"
         },
         {
-          "path": "/capabilities/",
-          "label": "Check read, edit and writer support separately"
+          "path": "/textures/",
+          "label": "Return to the DMC3 texture tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current texture authoring and acceptance boundaries"
         }
       ]
     },
@@ -337,10 +337,6 @@
       ],
       "related_links": [
         {
-          "path": "/downloads/",
-          "label": "Download DMC Native Reader for Windows"
-        },
-        {
           "path": "/formats/mod/",
           "label": "Read canonical DMC3 MOD format research"
         },
@@ -349,8 +345,12 @@
           "label": "Trace MOD texture relationships into DDS and PTX"
         },
         {
-          "path": "/capabilities/",
-          "label": "Compare reader and writer support by product"
+          "path": "/models/",
+          "label": "Return to the DMC3 model tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current canonical MOD maturity"
         }
       ]
     },
@@ -396,20 +396,20 @@
       ],
       "related_links": [
         {
-          "path": "/downloads/",
-          "label": "Download DMC Native Reader for Windows"
-        },
-        {
           "path": "/formats/scm/",
           "label": "Read canonical DMC3 SCM format research"
         },
         {
-          "path": "/guides/stage-models/",
-          "label": "Continue with DMC3 stage and scene resource discovery"
+          "path": "/guides/extract-models/",
+          "label": "Return to model and scene extraction workflow"
         },
         {
-          "path": "/capabilities/",
-          "label": "Compare SCM support by product and platform"
+          "path": "/models/",
+          "label": "Return to the DMC3 model and scene tools hub"
+        },
+        {
+          "path": "/status/",
+          "label": "Check current canonical SCM maturity"
         }
       ]
     },
