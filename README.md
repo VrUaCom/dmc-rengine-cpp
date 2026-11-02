@@ -8,7 +8,7 @@
 
 The project combines executable research, DMC3 binary/file-format documentation, resource materialization, archive inspection, guarded authoring, recovered-source work and validation under one evidence-first architecture. It is intended to support long-term DMC3 reconstruction and safe modding tooling without presenting unverified behavior as fact.
 
-**Public documentation / discovery site:** [DMC Rengine on GitHub Pages](https://vruacom.github.io/dmc-rengine-cpp/). The Pages site is a readable discovery layer; `main`, canonical documentation and evidence records remain the technical authority.
+**Public documentation / discovery site:** [DMC Modding Hub](https://vruacom.github.io/dmc-rengine-cpp/) · [Guides](https://vruacom.github.io/dmc-rengine-cpp/guides/) · [Tools](https://vruacom.github.io/dmc-rengine-cpp/tools/) · [Downloads](https://vruacom.github.io/dmc-rengine-cpp/downloads/) · [Capability matrix](https://vruacom.github.io/dmc-rengine-cpp/capabilities/). The Pages site is a readable discovery layer; `main`, canonical documentation and evidence records remain the technical authority.
 
 ## What DMC Rengine can do today
 
@@ -60,6 +60,9 @@ DMC Rengine maintains a growing evidence-backed knowledge base for Devil May Cry
 
 Start with:
 
+- [How to start modding DMC3 HD Collection](https://vruacom.github.io/dmc-rengine-cpp/guides/start-modding-dmc3/)
+- [Practical DMC3 guides](https://vruacom.github.io/dmc-rengine-cpp/guides/)
+- [Verified Native Reader downloads](https://vruacom.github.io/dmc-rengine-cpp/downloads/)
 - [Public DMC3 HD file-format and archive index](docs/formats/public-index.md)
 - [DMC Rengine / DMC3 public FAQ](docs/discovery/faq.md)
 - [DMC3 HD format documentation](docs/formats/README.md)
