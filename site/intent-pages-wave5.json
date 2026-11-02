@@ -1,0 +1,288 @@
+{
+  "schema": "dmc-rengine.site-intent-pages-wave5.v1",
+  "pages": [
+    {
+      "path": "/tools/",
+      "title": "DMC Rengine Tools — Native Reader, GDSpaces and Blender Bridge",
+      "description": "Explore first-party DMC3 HD modding tools: DMC Rengine C++, DMC Native Reader, GDSpaces and DMC Native Blender Reader.",
+      "summary": "Find the correct first-party DMC Rengine tool for the job. The ecosystem deliberately separates evidence-backed reverse engineering, archive/container navigation, native resource previews and future Blender integration. Its catalog is designed to grow as new tools pass release verification, without advertising experimental code as shipped functionality.",
+      "source_path": "docs/discovery/our-tools.md",
+      "sections": [
+        {
+          "heading": "Canonical engine and resource workspace",
+          "items": [
+            "DMC Rengine C++ is the canonical research and validation framework for supported DMC3 HD file formats, guarded resource authoring and runtime reconstruction; it is not a claim of full original-game recompilation.",
+            "GDSpaces provides provenance-aware archive and container navigation from NBZ volumes through PAC or PNST members to leaf payloads; Pocket GDS is a separate Android interface and does not provide a public repository download at present."
+          ]
+        },
+        {
+          "heading": "Inspection and developing creative workflows",
+          "items": [
+            "DMC Native Reader is the native resource inspection and visualization tool. Available capabilities must be checked against the published Android or Windows release, not inferred from an unreleased development branch.",
+            "DMC Native Blender Reader is the planned bridge to Blender-oriented workflows; its public repository does not yet establish a released, fully working importer or exporter. Additional first-party applications can join this product catalog as their behavior becomes verified."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Choose a safe beginner workflow for DMC3 modding"
+        },
+        {
+          "path": "/guides/",
+          "label": "Browse practical guides for archive and model inspection"
+        },
+        {
+          "path": "/status/",
+          "label": "Check canonical current implementation and proof-gate status"
+        }
+      ]
+    },
+    {
+      "path": "/guides/start-modding-dmc3/",
+      "title": "How to Start Modding Devil May Cry 3 HD — Beginner Guide",
+      "description": "Start modding DMC3 HD safely: archives, model and texture inspection, first-party tools and version-specific limitations.",
+      "summary": "New to modding Devil May Cry 3: Special Edition from Devil May Cry HD Collection? Begin by separating five different operations: discover resources, extract them, inspect their structure, make a supported bounded change, and verify any rebuild against the actual game. This beginner guide routes each task to the appropriate first-party tool without conflating a viewer with a complete editor.",
+      "source_path": "docs/guides/start-modding-dmc3.md",
+      "sections": [
+        {
+          "heading": "Preserve the original resources before inspection",
+          "items": [
+            "Use legitimately acquired game files, preserve their original bytes and make a separate workspace for analysis. DMC3 HD data can pass through numbered NBZ archives, nested PAC/PNST containers and typed leaf resources.",
+            "If you need to find or extract a resource, start with the GDSpaces archive and provenance workflow so that physical slots, empty records and nesting are not lost during the process."
+          ]
+        },
+        {
+          "heading": "Match each operation to a verified release",
+          "items": [
+            "After identifying a real MOD, SCM, DDS or PTX resource, consult the corresponding DMC Native Reader release and format guide for preview or structural inspection that has been verified on your operating system.",
+            "Do not assume that previewing a model proves editable export or that successfully rebuilding a container proves acceptance by the original game. The canonical DMC Rengine evidence and current status records define those stronger support boundaries."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/tools/",
+          "label": "Compare the first-party DMC Rengine modding tools"
+        },
+        {
+          "path": "/guides/extract-nbz/",
+          "label": "Learn how numbered NBZ game archive extraction works"
+        },
+        {
+          "path": "/formats/",
+          "label": "Read evidence-backed DMC3 file-format specifications"
+        },
+        {
+          "path": "/guides/",
+          "label": "Browse additional practical DMC3 resource inspection guides"
+        }
+      ]
+    },
+    {
+      "path": "/en/",
+      "title": "DMC Modding Hub — Guides and Tools for Devil May Cry",
+      "description": "Learn to inspect DMC3 game files, archives, models and textures using the evidence-backed DMC Rengine ecosystem.",
+      "summary": "Start modding Devil May Cry with an evidence-backed research hub. Find answers about DMC3 HD archives, models, texture formats and safe inspection, and learn which first-party tool handles each operation. DMC1 and DMC2 are future research expansion tracks, not currently advertised as fully supported.",
+      "source_path": "docs/discovery/modding-hub-strategy.md",
+      "locale": "en",
+      "language_group": "modding-hub-home",
+      "sections": [
+        {
+          "heading": "Start with the task, then choose the tool",
+          "items": [
+            "Explore NBZ archive volumes and PAC or PNST nested containers with the DMC Rengine and GDSpaces resource documentation; keep original game files intact while inspecting a separate working copy.",
+            "Use DMC Native Reader for visual inspection of supported models, scenes, textures and motion resources; actual availability depends on the version shipped for your operating system.",
+            "Consult the canonical format specifications when you need to distinguish a recognized binary structure from proven conversion, editing, repacking or original-game acceptance."
+          ]
+        },
+        {
+          "heading": "Four initial projects, more tools later",
+          "items": [
+            "DMC Rengine C++ is the canonical reverse-engineering and validation foundation, while GDSpaces handles resource materialization, resolution and provenance across archive layers.",
+            "DMC Native Reader is the dedicated native inspection application, and DMC Native Blender Reader is a developing bridge whose concrete Blender capabilities require verification before release.",
+            "Android, Windows, iOS and macOS feature parity is a release goal; Linux and new game-family support can follow when verified, without claiming those future milestones have already shipped."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Learn how to start modding DMC3"
+        },
+        {
+          "path": "/tools/",
+          "label": "Browse the DMC Rengine first-party tools"
+        },
+        {
+          "path": "/formats/",
+          "label": "Read evidence-backed DMC3 format documentation"
+        }
+      ]
+    },
+    {
+      "path": "/es/",
+      "title": "DMC Modding Hub — Guías y herramientas para Devil May Cry",
+      "description": "Aprende a inspeccionar archivos, modelos y texturas de DMC3 con las herramientas verificadas de DMC Rengine.",
+      "summary": "Aprende a modificar Devil May Cry con un portal basado en investigación verificable. Aquí encontrarás respuestas sobre los archivos de DMC3 HD, los contenedores de recursos, los modelos, las texturas y las herramientas adecuadas. DMC1 y DMC2 son áreas de investigación futura, no juegos anunciados como totalmente compatibles.",
+      "source_path": "docs/discovery/modding-hub-strategy.md",
+      "locale": "es",
+      "language_group": "modding-hub-home",
+      "sections": [
+        {
+          "heading": "Empieza por el problema que quieres resolver",
+          "items": [
+            "Para localizar recursos dentro de volúmenes NBZ y contenedores PAC o PNST, consulta DMC Rengine y GDSpaces; trabaja con copias y conserva intactos los archivos originales del juego.",
+            "DMC Native Reader permite inspeccionar visualmente los recursos que admita la versión publicada para tu sistema; no todas las plataformas tienen necesariamente las mismas funciones disponibles.",
+            "Las especificaciones técnicas distinguen entre reconocer un archivo, leer su estructura, previsualizarlo, editarlo y conseguir que una reconstrucción funcione dentro del juego original."
+          ]
+        },
+        {
+          "heading": "Cuatro productos iniciales y espacio para crecer",
+          "items": [
+            "DMC Rengine C++ mantiene el conocimiento técnico y las comprobaciones, mientras que GDSpaces se ocupa de los archivos, las dependencias y la procedencia de cada recurso.",
+            "DMC Native Reader está dedicado a la inspección nativa; DMC Native Blender Reader es una integración en desarrollo cuyas funciones deberán comprobarse antes de anunciarse.",
+            "La compatibilidad equivalente para Android, Windows, iOS y macOS es un objetivo futuro; Linux y la ampliación hacia DMC1 y DMC2 se abordarán cuando haya pruebas suficientes."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Aprender a modificar DMC3 con una guía inicial"
+        },
+        {
+          "path": "/tools/",
+          "label": "Herramientas del ecosistema DMC Rengine"
+        },
+        {
+          "path": "/formats/",
+          "label": "Investigar los formatos de archivo de DMC3"
+        }
+      ]
+    },
+    {
+      "path": "/pt-br/",
+      "title": "DMC Modding Hub — Guias e ferramentas para Devil May Cry",
+      "description": "Aprenda a inspecionar arquivos, modelos e texturas do DMC3 com a pesquisa verificada do DMC Rengine.",
+      "summary": "Comece a criar mods de Devil May Cry com informações sustentadas por pesquisa técnica. Entenda os arquivos do DMC3 HD, os arquivos compactados, modelos e texturas, e descubra qual ferramenta própria serve para cada tarefa. O suporte mais amplo a DMC1 e DMC2 é uma expansão planejada, não um recurso já lançado.",
+      "source_path": "docs/discovery/modding-hub-strategy.md",
+      "locale": "pt-BR",
+      "language_group": "modding-hub-home",
+      "sections": [
+        {
+          "heading": "Escolha a ferramenta conforme a tarefa",
+          "items": [
+            "Para identificar arquivos dentro de volumes NBZ e contêineres PAC ou PNST, utilize a documentação do DMC Rengine e do GDSpaces; mantenha uma cópia segura e nunca altere a instalação original durante a inspeção.",
+            "O DMC Native Reader permite examinar os recursos visuais compatíveis, como certos modelos, cenas e texturas; confira a versão e o sistema operacional antes de esperar uma função específica.",
+            "Reconhecer um formato, interpretar sua estrutura, visualizar o conteúdo, editar bytes, reconstruir um contêiner e comprovar aceitação no jogo são etapas diferentes que exigem evidências próprias."
+          ]
+        },
+        {
+          "heading": "Um ecossistema preparado para novas ferramentas",
+          "items": [
+            "DMC Rengine C++ é a base de pesquisa de formatos e validação, enquanto o GDSpaces organiza a proveniência e a resolução de recursos dentro da estrutura de arquivos do jogo.",
+            "DMC Native Reader é o aplicativo dedicado à inspeção, e DMC Native Blender Reader é uma ponte em desenvolvimento cuja importação ou exportação não deve ser prometida antes da validação.",
+            "O objetivo é alinhar Android, Windows, iOS e macOS em um lançamento futuro; Linux e novos jogos poderão ser adicionados após testes, sem confundir planos com recursos disponíveis."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Aprenda a começar a modificar DMC3"
+        },
+        {
+          "path": "/tools/",
+          "label": "Ferramentas do DMC Rengine"
+        },
+        {
+          "path": "/formats/",
+          "label": "Pesquisar os formatos de arquivo do DMC3"
+        }
+      ]
+    },
+    {
+      "path": "/uk/",
+      "title": "DMC Modding Hub — Інструкції та інструменти для Devil May Cry",
+      "description": "Дізнайтеся, як досліджувати архіви, моделі й текстури DMC3 за допомогою перевірених інструментів DMC Rengine.",
+      "summary": "Почніть знайомство з модингом Devil May Cry у базі знань, побудованій на технічно перевірених фактах. Тут можна з'ясувати, як влаштовані архіви, моделі й текстури DMC3 HD, та обрати доречний інструмент. Devil May Cry 1 і 2 залишаються напрямами майбутнього дослідження, а не заявленою повною підтримкою.",
+      "source_path": "docs/discovery/modding-hub-strategy.md",
+      "locale": "uk",
+      "language_group": "modding-hub-home",
+      "sections": [
+        {
+          "heading": "Починайте з конкретної задачі",
+          "items": [
+            "Для пошуку ресурсів усередині архівів NBZ та контейнерів PAC і PNST використовуйте документацію DMC Rengine і GDSpaces; працюйте з копіями та не змінюйте оригінальні ігрові файли.",
+            "DMC Native Reader призначений для візуального аналізу підтримуваних моделей, сцен, текстур та інших ресурсів; наявність конкретної функції залежить від випущеної версії та платформи.",
+            "Розпізнавання формату, читання структури, перегляд, редагування, перепакування та підтвердження працездатності в оригінальній грі — різні рівні можливостей, які потрібно перевіряти окремо."
+          ]
+        },
+        {
+          "heading": "Наші чотири початкові інструменти",
+          "items": [
+            "DMC Rengine C++ є канонічним ядром реверс-інжинірингу та перевірки результатів, а GDSpaces відповідає за ресурси, контейнери, залежності й походження байтів.",
+            "DMC Native Reader виконує нативний перегляд, тоді як DMC Native Blender Reader розвивається як міст до Blender без обіцянок не підтверджених функцій.",
+            "Єдина функціональність Android, Windows, iOS і macOS — мета наступного релізу; Linux та підтримка інших ігор серії розглядатимуться після тестування."
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "Почати модинг DMC3: інструкція"
+        },
+        {
+          "path": "/tools/",
+          "label": "Каталог інструментів DMC Rengine"
+        },
+        {
+          "path": "/formats/",
+          "label": "Дослідити формати ресурсів DMC3"
+        }
+      ]
+    },
+    {
+      "path": "/ja/",
+      "title": "DMC Modding Hub — デビル メイ クライの改造ガイドとツール",
+      "description": "DMC Rengine の検証された情報を使い、DMC3 のアーカイブ、モデル、テクスチャの調査方法を学べます。",
+      "summary": "Devil May Cry の改造に必要な情報を、検証可能な技術資料から学べるハブです。DMC3 HD のアーカイブ、モデル、テクスチャの仕組みや、作業に適した自作ツールを紹介します。DMC1 と DMC2 は今後の研究対象であり、現時点で全面的な対応を保証するものではありません。",
+      "source_path": "docs/discovery/modding-hub-strategy.md",
+      "locale": "ja",
+      "language_group": "modding-hub-home",
+      "sections": [
+        {
+          "heading": "目的に合わせてツールを選ぶ",
+          "items": [
+            "NBZ アーカイブや PAC・PNST コンテナ内のデータを調べる場合は、DMC Rengine と GDSpaces の資料から始めてください。元のゲームファイルを変更せず、必ず作業用コピーを使用します。",
+            "DMC Native Reader は対応するモデル、シーン、テクスチャなどの表示と解析を目的としています。利用できる機能は、公開されたプラットフォーム別のバージョンによって異なります。",
+            "ファイル形式の識別、構造の読み取り、プレビュー、編集、再構築、元のゲームでの動作確認はそれぞれ独立した段階であり、実装と検証の範囲を区別します。"
+          ]
+        },
+        {
+          "heading": "最初の四つの製品から拡張する",
+          "items": [
+            "DMC Rengine C++ は形式研究と検証の基盤です。GDSpaces はアーカイブの展開、コンテナの階層、データの出所や関連付けを扱います。",
+            "DMC Native Reader はネイティブの閲覧アプリです。DMC Native Blender Reader は開発中の Blender 連携プロジェクトであり、未確認の入出力機能を保証しません。",
+            "Android、Windows、iOS、macOS の機能を揃えることは将来のリリース目標です。Linux や DMC1・DMC2 への拡張も、対応を検証してから案内します。"
+          ]
+        }
+      ],
+      "related_links": [
+        {
+          "path": "/guides/start-modding-dmc3/",
+          "label": "DMC3 改造の始め方 — 入門ガイド"
+        },
+        {
+          "path": "/tools/",
+          "label": "DMC Rengine のツール一覧"
+        },
+        {
+          "path": "/formats/",
+          "label": "DMC3 のファイル形式を調べる"
+        }
+      ]
+    }
+  ]
+}

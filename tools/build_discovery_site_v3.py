@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 from pathlib import Path
 
@@ -14,8 +15,11 @@ INTENT_WAVES = (
     base.ROOT / "site" / "intent-pages-wave2.json",
     base.ROOT / "site" / "intent-pages-wave3.json",
     base.ROOT / "site" / "intent-pages-wave4.json",
+    base.ROOT / "site" / "intent-pages-wave5.json",
 )
 _V2_LOAD_MANIFEST = v2.load_manifest
+_V2_RENDER_PAGE = v2.render_page
+PRODUCT_CATALOG = base.ROOT / 'site' / 'tool-catalog.json'
 INDEXNOW_KEY_SOURCE = base.ROOT / "site" / "6ef2bc73288e1e2b580119a4b1bfc2fa.txt"
 INDEXNOW_ALLOWED_CHARS = set(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
@@ -341,8 +345,227 @@ def _augment_intent_graph(site: dict) -> dict:
 
     _promote_mod_writer_gate(by_path)
     _promote_post_372_model_format_truth(by_path)
+    # Durable entry points from existing indexable routes into the new hub.
+    _append_related(by_path["/"], "/en/", "Explore the multilingual DMC Modding Hub")
+    _append_related(by_path["/"], "/tools/", "Explore the verified first-party DMC Rengine tools")
+    _append_related(by_path["/guides/"], "/guides/start-modding-dmc3/", "Start modding Devil May Cry 3 with the beginner guide")
     return site
 
+
+
+# Locales are content metadata; the canonical technical truth remains in the
+# repository, not in translated marketing prose.
+_LOCALE_CHROME = {
+    "en": ("Related research", "Canonical source", "Evidence boundary", "Open canonical GitHub source"),
+    "es": ("Lecturas relacionadas", "Fuente técnica original", "Límites de las pruebas", "Abrir la fuente original en GitHub"),
+    "pt-BR": ("Leituras relacionadas", "Fonte técnica original", "Limites das evidências", "Abrir a fonte original no GitHub"),
+    "uk": ("Пов’язані матеріали", "Канонічне джерело", "Межі підтвердження", "Відкрити джерело на GitHub"),
+    "ja": ("関連資料", "正式な技術資料", "検証範囲", "GitHub の原資料を見る"),
+}
+_LOCALE_EXPLANATION = {
+    "es": (
+        "Esta página facilita la consulta; el código, las versiones publicadas y las pruebas del repositorio son la fuente técnica principal.",
+        "Leer un archivo no equivale a editarlo. Reconstruirlo no demuestra automáticamente que el juego original lo acepte. Consulta el estado actual y las pruebas."
+    ),
+    "pt-BR": (
+        "Esta página facilita a consulta; o código, as versões publicadas e as evidências do repositório são as fontes técnicas principais.",
+        "Ler um arquivo não significa editá-lo. Reconstruí-lo não prova automaticamente que o jogo original aceite o resultado. Consulte o estado atual."
+    ),
+    "uk": (
+        "Ця сторінка допомагає орієнтуватися. Основним джерелом технічних фактів залишаються код, релізи та докази в репозиторії.",
+        "Читання файлу не означає можливості редагувати його. Успішна перебудова ще не доводить, що результат приймає оригінальна гра. Перевіряйте актуальний статус."
+    ),
+    "ja": (
+        "このページは案内用です。正確な技術情報はリポジトリ内の実装、公開版、検証資料を参照してください。",
+        "ファイルを読めても編集できるとは限りません。再構築の成功だけでは元のゲームでの動作は保証されません。最新の検証状況を確認してください。"
+    ),
+}
+_EN_SOURCE_NOTE = "This page is a public discovery and readability layer. It does not replace the repository's current implementation, status, evidence or format-specific documentation."
+_EN_EVIDENCE_NOTE = "A parser is not automatically a writer. A successful writer is not automatically equivalent to Capcom's offline tools. Synthetic validation does not establish original-game behavioral equivalence."
+
+
+def _render_tool_directory(document: str, page: dict) -> str:
+    if page.get("path") != "/tools/":
+        return document
+    catalog = json.loads(PRODUCT_CATALOG.read_text(encoding="utf-8"))
+    if catalog.get("schema") != "dmc-rengine.first-party-tool-catalog.v1":
+        raise SystemExit("unrecognized first-party tool catalog schema")
+    products = catalog.get("products")
+    if not isinstance(products, list) or not products:
+        raise SystemExit("empty first-party tool catalog")
+    cards = []
+    seen = set()
+    for item in products:
+        if not isinstance(item, dict) or item.get("id") in seen:
+            raise SystemExit("invalid or duplicate first-party tool")
+        seen.add(item["id"])
+        name = item.get("name")
+        url = item.get("repo_url")
+        role = item.get("role")
+        note = item.get("notes")
+        status = item.get("status")
+        if not all(isinstance(value, str) and value.strip() for value in (name, url, role, note, status)):
+            raise SystemExit("first-party tool catalog is missing content")
+        if not url.startswith("https://github.com/VrUaCom/"):
+            raise SystemExit("unexpected first-party tool repository URL")
+        cards.append(
+            '<article class="tool-card">'
+            + '<p class="tool-status">' + html.escape(status.replace("-", " ")) + '</p>'
+            + '<h3>' + html.escape(name) + '</h3>'
+            + '<p class="tool-role">' + html.escape(role) + '</p>'
+            + '<p>' + html.escape(note) + '</p>'
+            + '<a rel="noopener noreferrer" href="' + html.escape(url, quote=True)
+            + '">Source and project information ↗</a></article>'
+        )
+    marker = '<section class="related">'
+    if marker not in document:
+        raise SystemExit("tool directory injection marker missing")
+    extra = '<section class="content-block"><h2>Our ecosystem tools</h2><div class="tool-grid">' + "".join(cards) + '</div></section>'
+    return document.replace(marker, extra + marker, 1)
+
+
+def _render_hub_invitation(document: str, page: dict, base_url: str | None) -> str:
+    if page.get("path") != "/":
+        return document
+    intro_start = document.index('    <p class="eyebrow">', document.index('<main>'))
+    intro_end = document.index('<section class="content-block">', intro_start)
+    guide = html.escape(base.public_url(base_url, "/guides/start-modding-dmc3/"), quote=True)
+    products = html.escape(base.public_url(base_url, "/tools/"), quote=True)
+    formats = html.escape(base.public_url(base_url, "/formats/"), quote=True)
+    archives = html.escape(base.public_url(base_url, "/archives/nbz/"), quote=True)
+    models = html.escape(base.public_url(base_url, "/models/"), quote=True)
+    textures = html.escape(base.public_url(base_url, "/textures/"), quote=True)
+    languages = [
+        (code, route) for code, route in (
+            ("English", "/en/"), ("Español", "/es/"), ("Português", "/pt-br/"), ("Українська", "/uk/"), ("日本語", "/ja/")
+        )
+    ]
+    links = " ".join(
+        '<a href="' + html.escape(base.public_url(base_url, route), quote=True) + '">' + code + '</a>'
+        for code, route in languages
+    )
+    invite = (
+        '<section class="hub-invite" aria-labelledby="hub-invite-title">'
+        '<div class="hero-copy"><p class="eyebrow"><span class="signal-dot" aria-hidden="true"></span> DMC MODDING HUB</p>'
+        '<p class="hero-edition">DEVIL MAY CRY 3 · HD COLLECTION</p>'
+        '<h1 id="hub-invite-title">Understand the files.<br><span>Build what comes next.</span></h1>'
+        '<p class="hero-description">Explore the formats. Find the right tools. '
+        'Start your next DMC3 project with research you can trace back to the source.</p>'
+        '<div class="hub-actions"><a class="hub-primary" href="' + guide + '">Start modding DMC3 <span aria-hidden="true">↗</span></a>'
+        '<a class="hub-secondary" href="' + products + '">Explore our tools <span aria-hidden="true">→</span></a></div>'
+        '<p class="hero-footnote">Independent research. Open documentation. Platform-specific tools.</p></div>'
+        '<aside class="resource-preview" aria-label="Explore DMC3 resource families">'
+        '<div class="resource-preview-bar"><span class="resource-window-dots" aria-hidden="true">● ● ●</span><span>RESOURCE FIELD NOTES</span><span aria-hidden="true">↗</span></div>'
+        '<div class="resource-preview-body"><p class="resource-kicker">A CLOSER LOOK INSIDE</p>'
+        '<div class="resource-title">One game.<br>Layers to explore.</div>'
+        '<a class="resource-row" href="' + archives + '"><span class="file-symbol" aria-hidden="true">01</span><span class="resource-row-copy"><strong>Archives &amp; containers</strong><span>NBZ / PAC / PNST</span></span><span aria-hidden="true">↗</span></a>'
+        '<a class="resource-row" href="' + models + '"><span class="file-symbol" aria-hidden="true">02</span><span class="resource-row-copy"><strong>Models &amp; scenes</strong><span>MOD / SCM</span></span><span aria-hidden="true">↗</span></a>'
+        '<a class="resource-row" href="' + textures + '"><span class="file-symbol" aria-hidden="true">03</span><span class="resource-row-copy"><strong>Textures</strong><span>DDS / PTX</span></span><span aria-hidden="true">↗</span></a>'
+        '<a class="resource-explore" href="' + formats + '">Open the format library <span aria-hidden="true">→</span></a></div>'
+        '<div class="resource-preview-footer"><span class="signal-dot" aria-hidden="true"></span> Source-linked research, format by format</div></aside>'
+        '</section>'
+        '<nav class="hub-locales" aria-label="Hub languages"><span>Choose your language</span>' + links + '</nav>'
+        '<div class="home-intro"><p class="eyebrow">THE PROJECT</p><h2>DMC Rengine, explained.</h2>'
+        '<p>' + html.escape(page['summary']) + '</p></div>'
+    )
+    return document[:intro_start] + invite + document[intro_end:]
+
+
+_NAV_LABELS = {
+    "en": ("Home", "Guides", "Tools", "Formats", "Research", "Status", "Unpacker", "Models", "Textures", "Modding", "Menu", "Skip to content"),
+    "es": ("Inicio", "Guías", "Herramientas", "Formatos", "Investigación", "Estado", "Extracción", "Modelos", "Texturas", "Modding", "Menú", "Saltar al contenido"),
+    "pt-BR": ("Início", "Guias", "Ferramentas", "Formatos", "Pesquisa", "Status", "Extração", "Modelos", "Texturas", "Modding", "Menu", "Ir para o conteúdo"),
+    "uk": ("Головна", "Посібники", "Інструменти", "Формати", "Дослідження", "Статус", "Розпакування", "Моделі", "Текстури", "Модифікації", "Меню", "Перейти до вмісту"),
+    "ja": ("ホーム", "ガイド", "ツール", "形式", "研究", "進捗", "展開", "モデル", "テクスチャ", "Mod制作", "メニュー", "本文へ移動"),
+}
+
+
+def _render_site_chrome(document: str, site: dict, page: dict, base_url: str | None) -> str:
+    """Shared, script-free navigation; all legacy destinations remain reachable."""
+    labels = _NAV_LABELS.get(page.get('locale'), _NAV_LABELS['en'])
+    routes = ('/', '/guides/', '/tools/', '/formats/', '/reverse-engineering/', '/status/',
+              '/unpacker/', '/models/', '/textures/', '/modding/')
+    valid = {item['path'] for item in site['pages']}
+    links = []
+    for route, label in zip(routes, labels):
+        if route not in valid:
+            continue
+        current = page['path'] == route or (route == '/' and bool(page.get('locale')))
+        parent = route != '/' and page['path'].startswith(route)
+        state = ' aria-current="page"' if current else (' aria-current="location"' if parent else '')
+        destination = page['path'] if route == '/' and page.get('locale') else route
+        links.append((route, '<a href="' + html.escape(base.public_url(base_url, destination), quote=True)
+                      + '"' + state + '>' + html.escape(label) + '</a>'))
+    primary = ''.join(link for route, link in links if route in routes[1:6])
+    all_links = ''.join(link for _, link in links)
+    home = html.escape(base.public_url(base_url, '/'), quote=True)
+    repo = html.escape(site['repository_url'], quote=True)
+    header = (
+        '<header class="site-header"><div class="header-inner">'
+        '<a class="brand" href="' + home + '" aria-label="DMC Rengine — ' + html.escape(labels[0], quote=True) + '">'
+        '<span class="brand-mark" aria-hidden="true">D<span>/</span>R</span>'
+        '<span class="brand-name">DMC Rengine<span>MODDING HUB</span></span></a>'
+        '<nav class="desktop-nav" aria-label="' + html.escape(labels[10], quote=True) + '">' + primary + '</nav>'
+        '<a class="header-source" href="' + repo + '">GitHub <span aria-hidden="true">↗</span></a>'
+        '<details class="mobile-menu"><summary>' + html.escape(labels[10]) + '<span class="menu-icon" aria-hidden="true"></span></summary>'
+        '<nav aria-label="' + html.escape(labels[10], quote=True) + '">' + all_links + '</nav></details></div></header>'
+    )
+    start = document.index('<header class="site-header">')
+    end = document.index('</header>', start) + len('</header>')
+    document = document[:start] + header + document[end:]
+    document = document.replace('<body>', '<body>\n<a class="skip-link" href="#main-content">' + html.escape(labels[11]) + '</a>', 1)
+    document = document.replace('<main>', '<main id="main-content" tabindex="-1">', 1)
+    document = document.replace('<footer>', '<footer><div class="footer-heading"><span class="footer-brand">DMC Rengine<span> / MODDING HUB</span></span>'
+                                '<a href="#main-content" aria-label="' + html.escape(labels[11], quote=True) + '">↑</a></div><nav class="footer-nav" aria-label="' + html.escape(labels[10], quote=True) + '">' + all_links + '</nav>', 1)
+    return document
+
+
+def render_page(site: dict, page: dict, base_url: str | None) -> str:
+    document = _V2_RENDER_PAGE(site, page, base_url)
+    document = _render_tool_directory(document, page)
+    document = _render_hub_invitation(document, page, base_url)
+    document = _render_site_chrome(document, site, page, base_url)
+    locale = page.get("locale")
+    if not locale:
+        return document
+    if locale not in _LOCALE_CHROME:
+        raise SystemExit("unsupported hub locale")
+    document = document.replace('<html lang="en">', '<html lang="' + html.escape(locale, quote=True) + '">', 1)
+    chrome = _LOCALE_CHROME[locale]
+    for english, localized in zip(
+        ("Related research", "Canonical source", "Evidence boundary", "Open canonical GitHub source"),
+        chrome,
+    ):
+        document = document.replace(english, localized)
+    if locale in _LOCALE_EXPLANATION:
+        source_note, evidence_note = _LOCALE_EXPLANATION[locale]
+        document = document.replace(_EN_SOURCE_NOTE, html.escape(source_note))
+        document = document.replace(_EN_EVIDENCE_NOTE, html.escape(evidence_note))
+    siblings = [p for p in site["pages"] if p.get("language_group") == page.get("language_group")]
+    siblings_by_locale = {p.get("locale"): p for p in siblings}
+    if len(siblings_by_locale) != 5:
+        raise SystemExit("localized hub must have five unique language routes")
+    links = []
+    switch = []
+    language_names = {"en": "English", "es": "Español", "pt-BR": "Português", "uk": "Українська", "ja": "日本語"}
+    for code in ("en", "es", "pt-BR", "uk", "ja"):
+        sibling = siblings_by_locale.get(code)
+        if sibling is None:
+            raise SystemExit("missing reciprocal hub locale: " + code)
+        url = base.public_url(base_url, sibling["path"])
+        active = ' aria-current="page"' if code == locale else ''
+        switch.append('<a lang="' + html.escape(code, quote=True) + '" hreflang="' + html.escape(code, quote=True)
+                      + '" href="' + html.escape(url, quote=True) + '"' + active + '>' + language_names[code] + '</a>')
+        if base_url:
+            links.append('<link rel="alternate" hreflang="' + html.escape(code, quote=True)
+                         + '" href="' + html.escape(url, quote=True) + '">')
+    if base_url:
+        links.append('<link rel="alternate" hreflang="x-default" href="'
+                     + html.escape(base.public_url(base_url, siblings_by_locale["en"]["path"]), quote=True) + '">')
+    document = document.replace('</head>', '    ' + ' '.join(links) + '</head>', 1)
+    selector = '<nav class="language-switcher" aria-label="Choose language">' + ' '.join(switch) + '</nav>'
+    document = document.replace('<main id="main-content" tabindex="-1">', '<main id="main-content" tabindex="-1">' + selector, 1)
+    return document
 
 def _publish_indexnow_key(output: Path) -> None:
     try:
@@ -373,11 +596,14 @@ def load_manifest() -> dict:
 
 def build(output: Path, base_url: str | None) -> None:
     original_load_manifest = v2.load_manifest
+    original_render_page = v2.render_page
     v2.load_manifest = load_manifest
+    v2.render_page = render_page
     try:
         v2.build(output, base_url)
     finally:
         v2.load_manifest = original_load_manifest
+        v2.render_page = original_render_page
     _publish_indexnow_key(output)
 
 

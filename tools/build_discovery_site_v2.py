@@ -322,6 +322,7 @@ def nav_html(pages: list[dict], base_url: str | None) -> str:
     primary = [
         ("/", "Home"),
         ("/guides/", "Guides"),
+        ("/tools/", "Tools"),
         ("/unpacker/", "Unpacker"),
         ("/models/", "Models"),
         ("/textures/", "Textures"),

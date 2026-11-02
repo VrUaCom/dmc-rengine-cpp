@@ -1,0 +1,48 @@
+{
+  "schema": "dmc-rengine.first-party-tool-catalog.v1",
+  "products": [
+    {
+      "id": "rengine-cpp",
+      "name": "DMC Rengine C++",
+      "role": "Canonical reverse-engineering and resource framework",
+      "status": "research-and-development",
+      "repo_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
+      "public_repository": true,
+      "verified_platforms": [],
+      "notes": "Canonical C++ code and evidence, not a consumer app download."
+    },
+    {
+      "id": "native-reader",
+      "name": "DMC Native Reader",
+      "role": "Native DMC3 resource inspection and preview",
+      "status": "published-platform-specific",
+      "repo_url": "https://github.com/VrUaCom/DMC-Native-Reader",
+      "public_repository": true,
+      "verified_platforms": [
+        "Android",
+        "Windows"
+      ],
+      "notes": "Feature sets differ by release; iOS/macOS/Linux parity must not be claimed before tested releases."
+    },
+    {
+      "id": "gdspaces",
+      "name": "GDS / GDSpaces / Pocket GDS",
+      "role": "Archive/container materialization and resource provenance",
+      "status": "research-and-development",
+      "repo_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
+      "public_repository": false,
+      "verified_platforms": [],
+      "notes": "Pocket GDS repository private; canonical GDSpaces documentation is public."
+    },
+    {
+      "id": "blender-reader",
+      "name": "DMC Native Blender Reader",
+      "role": "Developing Blender integration bridge",
+      "status": "pre-release",
+      "repo_url": "https://github.com/VrUaCom/DMC-Native-Blender-Reader",
+      "public_repository": true,
+      "verified_platforms": [],
+      "notes": "No verified released Blender importer/exporter in the current public repository."
+    }
+  ]
+}
