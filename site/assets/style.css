@@ -292,3 +292,33 @@ img, svg { max-width: 100%; height: auto; }
   .download-action { font-size: .8rem; }
   .download-card h3 { font-size: 1.8rem; }
 }
+
+/* The complete Android manual shares one Markdown source with GitHub. */
+.reader-guide { min-width: 0; margin: 2.5rem 0; color: #bfccda; line-height: 1.85; }
+.reader-guide p, .reader-guide > ul { max-width: 90ch; }
+.reader-guide > h2 { padding-top: 1.3rem; margin-top: 3.4rem; border-top: 1px solid var(--border); scroll-margin-top: 6rem; font-size: clamp(1.35rem, 2.8vw, 2rem); }
+.reader-guide h3 { margin-top: 2rem; color: #dfebf6; scroll-margin-top: 6rem; }
+.reader-guide li { margin: .7rem 0; }
+.reader-guide strong { color: #e8f1fb; }
+.reader-guide code { font-size: .84em; overflow-wrap: anywhere; color: #c5def5; }
+.reader-guide a { overflow-wrap: anywhere; text-underline-offset: .2em; }
+.guide-toc { display: block; padding: clamp(1rem, 3vw, 2rem); border: 1px solid #36536e; border-radius: 12px; background: #102335; }
+.guide-toc h2 { margin-top: 0; font-size: 1.1rem; }
+.guide-toc ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .15rem 2rem; list-style: none; padding: 0; margin-bottom: 0; }
+.guide-toc li { margin: 0; min-width: 0; }
+.guide-toc a { display: flex; align-items: center; min-height: 44px; padding-block: .35rem; color: #c8e5fc; font-size: .9rem; text-decoration: none; }
+.guide-toc a:hover { text-decoration: underline; }
+.guide-table { max-width: 100%; overflow-x: auto; margin: 1.4rem 0; border: 1px solid #30495f; border-radius: 8px; background: #111d29; }
+.guide-table:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.guide-table table { width: 100%; min-width: 620px; border-collapse: collapse; text-align: left; font-size: .88rem; line-height: 1.7; }
+.guide-table th, .guide-table td { vertical-align: top; padding: .9rem 1rem; border-bottom: 1px solid #2b3c4d; overflow-wrap: anywhere; }
+.guide-table th { color: #e5f1fb; background: #1a3043; font-size: .8rem; font-weight: 600; }
+.guide-table td:first-child { color: #d9e8f5; min-width: 145px; }
+.guide-table tr:last-child td { border-bottom: 0; }
+.guide-table tbody tr:nth-child(even) { background: #152434; }
+@media (max-width: 650px) {
+  .guide-toc ol { grid-template-columns: minmax(0, 1fr); }
+  .reader-guide { line-height: 1.8; }
+  .guide-table table { min-width: 540px; }
+  .guide-table th, .guide-table td { padding: .75rem; }
+}
