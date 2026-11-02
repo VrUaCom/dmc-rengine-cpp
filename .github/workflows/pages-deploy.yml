@@ -233,7 +233,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 27, pages
+          assert len(pages) == 31, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -288,15 +288,15 @@ jobs:
           assert 'id="hub-invite-title"' in home, "live homepage lacks the new hub introduction"
           site = os.environ["SITE_URL"].rstrip("/")
           locales = {"en": "/en/", "es": "/es/", "pt-BR": "/pt-br/", "uk": "/uk/", "ja": "/ja/"}
-          for index, (locale, route) in enumerate(locales.items(), start=20):
+          for index, (locale, route) in enumerate(locales.items(), start=24):
               document = Path(f"/tmp/live-pages/page-{index}.html").read_text(encoding="utf-8")
               assert f'<html lang="{locale}">' in document, route
               assert f'<link rel="canonical" href="{site}{route}">' in document, route
               for alternate, alternate_route in locales.items():
                   assert f'<link rel="alternate" hreflang="{alternate}" href="{site}{alternate_route}">' in document, (route, alternate)
           print("Responsive homepage and five reciprocal language routes accepted on the live origin.")
-          downloads = Path("/tmp/live-pages/page-25.html").read_text(encoding="utf-8")
-          capabilities = Path("/tmp/live-pages/page-26.html").read_text(encoding="utf-8")
+          downloads = Path("/tmp/live-pages/page-29.html").read_text(encoding="utf-8")
+          capabilities = Path("/tmp/live-pages/page-30.html").read_text(encoding="utf-8")
           assert 'id="choose-build"' in downloads and 'Download unsigned IPA' in downloads
           assert 'id="capability-matrix-title"' in capabilities
           assert 'data-capability="reader-ios"' in capabilities and "Build only" in capabilities
