@@ -1,0 +1,159 @@
+{
+  "schema": "dmc-rengine.dmc3-render-resource-limits.v1",
+  "date": "2026-10-04",
+  "branch": "research/dmc3-render-resource-limits-20261004",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "scope_rule": "Keep PS2 hardware limits, serialized field ceilings, HD executable runtime storage, and corpus-observed maxima separate.",
+  "texture_corpus": {
+    "source_archive": {
+      "name": "DMC 3 RENGINE (6).zip",
+      "size": 237658858,
+      "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+    },
+    "dds_paths": 243,
+    "unique_dds_sha256": 154,
+    "unique_dxt1": 60,
+    "unique_dxt5": 94,
+    "observed_max_width": 1024,
+    "observed_max_height": 2048,
+    "largest_area_texture": {
+      "status": "CORPUS_CONFIRMED",
+      "path": "DMC 3 RENGINE/analysis_inputs/stage_drops/plwp_grenade/plwp_grenade_000/plwp_grenade_000_000.dds",
+      "size": 2796368,
+      "width": 1024,
+      "height": 2048,
+      "mip_count": 12,
+      "fourcc": "DXT5",
+      "sha256": "00f03a616da7e8ae2a44f5a9a386a21b705ff74118a64bd72734504db23e40c1"
+    },
+    "product_profile_contradiction": {
+      "status": "CORPUS_CONFIRMED",
+      "current_code": "Dmc3DdsSafety{min_dimension=64,max_dimension=1024}",
+      "finding": "The scalar 1024 maximum rejects a preserved 1024x2048 DXT5 corpus image.",
+      "boundary": "Do not infer universal 2048 runtime acceptance from one corpus specimen."
+    }
+  },
+  "scm_geometry": {
+    "historical_zip": {
+      "scm_paths": 77,
+      "unique_scm_sha256": 67,
+      "triangle_count_rule": "For the retail topology domain {0,2}, every vertex index >=2 whose topology byte does not contain 0x02 contributes one non-degenerate strip triangle."
+    },
+    "observed_maxima_67_unique": {
+      "objects_per_scm": {
+        "value": 44,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      },
+      "scene_nodes_per_scm": {
+        "value": 50,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      },
+      "meshes_per_scm": {
+        "value": 77,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      },
+      "vertices_per_scm": {
+        "value": 23049,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      },
+      "triangles_per_scm": {
+        "value": 14261,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      },
+      "vertices_per_mesh": {
+        "value": 10196,
+        "sha256": "19acd303481808efa917ea876358b7d160513721d034ab9a668e36c5fd60b0aa"
+      },
+      "triangles_per_mesh": {
+        "value": 5696,
+        "sha256": "19acd303481808efa917ea876358b7d160513721d034ab9a668e36c5fd60b0aa"
+      },
+      "vertices_per_object": {
+        "value": 14125,
+        "sha256": "19acd303481808efa917ea876358b7d160513721d034ab9a668e36c5fd60b0aa"
+      },
+      "triangles_per_object": {
+        "value": 9619,
+        "sha256": "27af3ddf3cf3b1e9aa0b51273507b73e0faedde79c1d5cbacc246418f14c2d9a"
+      },
+      "texture_slots_per_scm": 17
+    },
+    "expanded_68_unique_known_maxima": {
+      "max_file": "st114.scm",
+      "max_file_size": 1038816,
+      "max_vertices_per_scm": 27057,
+      "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d",
+      "triangle_census_status": "OPEN_FOR_ST114"
+    },
+    "serialized_field_ceilings": [
+      {"field":"header.object_count","type":"u8","ceiling":255,"status":"STRUCTURAL_CONFIRMED"},
+      {"field":"header.scene_node_count","type":"u8","ceiling":255,"status":"STRUCTURAL_CONFIRMED"},
+      {"field":"header.texture_slot_count","type":"u8","ceiling":255,"status":"STRUCTURAL_CONFIRMED"},
+      {"field":"object.mesh_count","type":"u8","ceiling":255,"status":"STRUCTURAL_CONFIRMED"},
+      {"field":"object.total_vertex_count","type":"u16","ceiling":65535,"status":"STRUCTURAL_CONFIRMED"},
+      {"field":"mesh.vertex_count","type":"u16","ceiling":65535,"status":"STRUCTURAL_CONFIRMED"}
+    ],
+    "derived_topology_ceiling": {
+      "single_contiguous_mesh_non_degenerate_triangles": 65533,
+      "status": "STRUCTURAL_DERIVED",
+      "warning": "Not an executable allocation or rendering acceptance claim."
+    }
+  },
+  "ptx_runtime": {
+    "payload": {
+      "size": "0x208",
+      "record_pointer_slots": 64,
+      "texture_count_offset": "0x200",
+      "records_per_texture_offset": "0x204",
+      "status": "EXE_CONFIRMED"
+    },
+    "global_record_pool": {
+      "record_count": 128,
+      "record_stride": "0x50",
+      "first_record": "0x140D5FB70",
+      "last_record": "0x140D62320",
+      "status": "EXE_CONFIRMED"
+    },
+    "scratch_record_pointers": {
+      "count": 4,
+      "base": "0x140D6C698",
+      "status": "EXE_CONFIRMED"
+    },
+    "runtime_texture_descriptor": {
+      "stride": "0x40",
+      "source_record_pointer_lanes": 4,
+      "status": "EXE_CONFIRMED"
+    },
+    "boundary": "64 record pointers is not automatically a 64-texture limit; practical bundle capacity depends on records_per_texture."
+  },
+  "ps2_legacy_reference": {
+    "tex0_tw_bits": 4,
+    "tex0_th_bits": 4,
+    "spec_dimension_ceiling": "1024x1024",
+    "sources": [
+      "ps2dev/ps2sdk common/include/gs_gp.h GS_SET_TEX0",
+      "PCSX2/pcsx2 pcsx2/GS/GSState.cpp TEX0 handler: spec max exponent 10"
+    ],
+    "boundary": "Do not reuse the PS2 GS ceiling as the DMC3 HD DDS ceiling."
+  },
+  "hd_renderer_boundary": {
+    "scm_to_d3d11_shader_bind": {
+      "status": "EXE_CONFIRMED",
+      "path": "SCM compatibility commands -> 0x140044310 -> 0x140045FE0 -> VSSetShader/PSSetShader"
+    },
+    "exact_scm_texture_srv_sampler_source_binding": "OPEN"
+  },
+  "open_frontier": [
+    "Exact dmc3.exe texture dimension acceptance beyond the observed corpus.",
+    "Live PTX records_per_texture distribution and practical textures-per-bundle ceiling.",
+    "Oversized SCM allocation/normalization/draw failure threshold.",
+    "Simultaneously resident and visible room/frame geometry budget.",
+    "Compatibility command/draw-call buffer ceilings.",
+    "HD GPU/system-memory exhaustion behavior.",
+    "Original PS2 DMC3 limits as a distinct profile from DMC3 HD."
+  ]
+}
