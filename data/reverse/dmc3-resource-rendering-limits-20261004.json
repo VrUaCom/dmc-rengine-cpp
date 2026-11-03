@@ -1,0 +1,215 @@
+{
+  "schema": "dmc-rengine.dmc3-resource-rendering-limits.v1",
+  "date": "2026-10-04",
+  "branch": "research/dmc3-resource-rendering-limits-20261004",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "principle": "hardware limits, serialized limits, runtime storage limits, observed corpus maxima, and HD backend limits are separate authorities",
+  "scm": {
+    "serialized": {
+      "object_count": {
+        "field": "u8 header+0x10",
+        "encoded_max": 255,
+        "status": "EXE_CONFIRMED_FIELD_WIDTH"
+      },
+      "scene_node_count": {
+        "field": "u8 header+0x11",
+        "encoded_max": 255,
+        "status": "EXE_CONFIRMED_FIELD_WIDTH"
+      },
+      "texture_slot_mirror": {
+        "field": "u8 header+0x12",
+        "encoded_max": 255,
+        "status": "EXE_AND_CORPUS_CONFIRMED_MIRROR"
+      },
+      "meshes_per_object": {
+        "field": "u8 object+0x00",
+        "encoded_max": 255,
+        "status": "EXE_CONFIRMED_FIELD_WIDTH"
+      },
+      "vertices_per_object": {
+        "field": "u16 object+0x02",
+        "encoded_max": 65535,
+        "status": "STRUCTURAL_CONFIRMED"
+      },
+      "vertices_per_mesh": {
+        "field": "u16 mesh+0x00",
+        "encoded_max": 65535,
+        "status": "STRUCTURAL_CONFIRMED"
+      },
+      "texture_index": {
+        "field": "u16 mesh+0x02",
+        "encoded_max": 65535,
+        "status": "EXE_CONFIRMED_FIELD_WIDTH"
+      },
+      "generated_index_count": {
+        "field": "u32 mesh+0x48 runtime",
+        "status": "EXE_AND_CORPUS_CONFIRMED"
+      }
+    },
+    "derived_structural": {
+      "object_vertex_invariant": "object.total_vertex_count == sum(mesh.vertex_count)",
+      "max_non_degenerate_triangles_per_single_strip_mesh": 65533,
+      "workspace_capacity_at_vertex_count_65535": 393200,
+      "object_binding_encoding": "signed i8: -1 or 0..127",
+      "max_bindable_geometry_objects": 128,
+      "max_bindable_geometry_objects_status": "STRUCTURAL_CONFIRMED_DERIVATION",
+      "parent_encoding": "signed i8: root -1, non-root parent 0..127",
+      "note": "scene nodes above index 127 may be representable by the u8 order array but cannot be named as parents by the confirmed signed-i8 parent representation"
+    },
+    "corpus_68_unique": {
+      "unique_scm": 68,
+      "objects_total": 254,
+      "meshes_total": 481,
+      "scene_nodes_total": 328,
+      "vertices_total": 182612,
+      "largest_file": {
+        "name": "st114.scm",
+        "size": 1038816,
+        "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d"
+      },
+      "max_vertices_per_mesh": 10196,
+      "texture_slot_counts": [
+        6,
+        16,
+        17
+      ],
+      "status": "CORPUS_CONFIRMED"
+    },
+    "consolidated_corpus": {
+      "max_vertices_per_file_observed": 27057,
+      "status": "CORPUS_CONFIRMED"
+    }
+  },
+  "mod": {
+    "corpus_38_unique": {
+      "unique_mods": 38,
+      "objects_total": 166,
+      "meshes_total": 180,
+      "vertices_total": 20976,
+      "max_vertices_per_mesh_observed": 773,
+      "largest_supplied_model_vertices": 5316,
+      "largest_supplied_model_label": "pl000 main",
+      "status": "CORPUS_CONFIRMED_BOUNDED"
+    },
+    "serialized_note": "object and mesh aggregate/element counts use u16 domains; exact original-runtime stress ceiling remains open"
+  },
+  "ptx": {
+    "payload": {
+      "size": 520,
+      "record_pointer_slots": 64,
+      "texture_count_offset": 512,
+      "records_per_texture_offset": 516,
+      "status": "EXE_CONFIRMED",
+      "correction": "64 slots are runtime record pointers, not 64 textures",
+      "indexing": "texture_index * first_records_per_texture + record_index"
+    },
+    "global_pool": {
+      "record_count": 128,
+      "record_stride": 80,
+      "base": "0x140D5FB70",
+      "occupancy_map_offset": 10240,
+      "status": "EXE_CONFIRMED"
+    },
+    "scratch": {
+      "pointer_slots": 4,
+      "verified_record_counts": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "status": "EXE_CONFIRMED_LAYOUT_WITH_BOUNDED_DIFFERENTIAL_TESTS"
+    },
+    "bundle_framing": {
+      "header_size": 2048,
+      "count_field": "u32",
+      "sector_span_entry_bytes": 4,
+      "physical_table_max_entries": 511,
+      "status": "STRUCTURAL_CONFIRMED"
+    }
+  },
+  "textures": {
+    "historical_archive": {
+      "name": "DMC 3 RENGINE (6).zip",
+      "size": 237658858,
+      "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+      "dds_paths": 243,
+      "unique_dds_sha256": 154,
+      "observed_dimensions": [
+        "128x64",
+        "128x128",
+        "256x128",
+        "256x256",
+        "256x512",
+        "512x256",
+        "512x512",
+        "1024x1024",
+        "1024x2048"
+      ],
+      "compression": [
+        "DXT1",
+        "DXT5"
+      ],
+      "status": "CORPUS_CONFIRMED"
+    },
+    "largest_observed_dds": {
+      "path": "analysis_inputs/stage_drops/plwp_grenade/plwp_grenade_000/plwp_grenade_000_000.dds",
+      "size": 2796368,
+      "width": 1024,
+      "height": 2048,
+      "mip_count": 12,
+      "compression": "DXT5",
+      "sha256": "00f03a616da7e8ae2a44f5a9a386a21b705ff74118a64bd72734504db23e40c1",
+      "status": "CORPUS_CONFIRMED"
+    },
+    "current_product_profile_conflict": {
+      "current_rule": "Dmc3DdsSafety min_dimension=64 max_dimension=1024",
+      "result": "rejects a preserved 1024x2048 corpus DDS",
+      "classification": "PRODUCT_PROFILE_BUG",
+      "warning": "do not infer a symmetric 2048x2048 authoring envelope from one 1024x2048 specimen"
+    }
+  },
+  "ps2_legacy": {
+    "gs_edram_bytes": 4194304,
+    "gs_texture_axis_normal_max": 1024,
+    "tex0_tw_th_normal_max_exponent": 10,
+    "dmc3_compatibility_helper": "0x140331070",
+    "helper_exponent_domain_max": 10,
+    "status": [
+      "HARDWARE_SPEC_CORROBORATED",
+      "EXE_CONFIRMED_HELPER_DOMAIN"
+    ],
+    "rejected_claim": "all DMC3 HD DDS resources are limited to 1024x1024"
+  },
+  "runtime_open": [
+    "maximum total triangles drawn in one DMC3 frame",
+    "maximum total SCM vertices simultaneously loaded in one room",
+    "maximum MOD vertices accepted under original-runtime stress",
+    "maximum simultaneously resident PTX records under representative full scene load",
+    "exact HD D3D11 texture dimension and byte-size ceiling",
+    "exact object/mesh/node manager allocation failure thresholds",
+    "exact VIF/DMA/draw-packet chunk ceilings inherited from the PS2-origin pipeline",
+    "original-game acceptance at structural maxima"
+  ],
+  "next_experiments": [
+    "recover allocation-size arithmetic/failure gates around 0x1402F9570 and 0x140303C10",
+    "stress SCM mesh vertices 10196 -> 16384 -> 32768 -> 65535",
+    "stress SCM object count through 128 and characterize/reject 129",
+    "census texture_count * records_per_texture across representative stage/player/enemy PTX bundles",
+    "trace the 1024x2048 grenade DDS to D3D11 resource creation",
+    "recover CreateTexture2D width/height inputs and pre-call DMC3 clamps"
+  ],
+  "product_rule": {
+    "expose": [
+      "observed_retail_maximum",
+      "confirmed_structural_maximum",
+      "confirmed_runtime_safe_maximum"
+    ],
+    "unknown_runtime_policy": "UNKNOWN / NOT_STRESS_CONFIRMED"
+  }
+}
