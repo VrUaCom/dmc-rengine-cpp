@@ -234,7 +234,8 @@ void test_hits_workspace() {
         });
     assert(workspace.valid());
     assert(workspace.status() == WorkspaceStatus::read_only);
-    assert(has_route(workspace, ToolTarget::stage_ops, ToolRouteRole::primary));
+    assert(has_route(workspace, ToolTarget::hits_editor, ToolRouteRole::primary));
+    assert(has_route(workspace, ToolTarget::stage_ops, ToolRouteRole::companion));
     assert(has_route(workspace, ToolTarget::gdspaces));
     assert(has_route(workspace, ToolTarget::binary_inspector));
 

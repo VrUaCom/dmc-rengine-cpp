@@ -34,7 +34,7 @@ OpenRouter::OpenRouter() {
     set_route("dca", ToolTarget::stage_ops);
     set_route("lig", ToolTarget::stage_ops);
     set_route("lig2", ToolTarget::stage_ops);
-    set_route("hits", ToolTarget::stage_ops);
+    set_route("hits", ToolTarget::hits_editor);
     set_route("txt", ToolTarget::stage_ops);
 }
 
@@ -51,11 +51,18 @@ ToolTarget OpenRouter::route(const OpenRequest& request) const {
         return ToolTarget::modviz_menu;
     }
 
+    const auto format = normalized_format(request.resource.format);
+    if (format == "hits") {
+        // HITS authoring has its own product surface. Stage Ops remains a
+        // companion context provider rather than taking ownership of editing.
+        return ToolTarget::hits_editor;
+    }
+
     if (request.stage_context) {
         return ToolTarget::stage_ops;
     }
 
-    const auto iterator = routes_.find(normalized_format(request.resource.format));
+    const auto iterator = routes_.find(format);
     return iterator == routes_.end()
         ? ToolTarget::binary_inspector
         : iterator->second;

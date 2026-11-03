@@ -18,6 +18,7 @@ enum class ToolCapability {
     scene_editing,
     menu_editing,
     item_editing,
+    hits_editing,
     create_working_copy,
     create_patch_plan,
     validate_and_test,
@@ -35,6 +36,7 @@ enum class ToolCapability {
     case ToolCapability::scene_editing: return "scene-editing";
     case ToolCapability::menu_editing: return "menu-editing";
     case ToolCapability::item_editing: return "item-editing";
+    case ToolCapability::hits_editing: return "hits-editing";
     case ToolCapability::create_working_copy: return "create-working-copy";
     case ToolCapability::create_patch_plan: return "create-patch-plan";
     case ToolCapability::validate_and_test: return "validate-and-test";
