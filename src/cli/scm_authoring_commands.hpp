@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/core/floating_parse.hpp"
 #include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/formats/scm_edit.hpp"
@@ -35,12 +36,7 @@ namespace scm_authoring_detail {
 [[nodiscard]] inline bool parse_float(
     std::string_view text,
     float& value) noexcept {
-    if (text.empty()) return false;
-    const auto* first = text.data();
-    const auto* last = text.data() + text.size();
-    const auto result = std::from_chars(
-        first, last, value, std::chars_format::general);
-    return result.ec == std::errc{} && result.ptr == last &&
+    return dmc::rengine::core::parse_floating(text, value) &&
            std::isfinite(value);
 }
 

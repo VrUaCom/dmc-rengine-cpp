@@ -170,7 +170,8 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - documented that `HITS$` and `0x18060001` as a universal record marker are rejected historical assumptions;
 - removed the obsolete public-lore model that treated the Sect as an AI-only inner wing and used `Monks of Reverse` as the contributor identity;
 - removed the new Binary Inspector aggregate-initialization warning by fully initializing `ByteDiffResult`;
-- corrected status documentation that still described Binary Inspector Diff and entropy analysis as unimplemented after Wave 1.
+- corrected status documentation that still described Binary Inspector Diff and entropy analysis as unimplemented after Wave 1;
+- fixed the macOS (Apple libc++) build, which lacks floating-point `std::from_chars`: JSON and SCM float parsing now go through `core::parse_floating`, with a classic-locale fallback that keeps `from_chars` semantics.
 
 ### Research boundaries
 

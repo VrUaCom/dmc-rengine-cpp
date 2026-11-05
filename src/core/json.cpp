@@ -1,5 +1,7 @@
 #include "dmc_rengine/core/json.hpp"
 
+#include "dmc_rengine/core/floating_parse.hpp"
+
 #include <charconv>
 #include <cmath>
 #include <limits>
@@ -371,12 +373,7 @@ private:
         const auto token = input_.substr(begin, position_ - begin);
         if (floating) {
             double value = 0.0;
-            const auto conversion = std::from_chars(
-                token.data(), token.data() + token.size(), value,
-                std::chars_format::general);
-            if (conversion.ec != std::errc{} ||
-                conversion.ptr != token.data() + token.size() ||
-                !std::isfinite(value)) {
+            if (!core::parse_floating(token, value) || !std::isfinite(value)) {
                 fail("JSON floating-point number is outside the supported range.");
                 return std::nullopt;
             }
