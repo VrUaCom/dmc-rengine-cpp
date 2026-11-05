@@ -161,6 +161,10 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - Binary Inspector Web → C++20 cross-port rules, parity tracking, and Wave 1–4 plan;
 - current status and machine-readable state reconciled after PR #47.
 
+### Removed
+
+- moved phase-1 reconstructed modules (`src/reverse`, `include/dmc_rengine/reverse`, `tests/reverse` bridges, `runtime_block_arena` test, `scripts/reverse/verify_ptx_*`, `verify_crt_lifecycle`, and the PTX audits that depend on them) to a private reconstruction repository. Code derived from the original executable no longer ships in this public repository. Tools, format readers and evidence stay here.
+
 ### Fixed
 
 - corrected Evidence JSON escaped-newline test expectation;
