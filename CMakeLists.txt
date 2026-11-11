@@ -122,6 +122,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         sha256
         patch
         json_parser
+        floating_parse
         evidence_json
         evidence_json_import
         evidence_packet_project
